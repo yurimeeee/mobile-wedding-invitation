@@ -3,6 +3,8 @@ export interface EditorState {
   weddingInfo: WeddingInfo
   musicSettings: MusicSettings
   gallery: GalleryImage[]
+  calendarSettings: CalendarSettings
+  shareSettings: ShareSettings
 }
 
 export type TemplateType =
@@ -49,6 +51,21 @@ export interface GalleryImage {
   url: string
   caption?: string
   order: number
+}
+
+export interface CalendarSettings {
+  calendarDisplay: boolean
+  countdownDisplay: boolean
+  dDayDisplay: boolean
+}
+
+export interface ShareSettings {
+  kakaoTitle: string
+  kakaoDesc: string
+  kakaoImg: string
+  linkTitle: string
+  linkDesc: string
+  linkImg: string
 }
 
 export interface MusicSettings {
@@ -108,6 +125,21 @@ export const defaultWeddingInfo: WeddingInfo = {
   brideBankName: '국민은행',
   latitude: 37.5548,
   longitude: 127.0017,
+}
+
+export const defaultCalendarSettings: CalendarSettings = {
+  calendarDisplay: true,
+  countdownDisplay: true,
+  dDayDisplay: true,
+}
+
+export const defaultShareSettings: ShareSettings = {
+  kakaoTitle: '',
+  kakaoDesc: '',
+  kakaoImg: '',
+  linkTitle: '',
+  linkDesc: '',
+  linkImg: '',
 }
 
 export const defaultMusicSettings: MusicSettings = {

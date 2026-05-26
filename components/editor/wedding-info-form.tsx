@@ -1,19 +1,23 @@
 'use client';
 
-import { type WeddingInfo } from '@/lib/types';
+import { type WeddingInfo, type CalendarSettings } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { User, Calendar, MapPin, Phone, CreditCard, Users } from 'lucide-react';
 import { AddressSearch } from '@/components/editor/kakao-map';
+import { DatePicker, TimePicker } from '@/components/editor/date-time-picker';
 
 interface WeddingInfoFormProps {
   info: WeddingInfo;
   onChange: (updates: Partial<WeddingInfo>) => void;
+  calendarSettings: CalendarSettings;
+  onCalendarChange: (updates: Partial<CalendarSettings>) => void;
 }
 
-export function WeddingInfoForm({ info, onChange }: WeddingInfoFormProps) {
+export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarChange }: WeddingInfoFormProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -97,9 +101,32 @@ export function WeddingInfoForm({ info, onChange }: WeddingInfoFormProps) {
             </div>
             <div className="space-y-2">
               <Label>예식 일시</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <Input type="date" value={info.weddingDate} onChange={(e) => onChange({ weddingDate: e.target.value })} />
-                <Input type="time" value={info.weddingTime} onChange={(e) => onChange({ weddingTime: e.target.value })} />
+              <DatePicker value={info.weddingDate} onChange={(v) => onChange({ weddingDate: v })} />
+              <TimePicker value={info.weddingTime} onChange={(v) => onChange({ weddingTime: v })} />
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <Label className="text-muted-foreground text-xs">날짜 섹션 표시 설정</Label>
+              <div className="flex items-center justify-between">
+                <Label className="font-normal">달력 표시</Label>
+                <Switch
+                  checked={calendarSettings.calendarDisplay}
+                  onCheckedChange={(v) => onCalendarChange({ calendarDisplay: v })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="font-normal">카운트다운 표시</Label>
+                <Switch
+                  checked={calendarSettings.countdownDisplay}
+                  onCheckedChange={(v) => onCalendarChange({ countdownDisplay: v })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="font-normal">D-Day 표시</Label>
+                <Switch
+                  checked={calendarSettings.dDayDisplay}
+                  onCheckedChange={(v) => onCalendarChange({ dDayDisplay: v })}
+                />
               </div>
             </div>
           </AccordionContent>

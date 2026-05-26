@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Monitor, Phone, MapPin, Calendar, MessageSquare, Copy, Share2, Music, ChevronDown, Heart } from 'lucide-react';
+import { Smartphone, Monitor, Phone, MapPin, Calendar, MessageSquare, ChevronDown, Heart, Music } from 'lucide-react';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import { type TemplateType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
+import { WeddingCalendar } from '@/components/editor/wedding-calendar';
+import { ShareSection } from '@/components/editor/share-section';
 
 interface InvitationPreviewProps {
   state: EditorState;
@@ -99,6 +101,8 @@ export function InvitationPreview({ state }: InvitationPreviewProps) {
                     template={template}
                     musicSettings={musicSettings}
                     gallery={state.gallery}
+                    calendarSettings={state.calendarSettings}
+                    shareSettings={state.shareSettings}
                   />
                 </div>
               </div>
@@ -120,6 +124,8 @@ export function InvitationPreview({ state }: InvitationPreviewProps) {
                 template={template}
                 musicSettings={musicSettings}
                 gallery={state.gallery}
+                calendarSettings={state.calendarSettings}
+                shareSettings={state.shareSettings}
                 isDesktop
               />
             </motion.div>
@@ -138,10 +144,12 @@ interface PreviewContentProps {
   template: TemplateType;
   musicSettings: EditorState['musicSettings'];
   gallery: GalleryImage[];
+  calendarSettings: EditorState['calendarSettings'];
+  shareSettings: EditorState['shareSettings'];
   isDesktop?: boolean;
 }
 
-function PreviewContent({ info, styles, formatDate, formatTime, template, musicSettings, gallery, isDesktop }: PreviewContentProps) {
+function PreviewContent({ info, styles, formatDate, formatTime, template, musicSettings, gallery, calendarSettings, shareSettings, isDesktop }: PreviewContentProps) {
   const isDark = template === 'dark-luxury';
   const mainImage = gallery.length > 0 ? gallery[0] : null;
 
@@ -179,13 +187,14 @@ function PreviewContent({ info, styles, formatDate, formatTime, template, musicS
         <p className={cn('font-serif whitespace-pre-line leading-relaxed', isDesktop ? 'text-lg' : 'text-sm')}>{info.mainPhrase}</p>
       </div>
 
-      {/* Date & Time */}
-      <div className={cn('mx-4 p-4 rounded-lg text-center mb-6', isDark ? 'bg-white/5' : 'bg-black/5')}>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Calendar className="h-4 w-4" />
-          <span className="font-medium">{formatDate(info.weddingDate)}</span>
-        </div>
-        <p className={cn('text-sm', isDark ? 'text-gray-400' : 'opacity-70')}>{formatTime(info.weddingTime)}</p>
+      {/* Calendar & Countdown */}
+      <div className={cn('mx-4 p-4 rounded-lg mb-6', isDark ? 'bg-white/5' : 'bg-black/5')}>
+        <WeddingCalendar
+          weddingDate={info.weddingDate}
+          weddingTime={info.weddingTime}
+          settings={calendarSettings}
+          isDark={isDark}
+        />
       </div>
 
       {/* Venue */}
@@ -244,16 +253,9 @@ function PreviewContent({ info, styles, formatDate, formatTime, template, musicS
         <p className="text-xs opacity-80 mt-1">RSVP</p>
       </div>
 
-      {/* Share buttons */}
-      <div className="flex gap-2 mx-4 mb-8">
-        <Button variant="outline" size="sm" className={cn('flex-1', isDark ? 'border-white/20 text-white hover:bg-white/10' : '')}>
-          <Copy className="h-3 w-3 mr-1" />
-          {'링크 복사'}
-        </Button>
-        <Button variant="outline" size="sm" className={cn('flex-1', isDark ? 'border-white/20 text-white hover:bg-white/10' : '')}>
-          <Share2 className="h-3 w-3 mr-1" />
-          {'카카오톡'}
-        </Button>
+      {/* Share */}
+      <div className="mx-4 mb-8">
+        <ShareSection shareSettings={shareSettings} weddingInfo={info} isDark={isDark} />
       </div>
 
       {/* Music indicator */}

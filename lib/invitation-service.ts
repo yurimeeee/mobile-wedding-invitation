@@ -5,6 +5,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
 import type { EditorState, GalleryImage } from './types'
+import { defaultCalendarSettings, defaultShareSettings } from './types'
 
 async function uploadNewImages(
   uid: string,
@@ -45,6 +46,8 @@ export async function saveInvitation(
       weddingInfo: state.weddingInfo,
       musicSettings: state.musicSettings,
       gallery,
+      calendarSettings: state.calendarSettings,
+      shareSettings: state.shareSettings,
       status,
       updatedAt: serverTimestamp(),
       ...(!snap.exists() && { createdAt: serverTimestamp() }),
@@ -64,6 +67,8 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     weddingInfo: data.weddingInfo,
     musicSettings: data.musicSettings,
     gallery: data.gallery ?? [],
+    calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
+    shareSettings: data.shareSettings ?? defaultShareSettings,
   }
 }
 

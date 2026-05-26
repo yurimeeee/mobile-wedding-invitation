@@ -16,6 +16,7 @@ import { MusicControls } from '@/components/editor/music-controls';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TemplateSelector } from '@/components/editor/template-selector';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
+import { ShareSettingsForm } from '@/components/editor/share-settings-form';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
@@ -67,6 +68,8 @@ export default function EditorPage() {
     addGalleryImage,
     removeGalleryImage,
     reorderGallery,
+    updateCalendarSettings,
+    updateShareSettings,
   } = useEditorState(invitationId);
 
   const sections = [
@@ -74,6 +77,7 @@ export default function EditorPage() {
     { id: 'info', label: '정보', icon: FileText },
     { id: 'gallery', label: '갤러리', icon: Image },
     { id: 'music', label: '음악', icon: Music },
+    { id: 'share', label: '공유', icon: Share2 },
   ];
 
   const SaveStatus = () => (
@@ -130,9 +134,15 @@ export default function EditorPage() {
           <AnimatePresence mode="wait">
             {mobileTab === 'edit' && (
               <motion.div key="edit" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-6">
-                <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} />
+                <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
                 <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
                 <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
+                <ShareSettingsForm
+                  shareSettings={state.shareSettings}
+                  calendarSettings={state.calendarSettings}
+                  onShareChange={updateShareSettings}
+                  onCalendarChange={updateCalendarSettings}
+                />
               </motion.div>
             )}
             {mobileTab === 'preview' && (
@@ -230,13 +240,21 @@ export default function EditorPage() {
                   <TemplateSelector selected={state.template} onSelect={setTemplate} />
                 </TabsContent>
                 <TabsContent value="info" className="mt-0">
-                  <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} />
+                  <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
                 </TabsContent>
                 <TabsContent value="gallery" className="mt-0">
                   <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
                 </TabsContent>
                 <TabsContent value="music" className="mt-0">
                   <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
+                </TabsContent>
+                <TabsContent value="share" className="mt-0">
+                  <ShareSettingsForm
+                    shareSettings={state.shareSettings}
+                    calendarSettings={state.calendarSettings}
+                    onShareChange={updateShareSettings}
+                    onCalendarChange={updateCalendarSettings}
+                  />
                 </TabsContent>
               </Tabs>
             </div>

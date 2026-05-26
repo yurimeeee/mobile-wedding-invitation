@@ -10,8 +10,12 @@ import {
   type WeddingInfo,
   type MusicSettings,
   type GalleryImage,
+  type CalendarSettings,
+  type ShareSettings,
   defaultWeddingInfo,
   defaultMusicSettings,
+  defaultCalendarSettings,
+  defaultShareSettings,
   templates,
 } from '@/lib/types'
 
@@ -22,6 +26,8 @@ const initialState: EditorState = {
   weddingInfo: defaultWeddingInfo,
   musicSettings: defaultMusicSettings,
   gallery: [],
+  calendarSettings: defaultCalendarSettings,
+  shareSettings: defaultShareSettings,
 }
 
 export function useEditorState(invitationId: string) {
@@ -103,6 +109,16 @@ export function useEditorState(invitationId: string) {
     bumpEdit()
   }
 
+  const updateCalendarSettings = (updates: Partial<CalendarSettings>) => {
+    setState((prev) => ({ ...prev, calendarSettings: { ...prev.calendarSettings, ...updates } }))
+    bumpEdit()
+  }
+
+  const updateShareSettings = (updates: Partial<ShareSettings>) => {
+    setState((prev) => ({ ...prev, shareSettings: { ...prev.shareSettings, ...updates } }))
+    bumpEdit()
+  }
+
   // --- Manual save / publish ---
   const saveDraft = async () => {
     const user = auth.currentUser
@@ -150,6 +166,8 @@ export function useEditorState(invitationId: string) {
     addGalleryImage,
     removeGalleryImage,
     reorderGallery,
+    updateCalendarSettings,
+    updateShareSettings,
     templates,
   }
 }
