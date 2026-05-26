@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { motion } from 'framer-motion';
+import { TemplateThumbnail } from '@/components/editor/template-thumbnail';
+import { type TemplateType, templates } from '@/lib/types';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -223,31 +225,28 @@ export default function LandingPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { name: '클래식 엘레강스', gradient: 'from-amber-50 to-amber-100' },
-              { name: '모던 미니멀', gradient: 'from-gray-50 to-gray-100' },
-              { name: '플로럴 로맨틱', gradient: 'from-rose-50 to-rose-100' },
-              { name: '다크 럭셔리', gradient: 'from-gray-800 to-gray-900' },
-              { name: '한국 전통', gradient: 'from-orange-50 to-orange-100' },
-            ].map((template, index) => (
+            {templates.map((template, index) => (
               <motion.div
-                key={template.name}
+                key={template.id}
                 className="group relative"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className={`aspect-[3/4] rounded-xl bg-gradient-to-br ${template.gradient} border border-border overflow-hidden`}>
-                  <div className={`p-6 h-full flex flex-col items-center justify-center ${template.gradient.includes('gray-800') ? 'text-white' : ''}`}>
-                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur mb-4" />
-                    <div className="h-2 w-24 bg-current/20 rounded mb-2" />
-                    <div className="h-2 w-16 bg-current/20 rounded" />
+                <Link href="/signup">
+                  <motion.div
+                    className="aspect-[3/4] rounded-xl border border-border overflow-hidden cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <TemplateThumbnail id={template.id} />
+                  </motion.div>
+                  <div className="mt-3">
+                    <h3 className="font-medium">{template.nameKr}</h3>
+                    <p className="text-sm text-muted-foreground">{template.name}</p>
                   </div>
-                </div>
-                <div className="mt-3">
-                  <h3 className="font-medium">{template.name}</h3>
-                </div>
+                </Link>
               </motion.div>
             ))}
           </div>
