@@ -19,7 +19,10 @@ export default function InvitationViewPage() {
         if (data) setState(data)
         else setNotFound(true)
       })
-      .catch(() => setNotFound(true))
+      .catch((err) => {
+        console.error('[invitation view] load error:', err)
+        setNotFound(true)
+      })
   }, [id])
 
   if (notFound) {
