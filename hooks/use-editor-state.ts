@@ -36,7 +36,7 @@ export function useEditorState(invitationId: string) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
-  const [isLoading, setIsLoading] = useState(invitationId !== 'new')
+  const [isLoading, setIsLoading] = useState(!!invitationId)
 
   // Ref to track latest state without triggering effects
   const stateRef = useRef(state)
@@ -48,7 +48,7 @@ export function useEditorState(invitationId: string) {
 
   // Load existing invitation from Firestore
   useEffect(() => {
-    if (invitationId === 'new') return
+    if (!invitationId) return
     loadInvitation(invitationId)
       .then((data) => {
         if (data) setState(data)
@@ -59,7 +59,7 @@ export function useEditorState(invitationId: string) {
 
   // Auto-save (debounced, triggers only on user edits)
   useEffect(() => {
-    if (!editCount || invitationId === 'new' || isLoading) return
+    if (!editCount || !invitationId || isLoading) return
     const user = auth.currentUser
     if (!user) return
 
@@ -128,7 +128,7 @@ export function useEditorState(invitationId: string) {
   // --- Manual save / publish ---
   const saveDraft = async () => {
     const user = auth.currentUser
-    if (!user || invitationId === 'new') return
+    if (!user || !invitationId) return
     setIsActionLoading(true)
     try {
       const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
@@ -144,7 +144,7 @@ export function useEditorState(invitationId: string) {
 
   const publish = async (): Promise<string | null> => {
     const user = auth.currentUser
-    if (!user || invitationId === 'new') return null
+    if (!user || !invitationId) return null
     setIsActionLoading(true)
     try {
       const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')

@@ -5,7 +5,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
 import type { EditorState, GalleryImage } from './types'
-import { defaultCalendarSettings, defaultShareSettings } from './types'
+import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings } from './types'
 
 async function uploadNewImages(
   uid: string,
@@ -64,9 +64,9 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
   if (!snap.exists()) return null
   const data = snap.data()
   return {
-    template: data.template,
-    weddingInfo: data.weddingInfo,
-    musicSettings: data.musicSettings,
+    template: data.template ?? 'classic-elegant',
+    weddingInfo: data.weddingInfo ?? defaultWeddingInfo,
+    musicSettings: data.musicSettings ?? defaultMusicSettings,
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
@@ -139,9 +139,9 @@ export async function loadInvitationBySlug(slug: string): Promise<{ state: Edito
   return {
     id: docSnap.id,
     state: {
-      template: data.template,
-      weddingInfo: data.weddingInfo,
-      musicSettings: data.musicSettings,
+      template: data.template ?? 'classic-elegant',
+      weddingInfo: data.weddingInfo ?? defaultWeddingInfo,
+      musicSettings: data.musicSettings ?? defaultMusicSettings,
       gallery: data.gallery ?? [],
       calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
       shareSettings: data.shareSettings ?? defaultShareSettings,

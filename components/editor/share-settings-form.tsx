@@ -64,12 +64,13 @@ const SLUG_REGEX = /^[a-z0-9-]+$/
 
 function SlugInput({ slug, invitationId, onChange }: { slug: string; invitationId: string; onChange: (v: string) => void }) {
   const [input, setInput] = useState(slug)
-  const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'error'>('idle')
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
 
   useEffect(() => { setInput(slug) }, [slug])
 
   useEffect(() => {
+    if (!invitationId) return
     const trimmed = input.trim()
     if (!trimmed) { setStatus('idle'); return }
     if (!SLUG_REGEX.test(trimmed) || trimmed.length < 2) { setStatus('invalid'); return }
@@ -81,7 +82,7 @@ function SlugInput({ slug, invitationId, onChange }: { slug: string; invitationI
         setStatus(ok ? 'available' : 'taken')
         if (ok) onChange(trimmed)
       } catch {
-        setStatus('idle')
+        setStatus('error')
       }
     }, 600)
     return () => clearTimeout(timer)
@@ -92,6 +93,7 @@ function SlugInput({ slug, invitationId, onChange }: { slug: string; invitationI
     available: <Check className="h-4 w-4 text-green-500" />,
     taken: <X className="h-4 w-4 text-destructive" />,
     invalid: <X className="h-4 w-4 text-destructive" />,
+    error: <X className="h-4 w-4 text-destructive" />,
     idle: null,
   }[status]
 
@@ -100,12 +102,14 @@ function SlugInput({ slug, invitationId, onChange }: { slug: string; invitationI
     available: '사용 가능한 주소입니다',
     taken: '이미 사용 중인 주소입니다',
     invalid: '영문 소문자, 숫자, 하이픈(-)만 입력 가능합니다',
+    error: '확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요',
     idle: '',
   }[status]
 
   return (
     <div className="space-y-2">
       <Label>청첩장 URL 주소</Label>
+      <p className="text-xs text-muted-foreground">영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다</p>
       <div className="relative">
         <Input
           value={input}
