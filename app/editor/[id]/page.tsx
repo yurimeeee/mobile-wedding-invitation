@@ -73,6 +73,7 @@ export default function EditorPage() {
     reorderGallery,
     updateCalendarSettings,
     updateShareSettings,
+    updateSlug,
   } = useEditorState(invitationId);
 
   const sections = [
@@ -86,7 +87,8 @@ export default function EditorPage() {
   const handlePublish = async () => {
     const id = await publish();
     if (id) {
-      const url = `${window.location.origin}/invitation/${id}`;
+      const identifier = state.slug || id;
+      const url = `${window.location.origin}/invitation/${identifier}`;
       setPublishedUrl(url);
     }
   };
@@ -163,6 +165,9 @@ export default function EditorPage() {
                   calendarSettings={state.calendarSettings}
                   onShareChange={updateShareSettings}
                   onCalendarChange={updateCalendarSettings}
+                  slug={state.slug}
+                  invitationId={invitationId}
+                  onSlugChange={updateSlug}
                 />
               </motion.div>
             )}
@@ -275,6 +280,9 @@ export default function EditorPage() {
                     calendarSettings={state.calendarSettings}
                     onShareChange={updateShareSettings}
                     onCalendarChange={updateCalendarSettings}
+                    slug={state.slug}
+                    invitationId={invitationId}
+                    onSlugChange={updateSlug}
                   />
                 </TabsContent>
               </Tabs>

@@ -3,26 +3,48 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Loader2, Heart } from 'lucide-react'
-import { loadInvitation } from '@/lib/invitation-service'
+import { loadInvitation, loadInvitationBySlug } from '@/lib/invitation-service'
 import { type EditorState } from '@/lib/types'
 import { InvitationFullView } from '@/components/invitation/invitation-full-view'
 
 export default function InvitationViewPage() {
   const { id } = useParams<{ id: string }>()
   const [state, setState] = useState<EditorState | null>(null)
+  const [resolvedId, setResolvedId] = useState<string>('')
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     if (!id) return
-    loadInvitation(id)
-      .then((data) => {
-        if (data) setState(data)
-        else setNotFound(true)
-      })
-      .catch((err) => {
-        console.error('[invitation view] load error:', err)
-        setNotFound(true)
-      })
+
+    async function load() {
+      // 1. 슬러그로 먼저 조회
+      try {
+        const bySlug = await loadInvitationBySlug(id)
+        if (bySlug) {
+          setState(bySlug.state)
+          setResolvedId(bySlug.id)
+          return
+        }
+      } catch (e) {
+        console.error('[invitation] slug lookup error:', e)
+      }
+
+      // 2. 문서 ID로 fallback
+      try {
+        const byId = await loadInvitation(id)
+        if (byId) {
+          setState(byId)
+          setResolvedId(id)
+          return
+        }
+      } catch (e) {
+        console.error('[invitation] id lookup error:', e)
+      }
+
+      setNotFound(true)
+    }
+
+    load()
   }, [id])
 
   if (notFound) {
@@ -42,5 +64,5 @@ export default function InvitationViewPage() {
     )
   }
 
-  return <InvitationFullView state={state} invitationId={id} />
+  return <InvitationFullView state={state} invitationId={resolvedId} />
 }

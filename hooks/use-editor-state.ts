@@ -28,6 +28,7 @@ const initialState: EditorState = {
   gallery: [],
   calendarSettings: defaultCalendarSettings,
   shareSettings: defaultShareSettings,
+  slug: '',
 }
 
 export function useEditorState(invitationId: string) {
@@ -119,6 +120,11 @@ export function useEditorState(invitationId: string) {
     bumpEdit()
   }
 
+  const updateSlug = (slug: string) => {
+    setState((prev) => ({ ...prev, slug }))
+    bumpEdit()
+  }
+
   // --- Manual save / publish ---
   const saveDraft = async () => {
     const user = auth.currentUser
@@ -169,6 +175,7 @@ export function useEditorState(invitationId: string) {
     reorderGallery,
     updateCalendarSettings,
     updateShareSettings,
+    updateSlug,
     templates,
   }
 }

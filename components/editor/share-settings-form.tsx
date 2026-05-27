@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { ImagePlus, MessageCircle, Link } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { ImagePlus, MessageCircle, Link, Check, X, Loader2 } from 'lucide-react'
 import { type ShareSettings, type CalendarSettings } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { checkSlugAvailable } from '@/lib/invitation-service'
 
 interface ShareSettingsFormProps {
   shareSettings: ShareSettings
   calendarSettings: CalendarSettings
   onShareChange: (updates: Partial<ShareSettings>) => void
   onCalendarChange: (updates: Partial<CalendarSettings>) => void
+  slug: string
+  invitationId: string
+  onSlugChange: (slug: string) => void
 }
 
 function ImageUploadBox({
@@ -56,17 +60,104 @@ function ImageUploadBox({
   )
 }
 
+const SLUG_REGEX = /^[a-z0-9-]+$/
+
+function SlugInput({ slug, invitationId, onChange }: { slug: string; invitationId: string; onChange: (v: string) => void }) {
+  const [input, setInput] = useState(slug)
+  const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+
+  useEffect(() => { setInput(slug) }, [slug])
+
+  useEffect(() => {
+    const trimmed = input.trim()
+    if (!trimmed) { setStatus('idle'); return }
+    if (!SLUG_REGEX.test(trimmed) || trimmed.length < 2) { setStatus('invalid'); return }
+
+    setStatus('checking')
+    const timer = setTimeout(async () => {
+      try {
+        const ok = await checkSlugAvailable(trimmed, invitationId)
+        setStatus(ok ? 'available' : 'taken')
+        if (ok) onChange(trimmed)
+      } catch {
+        setStatus('idle')
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [input, invitationId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const statusIcon = {
+    checking: <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />,
+    available: <Check className="h-4 w-4 text-green-500" />,
+    taken: <X className="h-4 w-4 text-destructive" />,
+    invalid: <X className="h-4 w-4 text-destructive" />,
+    idle: null,
+  }[status]
+
+  const statusMsg = {
+    checking: '',
+    available: '사용 가능한 주소입니다',
+    taken: '이미 사용 중인 주소입니다',
+    invalid: '영문 소문자, 숫자, 하이픈(-)만 입력 가능합니다',
+    idle: '',
+  }[status]
+
+  return (
+    <div className="space-y-2">
+      <Label>청첩장 URL 주소</Label>
+      <div className="relative">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+          placeholder="my-wedding-2026"
+          className="pr-8"
+        />
+        {statusIcon && (
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2">{statusIcon}</span>
+        )}
+      </div>
+      {statusMsg && (
+        <p className={`text-xs ${status === 'available' ? 'text-green-600' : 'text-destructive'}`}>
+          {statusMsg}
+        </p>
+      )}
+      {input && status === 'available' && (
+        <p className="text-xs text-muted-foreground break-all">
+          {origin}/invitation/<span className="font-medium text-foreground">{input}</span>
+        </p>
+      )}
+      {!input && slug && (
+        <p className="text-xs text-muted-foreground break-all">
+          {origin}/invitation/<span className="font-medium text-foreground">{slug}</span>
+        </p>
+      )}
+      {!input && !slug && (
+        <p className="text-xs text-muted-foreground">미설정 시 자동 생성된 ID로 접근 가능합니다</p>
+      )}
+    </div>
+  )
+}
+
 export function ShareSettingsForm({
   shareSettings,
   calendarSettings,
   onShareChange,
   onCalendarChange,
+  slug,
+  invitationId,
+  onSlugChange,
 }: ShareSettingsFormProps) {
   return (
     <div className="space-y-4">
       <div>
         <h3 className="font-medium mb-1">공유 및 표시 설정</h3>
         <p className="text-sm text-muted-foreground">캘린더 표시와 공유 정보를 설정하세요</p>
+      </div>
+
+      {/* URL 슬러그 */}
+      <div className="border rounded-lg px-4 py-4">
+        <SlugInput slug={slug} invitationId={invitationId} onChange={onSlugChange} />
       </div>
 
       <Accordion type="multiple" defaultValue={['calendar', 'kakao', 'link']} className="space-y-2">

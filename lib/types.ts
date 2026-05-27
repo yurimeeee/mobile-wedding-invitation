@@ -5,6 +5,7 @@ export interface EditorState {
   gallery: GalleryImage[]
   calendarSettings: CalendarSettings
   shareSettings: ShareSettings
+  slug: string
 }
 
 export type TemplateType =

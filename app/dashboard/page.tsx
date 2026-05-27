@@ -76,10 +76,14 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCopyLink = async (id: string) => {
-    const url = `${window.location.origin}/invitation/${id}`;
+  const getInvitationUrl = (inv: DashboardInvitation) => {
+    const identifier = inv.slug || inv.id;
+    return `${window.location.origin}/invitation/${identifier}`;
+  };
+
+  const handleCopyLink = async (inv: DashboardInvitation) => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(getInvitationUrl(inv));
       toast.success('링크가 복사되었습니다');
     } catch {
       toast.error('복사에 실패했습니다');
@@ -301,12 +305,12 @@ export default function DashboardPage() {
                             </DropdownMenuItem>
                             {invitation.status === 'published' && (
                               <>
-                                <DropdownMenuItem onClick={() => handleCopyLink(invitation.id)} className="cursor-pointer">
+                                <DropdownMenuItem onClick={() => handleCopyLink(invitation)} className="cursor-pointer">
                                   <LinkIcon className="mr-2 h-4 w-4" />
                                   링크 복사
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                  <a href={`/invitation/${invitation.id}`} target="_blank" rel="noopener noreferrer">
+                                  <a href={getInvitationUrl(invitation)} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="mr-2 h-4 w-4" />
                                     라이브 보기
                                   </a>

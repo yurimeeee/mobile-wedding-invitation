@@ -1,6 +1,6 @@
 import {
   doc, setDoc, getDoc, getDocs, deleteDoc,
-  collection, query, where, serverTimestamp, Timestamp,
+  collection, query, where, serverTimestamp, Timestamp, limit,
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
@@ -48,6 +48,7 @@ export async function saveInvitation(
       gallery,
       calendarSettings: state.calendarSettings,
       shareSettings: state.shareSettings,
+      slug: state.slug || '',
       status,
       updatedAt: serverTimestamp(),
       ...(!snap.exists() && { createdAt: serverTimestamp() }),
@@ -69,6 +70,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
+    slug: data.slug ?? '',
   }
 }
 
@@ -92,6 +94,7 @@ export interface DashboardInvitation {
   groomName: string
   brideName: string
   weddingDate: string
+  slug: string
 }
 
 export async function loadUserInvitations(uid: string): Promise<DashboardInvitation[]> {
@@ -117,6 +120,7 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
           ? `${d.weddingInfo.brideLastNameKr}${d.weddingInfo.brideFirstNameKr}`
           : '',
         weddingDate: d.weddingInfo?.weddingDate ?? '',
+        slug: d.slug ?? '',
       }
     })
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
@@ -124,6 +128,34 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
 
 export async function deleteInvitation(invitationId: string): Promise<void> {
   await deleteDoc(doc(db, 'invitations', invitationId))
+}
+
+export async function loadInvitationBySlug(slug: string): Promise<{ state: EditorState; id: string } | null> {
+  const q = query(collection(db, 'invitations'), where('slug', '==', slug), limit(1))
+  const snap = await getDocs(q)
+  if (snap.empty) return null
+  const docSnap = snap.docs[0]
+  const data = docSnap.data()
+  return {
+    id: docSnap.id,
+    state: {
+      template: data.template,
+      weddingInfo: data.weddingInfo,
+      musicSettings: data.musicSettings,
+      gallery: data.gallery ?? [],
+      calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
+      shareSettings: data.shareSettings ?? defaultShareSettings,
+      slug: data.slug ?? '',
+    },
+  }
+}
+
+export async function checkSlugAvailable(slug: string, excludeId: string): Promise<boolean> {
+  const q = query(collection(db, 'invitations'), where('slug', '==', slug), limit(1))
+  const snap = await getDocs(q)
+  if (snap.empty) return true
+  // available if the only match is the current invitation itself
+  return snap.docs[0].id === excludeId
 }
 
 export async function duplicateInvitation(uid: string, invitationId: string): Promise<string> {
