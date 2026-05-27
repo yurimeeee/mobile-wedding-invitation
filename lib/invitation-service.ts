@@ -125,3 +125,20 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
 export async function deleteInvitation(invitationId: string): Promise<void> {
   await deleteDoc(doc(db, 'invitations', invitationId))
 }
+
+export async function duplicateInvitation(uid: string, invitationId: string): Promise<string> {
+  const snap = await getDoc(doc(db, 'invitations', invitationId))
+  if (!snap.exists()) throw new Error('원본 청첩장을 찾을 수 없습니다')
+
+  const data = snap.data()
+  const newRef = doc(collection(db, 'invitations'))
+  await setDoc(newRef, {
+    ...data,
+    uid,
+    title: `${data.title || '청첩장'} (복사본)`,
+    status: 'draft',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return newRef.id
+}

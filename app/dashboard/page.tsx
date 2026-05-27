@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2 } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon } from 'lucide-react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { loadUserInvitations, deleteInvitation, type DashboardInvitation } from '@/lib/invitation-service';
+import { loadUserInvitations, deleteInvitation, duplicateInvitation, type DashboardInvitation } from '@/lib/invitation-service';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -62,6 +62,27 @@ export default function DashboardPage() {
         loadUserInvitations(user.uid)
           .then(setInvitations)
           .catch(() => {});
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    if (!user) return;
+    try {
+      const newId = await duplicateInvitation(user.uid, id);
+      toast.success('복제되었습니다');
+      router.push(`/editor/${newId}`);
+    } catch {
+      toast.error('복제에 실패했습니다');
+    }
+  };
+
+  const handleCopyLink = async (id: string) => {
+    const url = `${window.location.origin}/invitation/${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('링크가 복사되었습니다');
+    } catch {
+      toast.error('복사에 실패했습니다');
     }
   };
 
@@ -274,15 +295,23 @@ export default function DashboardPage() {
                                 편집
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicate(invitation.id)} className="cursor-pointer">
                               <Copy className="mr-2 h-4 w-4" />
                               복제
                             </DropdownMenuItem>
                             {invitation.status === 'published' && (
-                              <DropdownMenuItem>
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                라이브 보기
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem onClick={() => handleCopyLink(invitation.id)} className="cursor-pointer">
+                                  <LinkIcon className="mr-2 h-4 w-4" />
+                                  링크 복사
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <a href={`/invitation/${invitation.id}`} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    라이브 보기
+                                  </a>
+                                </DropdownMenuItem>
+                              </>
                             )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(invitation.id)}>

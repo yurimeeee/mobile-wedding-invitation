@@ -1,10 +1,12 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2 } from 'lucide-react';
+import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -53,6 +55,7 @@ export default function EditorPage() {
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'templates'>('edit');
   const [activeSection, setActiveSection] = useState('template');
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
   const {
     state,
@@ -79,6 +82,24 @@ export default function EditorPage() {
     { id: 'music', label: '음악', icon: Music },
     { id: 'share', label: '공유', icon: Share2 },
   ];
+
+  const handlePublish = async () => {
+    const id = await publish();
+    if (id) {
+      const url = `${window.location.origin}/invitation/${id}`;
+      setPublishedUrl(url);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!publishedUrl) return;
+    try {
+      await navigator.clipboard.writeText(publishedUrl);
+      toast.success('링크가 복사되었습니다');
+    } catch {
+      toast.error('복사에 실패했습니다');
+    }
+  };
 
   const SaveStatus = () => (
     <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -109,7 +130,7 @@ export default function EditorPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <SaveStatus />
-            <Button size="sm" onClick={publish} disabled={isActionLoading}>
+            <Button size="sm" onClick={handlePublish} disabled={isActionLoading}>
               {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : '발행'}
             </Button>
           </div>
@@ -210,7 +231,7 @@ export default function EditorPage() {
               임시저장
             </Button>
 
-            <Button size="sm" onClick={publish} disabled={isActionLoading}>
+            <Button size="sm" onClick={handlePublish} disabled={isActionLoading}>
               {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               발행
             </Button>
@@ -265,6 +286,32 @@ export default function EditorPage() {
           <InvitationPreview state={state} />
         </div>
       </div>
+
+      {/* Publish success dialog */}
+      <Dialog open={!!publishedUrl} onOpenChange={(open) => !open && setPublishedUrl(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-serif">발행 완료 🎉</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">아래 링크를 복사해서 하객분들께 공유하세요.</p>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted text-sm break-all">
+              <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="flex-1 text-xs">{publishedUrl}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleCopyLink}>
+                <Copy className="h-4 w-4 mr-2" />링크 복사
+              </Button>
+              <Button variant="outline" asChild>
+                <a href={publishedUrl ?? ''} target="_blank" rel="noopener noreferrer">
+                  미리보기
+                </a>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

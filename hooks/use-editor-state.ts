@@ -136,17 +136,18 @@ export function useEditorState(invitationId: string) {
     }
   }
 
-  const publish = async () => {
+  const publish = async (): Promise<string | null> => {
     const user = auth.currentUser
-    if (!user || invitationId === 'new') return
+    if (!user || invitationId === 'new') return null
     setIsActionLoading(true)
     try {
       const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')
       setState((prev) => ({ ...prev, gallery: updatedGallery }))
       setLastSaved(new Date())
-      toast.success('발행되었습니다! 🎉')
+      return invitationId
     } catch {
       toast.error('발행에 실패했습니다')
+      return null
     } finally {
       setIsActionLoading(false)
     }
