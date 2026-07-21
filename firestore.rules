@@ -1,6 +1,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
+    }
+    function bootstrapUsed() {
+      return exists(/databases/$(database)/documents/adminMeta/bootstrap);
+    }
+
+    // 관리자 계정 (문서 ID = uid)
+    match /adminUsers/{uid} {
+      allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if request.auth != null && (
+        // 기존 관리자가 새 관리자를 추가
+        (
+          isAdmin() &&
+          request.resource.data.createdBy == request.auth.uid &&
+          request.resource.data.role == 'admin' &&
+          request.resource.data.keys().hasAll(['email', 'name', 'role', 'createdAt', 'createdBy'])
+        ) ||
+        // 부트스트랩: 관리자가 한 명도 없을 때, adminMeta/bootstrap 생성과 같은 배치일 때만 허용
+        (
+          uid == request.auth.uid &&
+          !bootstrapUsed() &&
+          existsAfter(/databases/$(database)/documents/adminMeta/bootstrap) &&
+          request.resource.data.createdBy == null &&
+          request.resource.data.role == 'admin' &&
+          request.resource.data.keys().hasAll(['email', 'name', 'role', 'createdAt', 'createdBy'])
+        )
+      );
+
+      allow update, delete: if false;
+    }
+
+    // 부트스트랩 완료 여부 플래그 (단일 문서)
+    match /adminMeta/bootstrap {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        !bootstrapUsed() &&
+        request.resource.data.initializedBy == request.auth.uid &&
+        request.resource.data.keys().hasAll(['initializedBy', 'initializedAt']) &&
+        existsAfter(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
+      allow update, delete: if false;
+    }
+
     match /invitations/{invitationId} {
       // 발행된 청첩장은 누구나 읽기 가능 (공개 링크 공유용)
       allow read: if resource.data.status == 'published';

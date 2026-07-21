@@ -165,10 +165,10 @@ export const templates: { id: TemplateType; name: string; nameKr: string; colors
   { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통', colors: ['#f8f4e8', '#8b4513', '#2d2d2d'] },
 ]
 
+// 출처: Wikimedia Commons (Musopen 녹음 포함) — 전부 퍼블릭 도메인/CC0, 저작권 표시 불필요
 export const musicTracks = [
   { id: 'romantic-piano', name: 'Romantic Piano', nameKr: '로맨틱 피아노', url: '/assets/music/romantic-piano.mp3' },
   { id: 'string-quartet', name: 'String Quartet', nameKr: '현악 4중주', url: '/assets/music/string-quartet.mp3' },
   { id: 'acoustic-guitar', name: 'Acoustic Guitar', nameKr: '어쿠스틱 기타', url: '/assets/music/acoustic-guitar.mp3' },
   { id: 'classical-waltz', name: 'Classical Waltz', nameKr: '클래식 왈츠', url: '/assets/music/classical-waltz.mp3' },
-  { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통음악', url: '/assets/music/korean-traditional.mp3' },
 ]

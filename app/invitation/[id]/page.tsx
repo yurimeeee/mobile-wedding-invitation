@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Loader2, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { loadInvitation, loadInvitationBySlug } from '@/lib/invitation-service'
 import { type EditorState } from '@/lib/types'
 import { InvitationFullView } from '@/components/invitation/invitation-full-view'
@@ -56,13 +57,39 @@ export default function InvitationViewPage() {
     )
   }
 
-  if (!state) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
-  return <InvitationFullView state={state} invitationId={resolvedId} />
+  return (
+    <AnimatePresence mode="wait">
+      {!state ? (
+        <motion.div
+          key="loading"
+          className="min-h-screen flex flex-col items-center justify-center gap-4"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+        >
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Heart className="h-8 w-8 text-accent" fill="currentColor" />
+          </motion.div>
+          <motion.p
+            className="text-sm text-muted-foreground"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            청첩장을 불러오는 중...
+          </motion.p>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        >
+          <InvitationFullView state={state} invitationId={resolvedId} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
 }
