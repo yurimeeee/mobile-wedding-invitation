@@ -1,13 +1,14 @@
 'use client'
 
-import { type EditorState, type GalleryImage, type TemplateType } from '@/lib/types'
+import { type EditorState, type GalleryImage, type TemplateType, musicTracks } from '@/lib/types'
 import { KakaoMapDisplay } from '@/components/editor/kakao-map'
 import { WeddingCalendar } from '@/components/editor/wedding-calendar'
 import { ShareSection } from '@/components/editor/share-section'
+import { GuestMessageSection } from '@/components/invitation/guest-message-section'
 import Image from 'next/image'
-import { MapPin, Phone, ChevronDown, Music, Heart } from 'lucide-react'
+import { MapPin, Phone, ChevronDown, Music, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface InvitationFullViewProps {
@@ -178,6 +179,108 @@ function AccountSection({ info, cfg }: { info: EditorState['weddingInfo']; cfg: 
   )
 }
 
+// ─── Gallery Lightbox ─────────────────────────────────────────────────────────
+function GalleryLightbox({ images, initialIndex, onClose }: {
+  images: GalleryImage[]
+  initialIndex: number
+  onClose: () => void
+}) {
+  const [current, setCurrent] = useState(initialIndex)
+  const touchStartX = useRef<number | null>(null)
+
+  const prev = useCallback(() => setCurrent(c => Math.max(0, c - 1)), [])
+  const next = useCallback(() => setCurrent(c => Math.min(images.length - 1, c + 1)), [images.length])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowRight') next()
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [prev, next, onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+      onClick={onClose}
+      onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+      onTouchEnd={(e) => {
+        if (touchStartX.current === null) return
+        const dx = e.changedTouches[0].clientX - touchStartX.current
+        if (dx > 50) prev()
+        else if (dx < -50) next()
+        touchStartX.current = null
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <span className="text-white/60 text-sm">{current + 1} / {images.length}</span>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+        >
+          <X className="h-5 w-5 text-white" />
+        </button>
+      </div>
+
+      {/* Image */}
+      <div
+        className="flex-1 flex items-center justify-center px-4 min-h-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={images[current].url}
+          alt=""
+          className="max-w-full max-h-full object-contain select-none"
+          draggable={false}
+        />
+      </div>
+
+      {/* Nav arrows */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); prev() }}
+            disabled={current === 0}
+            className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-20 transition-colors"
+          >
+            <ChevronLeft className="h-6 w-6 text-white" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); next() }}
+            disabled={current === images.length - 1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-20 transition-colors"
+          >
+            <ChevronRight className="h-6 w-6 text-white" />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
+      {images.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 pb-6 pt-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={cn(
+                'rounded-full transition-all',
+                i === current ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/40'
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main full view ───────────────────────────────────────────────────────────
 export function InvitationFullView({ state, invitationId }: InvitationFullViewProps) {
   const { template, weddingInfo: info, musicSettings } = state
@@ -189,6 +292,30 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
   const invitationUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/invitation/${invitationId}`
     : ''
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  const trackUrl = musicSettings.customUrl || musicTracks.find(t => t.id === musicSettings.track)?.url || ''
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = musicSettings.volume / 100
+  }, [musicSettings.volume])
+
+  useEffect(() => {
+    if (!musicSettings.enabled || !musicSettings.autoPlay || !trackUrl || !audioRef.current) return
+    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false))
+  }, [musicSettings.enabled, musicSettings.autoPlay, trackUrl])
+
+  const toggleMusic = () => {
+    if (!audioRef.current) return
+    if (isPlaying) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    } else {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+    }
+  }
 
   return (
     <div className="min-h-screen max-w-[393px] mx-auto" style={{ background: cfg.bg, color: cfg.text }}>
@@ -237,14 +364,30 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
         {/* Gallery */}
         {state.gallery.length > 1 && (
           <div className="mb-10">
-            <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-              {state.gallery.slice(0, 4).map((img) => (
-                <div key={img.id} className="aspect-square overflow-hidden">
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+            <div className="grid grid-cols-3 gap-0.5 rounded-lg overflow-hidden">
+              {state.gallery.map((img, i) => (
+                <div
+                  key={img.id}
+                  className="aspect-square overflow-hidden cursor-pointer"
+                  onClick={() => setLightboxIndex(i)}
+                >
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
               ))}
             </div>
           </div>
+        )}
+
+        {lightboxIndex !== null && (
+          <GalleryLightbox
+            images={state.gallery}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
         )}
 
         {/* Venue */}
@@ -294,6 +437,15 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
           )}
         </div>
 
+        {/* Guest messages */}
+        <GuestMessageSection
+          invitationId={invitationId}
+          textStyle={textStyle}
+          mutedStyle={mutedStyle}
+          sectionBg={cfg.sectionBg}
+          accentColor={cfg.isDark ? '#d4af37' : '#c47a85'}
+        />
+
         {/* Share */}
         <div className="mb-10">
           <ShareSection
@@ -309,12 +461,18 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
         <p className="text-center text-xs pb-10" style={{ color: cfg.text, opacity: 0.3 }}>WedInvite로 만들었어요</p>
       </div>
 
-      {/* BGM indicator */}
-      {musicSettings.enabled && (
-        <div className="fixed bottom-6 right-6 p-3 rounded-full shadow-lg"
-          style={{ background: cfg.isDark ? '#2a2a2a' : 'white' }}>
-          <Music className="h-5 w-5" style={textStyle} />
-        </div>
+      {/* BGM */}
+      {musicSettings.enabled && trackUrl && (
+        <>
+          <audio ref={audioRef} src={trackUrl} loop preload="auto" />
+          <button
+            onClick={toggleMusic}
+            className="fixed bottom-6 right-6 p-3 rounded-full shadow-lg"
+            style={{ background: cfg.isDark ? '#2a2a2a' : 'white' }}
+          >
+            <Music className={cn('h-5 w-5', isPlaying && 'animate-pulse')} style={textStyle} />
+          </button>
+        </>
       )}
     </div>
   )

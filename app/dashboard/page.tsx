@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon, QrCode, MessageCircle } from 'lucide-react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { loadUserInvitations, deleteInvitation, duplicateInvitation, type DashboardInvitation } from '@/lib/invitation-service';
@@ -15,6 +15,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
+import { QrCodeModal } from '@/components/dashboard/qr-code-modal';
+import { GuestMessagesModal } from '@/components/dashboard/guest-messages-modal';
 
 const templateColors: Record<string, string> = {
   'classic-elegant': 'from-amber-50 to-amber-100',
@@ -29,6 +31,8 @@ export default function DashboardPage() {
   const [invitations, setInvitations] = useState<DashboardInvitation[]>([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [qrInvitation, setQrInvitation] = useState<DashboardInvitation | null>(null);
+  const [messagesInvitation, setMessagesInvitation] = useState<DashboardInvitation | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -251,18 +255,26 @@ export default function DashboardPage() {
                 <motion.div key={invitation.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
                   <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow">
                     <Link href={`/editor/${invitation.id}`}>
-                      <div className={`aspect-[3/4] bg-gradient-to-br ${templateColors[invitation.template] || 'from-gray-50 to-gray-100'} relative`}>
-                        {/* Mini preview */}
-                        <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 ${invitation.template === 'dark-luxury' ? 'text-white' : ''}`}>
-                          <div className="w-12 h-12 rounded-full bg-current/10 mb-3" />
-                          <div className="h-2 w-20 bg-current/20 rounded mb-1.5" />
-                          <div className="h-1.5 w-14 bg-current/20 rounded mb-3" />
-                          <div className="text-[10px] text-center opacity-70">
-                            <p>{invitation.groomName || '신랑'}</p>
-                            <p>&</p>
-                            <p>{invitation.brideName || '신부'}</p>
+                      <div className={`aspect-[3/4] bg-gradient-to-br ${templateColors[invitation.template] || 'from-gray-50 to-gray-100'} relative overflow-hidden`}>
+                        {invitation.thumbnail ? (
+                          <img
+                            src={invitation.thumbnail}
+                            alt={invitation.title || '청첩장 미리보기'}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          /* Mini preview */
+                          <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 ${invitation.template === 'dark-luxury' ? 'text-white' : ''}`}>
+                            <div className="w-12 h-12 rounded-full bg-current/10 mb-3" />
+                            <div className="h-2 w-20 bg-current/20 rounded mb-1.5" />
+                            <div className="h-1.5 w-14 bg-current/20 rounded mb-3" />
+                            <div className="text-[10px] text-center opacity-70">
+                              <p>{invitation.groomName || '신랑'}</p>
+                              <p>&</p>
+                              <p>{invitation.brideName || '신부'}</p>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Status badge */}
                         <div className="absolute top-2 left-2">
@@ -303,11 +315,19 @@ export default function DashboardPage() {
                               <Copy className="mr-2 h-4 w-4" />
                               복제
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setMessagesInvitation(invitation)} className="cursor-pointer">
+                              <MessageCircle className="mr-2 h-4 w-4" />
+                              방명록
+                            </DropdownMenuItem>
                             {invitation.status === 'published' && (
                               <>
                                 <DropdownMenuItem onClick={() => handleCopyLink(invitation)} className="cursor-pointer">
                                   <LinkIcon className="mr-2 h-4 w-4" />
                                   링크 복사
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setQrInvitation(invitation)} className="cursor-pointer">
+                                  <QrCode className="mr-2 h-4 w-4" />
+                                  QR코드
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                   <a href={getInvitationUrl(invitation)} target="_blank" rel="noopener noreferrer">
@@ -349,6 +369,24 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </main>
+
+      {qrInvitation && (
+        <QrCodeModal
+          open={!!qrInvitation}
+          onOpenChange={(open) => !open && setQrInvitation(null)}
+          url={getInvitationUrl(qrInvitation)}
+          title={qrInvitation.title}
+        />
+      )}
+
+      {messagesInvitation && (
+        <GuestMessagesModal
+          open={!!messagesInvitation}
+          onOpenChange={(open) => !open && setMessagesInvitation(null)}
+          invitationId={messagesInvitation.id}
+          title={messagesInvitation.title}
+        />
+      )}
     </div>
   );
 }

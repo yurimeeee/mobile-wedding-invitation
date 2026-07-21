@@ -66,8 +66,8 @@ export function useEditorState(invitationId: string) {
     const timer = setTimeout(async () => {
       setIsSaving(true)
       try {
-        const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
-        setState((prev) => ({ ...prev, gallery: updatedGallery }))
+        const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
+        setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
         setLastSaved(new Date())
       } catch {
         // silent fail for auto-save
@@ -131,8 +131,8 @@ export function useEditorState(invitationId: string) {
     if (!user || !invitationId) return
     setIsActionLoading(true)
     try {
-      const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
-      setState((prev) => ({ ...prev, gallery: updatedGallery }))
+      const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
+      setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
       setLastSaved(new Date())
       toast.success('임시저장되었습니다')
     } catch {
@@ -147,8 +147,8 @@ export function useEditorState(invitationId: string) {
     if (!user || !invitationId) return null
     setIsActionLoading(true)
     try {
-      const updatedGallery = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')
-      setState((prev) => ({ ...prev, gallery: updatedGallery }))
+      const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')
+      setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
       setLastSaved(new Date())
       return invitationId
     } catch {

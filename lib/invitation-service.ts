@@ -4,7 +4,7 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
-import type { EditorState, GalleryImage } from './types'
+import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
 import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings } from './types'
 
 async function uploadNewImages(
@@ -23,13 +23,55 @@ async function uploadNewImages(
   )
 }
 
+async function uploadCustomMusic(
+  uid: string,
+  invitationId: string,
+  musicSettings: MusicSettings
+): Promise<MusicSettings> {
+  if (!musicSettings.customUrl || !musicSettings.customUrl.startsWith('data:')) return musicSettings
+  const storageRef = ref(storage, `invitations/${uid}/${invitationId}/music/custom-track`)
+  await uploadString(storageRef, musicSettings.customUrl, 'data_url')
+  const customUrl = await getDownloadURL(storageRef)
+  return { ...musicSettings, customUrl }
+}
+
+async function uploadShareImages(
+  uid: string,
+  invitationId: string,
+  shareSettings: ShareSettings
+): Promise<ShareSettings> {
+  const uploadIfDataUrl = async (key: string, dataUrl: string) => {
+    if (!dataUrl.startsWith('data:')) return dataUrl
+    const storageRef = ref(storage, `invitations/${uid}/${invitationId}/share/${key}`)
+    await uploadString(storageRef, dataUrl, 'data_url')
+    return getDownloadURL(storageRef)
+  }
+
+  const [kakaoImg, linkImg] = await Promise.all([
+    uploadIfDataUrl('kakao', shareSettings.kakaoImg),
+    uploadIfDataUrl('link', shareSettings.linkImg),
+  ])
+
+  return { ...shareSettings, kakaoImg, linkImg }
+}
+
+export interface SaveInvitationResult {
+  gallery: GalleryImage[]
+  musicSettings: MusicSettings
+  shareSettings: ShareSettings
+}
+
 export async function saveInvitation(
   uid: string,
   invitationId: string,
   state: EditorState,
   status: 'draft' | 'published'
-): Promise<GalleryImage[]> {
-  const gallery = await uploadNewImages(uid, invitationId, state.gallery)
+): Promise<SaveInvitationResult> {
+  const [gallery, musicSettings, shareSettings] = await Promise.all([
+    uploadNewImages(uid, invitationId, state.gallery),
+    uploadCustomMusic(uid, invitationId, state.musicSettings),
+    uploadShareImages(uid, invitationId, state.shareSettings),
+  ])
 
   const { groomLastNameKr, groomFirstNameKr, brideLastNameKr, brideFirstNameKr } = state.weddingInfo
   const title = `${groomLastNameKr}${groomFirstNameKr} & ${brideLastNameKr}${brideFirstNameKr} 웨딩`
@@ -44,10 +86,10 @@ export async function saveInvitation(
       title,
       template: state.template,
       weddingInfo: state.weddingInfo,
-      musicSettings: state.musicSettings,
+      musicSettings,
       gallery,
       calendarSettings: state.calendarSettings,
-      shareSettings: state.shareSettings,
+      shareSettings,
       slug: state.slug || '',
       status,
       updatedAt: serverTimestamp(),
@@ -56,7 +98,7 @@ export async function saveInvitation(
     { merge: true }
   )
 
-  return gallery
+  return { gallery, musicSettings, shareSettings }
 }
 
 export async function loadInvitation(invitationId: string): Promise<EditorState | null> {
@@ -95,6 +137,7 @@ export interface DashboardInvitation {
   brideName: string
   weddingDate: string
   slug: string
+  thumbnail: string
 }
 
 export async function loadUserInvitations(uid: string): Promise<DashboardInvitation[]> {
@@ -121,6 +164,7 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
           : '',
         weddingDate: d.weddingInfo?.weddingDate ?? '',
         slug: d.slug ?? '',
+        thumbnail: d.gallery?.[0]?.url ?? '',
       }
     })
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())

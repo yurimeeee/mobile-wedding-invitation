@@ -10,6 +10,19 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == resource.data.uid;
       // 새 문서 생성 (uid 일치)
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+
+      // 방명록(축하 메시지): 발행된 청첩장에는 하객이 로그인 없이 남길 수 있고,
+      // 소유자는 임시저장 상태에서도 확인/삭제 가능
+      match /messages/{messageId} {
+        function invitation() {
+          return get(/databases/$(database)/documents/invitations/$(invitationId)).data;
+        }
+        function isOwner() {
+          return request.auth != null && request.auth.uid == invitation().uid;
+        }
+        allow read, create: if invitation().status == 'published' || isOwner();
+        allow delete: if invitation().status == 'published' || isOwner();
+      }
     }
   }
 }

@@ -1,10 +1,13 @@
 'use client'
 
-import { Music, Volume2 } from 'lucide-react'
+import { useRef } from 'react'
+import { Music, Volume2, Upload, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { type MusicSettings, musicTracks } from '@/lib/types'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -18,7 +21,31 @@ interface MusicControlsProps {
   onChange: (settings: MusicSettings) => void
 }
 
+const CUSTOM_TRACK_ID = 'custom'
+
 export function MusicControls({ settings, onChange }: MusicControlsProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const isCustom = settings.track === CUSTOM_TRACK_ID
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('audio/')) {
+      toast.error('오디오 파일만 업로드할 수 있어요')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('8MB 이하의 파일만 업로드할 수 있어요')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      onChange({ ...settings, track: CUSTOM_TRACK_ID, customUrl: reader.result as string })
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -47,7 +74,7 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
               <Label>트랙 선택</Label>
               <Select
                 value={settings.track}
-                onValueChange={(track) => onChange({ ...settings, track })}
+                onValueChange={(track) => onChange({ ...settings, track, ...(track !== CUSTOM_TRACK_ID && { customUrl: undefined }) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="트랙을 선택하세요" />
@@ -61,8 +88,43 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
                       </div>
                     </SelectItem>
                   ))}
+                  <SelectItem value={CUSTOM_TRACK_ID}>
+                    <div className="flex flex-col">
+                      <span>직접 업로드</span>
+                      <span className="text-xs text-muted-foreground">내 파일에서 음악 선택</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
+
+              {isCustom && (
+                <div className="pt-1">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  {settings.customUrl ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-background border border-border text-sm">
+                      <span className="text-muted-foreground truncate">업로드된 음악 파일</span>
+                      <button
+                        type="button"
+                        onClick={() => onChange({ ...settings, customUrl: undefined })}
+                        className="text-muted-foreground hover:text-foreground shrink-0 ml-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => fileInputRef.current?.click()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      음악 파일 업로드 (mp3, 8MB 이하)
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Auto play toggle */}
@@ -100,10 +162,10 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {musicTracks.find(t => t.id === settings.track)?.name || '트랙을 선택하세요'}
+                    {isCustom ? '직접 업로드' : musicTracks.find(t => t.id === settings.track)?.name || '트랙을 선택하세요'}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {musicTracks.find(t => t.id === settings.track)?.nameKr || '음악을 선택하세요'}
+                    {isCustom ? (settings.customUrl ? '업로드된 파일' : '파일을 업로드하세요') : musicTracks.find(t => t.id === settings.track)?.nameKr || '음악을 선택하세요'}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">

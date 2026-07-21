@@ -173,7 +173,7 @@ export default function EditorPage() {
             )}
             {mobileTab === 'preview' && (
               <motion.div key="preview" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="h-full">
-                <InvitationPreview state={state} />
+                <InvitationPreview state={state} invitationId={invitationId} />
               </motion.div>
             )}
             {mobileTab === 'templates' && (
@@ -291,7 +291,7 @@ export default function EditorPage() {
         </div>
 
         <div className="flex-1 bg-muted/30">
-          <InvitationPreview state={state} />
+          <InvitationPreview state={state} invitationId={invitationId} />
         </div>
       </div>
 

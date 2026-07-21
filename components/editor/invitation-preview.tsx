@@ -9,10 +9,12 @@ import { cn } from '@/lib/utils';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
+import { GuestMessageSection } from '@/components/invitation/guest-message-section';
 import Image from 'next/image';
 
 interface InvitationPreviewProps {
   state: EditorState;
+  invitationId: string;
 }
 
 // ─── Template configs ─────────────────────────────────────────────────────────
@@ -60,7 +62,7 @@ const templateConfig: Record<TemplateType, {
   },
 };
 
-export function InvitationPreview({ state }: InvitationPreviewProps) {
+export function InvitationPreview({ state, invitationId }: InvitationPreviewProps) {
   const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
   const { template, weddingInfo: info, musicSettings } = state;
   const cfg = templateConfig[template];
@@ -90,7 +92,7 @@ export function InvitationPreview({ state }: InvitationPreviewProps) {
               <div className="phone-notch" />
               <div className="phone-screen w-[320px] h-[640px]" style={{ background: cfg.bg }}>
                 <div className="w-full h-full overflow-y-auto">
-                  <PreviewContent state={state} cfg={cfg} />
+                  <PreviewContent state={state} cfg={cfg} invitationId={invitationId} />
                 </div>
               </div>
             </motion.div>
@@ -103,7 +105,7 @@ export function InvitationPreview({ state }: InvitationPreviewProps) {
               className="w-full max-w-2xl rounded-lg shadow-2xl overflow-auto border border-border"
               style={{ maxHeight: 'calc(100vh - 200px)', background: cfg.bg }}
             >
-              <PreviewContent state={state} cfg={cfg} isDesktop />
+              <PreviewContent state={state} cfg={cfg} invitationId={invitationId} isDesktop />
             </motion.div>
           )}
         </AnimatePresence>
@@ -284,10 +286,11 @@ function CoupleNames({ info, textStyle, accentColor }: {
 interface PreviewContentProps {
   state: EditorState
   cfg: typeof templateConfig['classic-elegant']
+  invitationId: string
   isDesktop?: boolean
 }
 
-function PreviewContent({ state, cfg, isDesktop }: PreviewContentProps) {
+function PreviewContent({ state, cfg, invitationId, isDesktop }: PreviewContentProps) {
   const { template, weddingInfo: info, musicSettings } = state
   const mainImage = state.gallery.length > 0 ? state.gallery[0] : null
   const textStyle: React.CSSProperties = { color: cfg.text }
@@ -397,6 +400,19 @@ function PreviewContent({ state, cfg, isDesktop }: PreviewContentProps) {
           <Phone className="h-3 w-3 mr-1" />신부측 연락
         </Button>
       </div>
+
+      {/* Guest messages */}
+      {invitationId && (
+        <div className="mx-4">
+          <GuestMessageSection
+            invitationId={invitationId}
+            textStyle={textStyle}
+            mutedStyle={mutedStyle}
+            sectionBg={cfg.sectionBg}
+            accentColor={cfg.isDark ? '#d4af37' : '#c47a85'}
+          />
+        </div>
+      )}
 
       {/* Share */}
       <div className="mx-4 mb-8">

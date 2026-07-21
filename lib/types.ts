@@ -74,6 +74,7 @@ export interface MusicSettings {
   autoPlay: boolean
   volume: number
   track: string
+  customUrl?: string
 }
 
 export interface RSVPSettings {
@@ -165,9 +166,9 @@ export const templates: { id: TemplateType; name: string; nameKr: string; colors
 ]
 
 export const musicTracks = [
-  { id: 'romantic-piano', name: 'Romantic Piano', nameKr: '로맨틱 피아노' },
-  { id: 'string-quartet', name: 'String Quartet', nameKr: '현악 4중주' },
-  { id: 'acoustic-guitar', name: 'Acoustic Guitar', nameKr: '어쿠스틱 기타' },
-  { id: 'classical-waltz', name: 'Classical Waltz', nameKr: '클래식 왈츠' },
-  { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통음악' },
+  { id: 'romantic-piano', name: 'Romantic Piano', nameKr: '로맨틱 피아노', url: '/assets/music/romantic-piano.mp3' },
+  { id: 'string-quartet', name: 'String Quartet', nameKr: '현악 4중주', url: '/assets/music/string-quartet.mp3' },
+  { id: 'acoustic-guitar', name: 'Acoustic Guitar', nameKr: '어쿠스틱 기타', url: '/assets/music/acoustic-guitar.mp3' },
+  { id: 'classical-waltz', name: 'Classical Waltz', nameKr: '클래식 왈츠', url: '/assets/music/classical-waltz.mp3' },
+  { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통음악', url: '/assets/music/korean-traditional.mp3' },
 ]
