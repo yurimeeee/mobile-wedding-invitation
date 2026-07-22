@@ -1,6 +1,6 @@
 import {
   doc, setDoc, getDoc, getDocs, deleteDoc,
-  collection, query, where, serverTimestamp, Timestamp, limit,
+  collection, query, where, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
@@ -116,11 +116,17 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
   }
 }
 
-export async function createNewInvitation(uid: string): Promise<string> {
+export async function createNewInvitation(
+  uid: string,
+  template?: EditorState['template'],
+  slug?: string
+): Promise<string> {
   const docRef = doc(collection(db, 'invitations'))
   await setDoc(docRef, {
     uid,
     status: 'draft',
+    ...(template && { template }),
+    ...(slug && { slug }),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -174,32 +180,23 @@ export async function deleteInvitation(invitationId: string): Promise<void> {
   await deleteDoc(doc(db, 'invitations', invitationId))
 }
 
+// slug만으로 거는 쿼리는 Firestore 보안 규칙(status/uid 기반)을 정적으로 통과할 수 없어
+// 클라이언트 SDK로 직접 조회할 수 없다. 서버 라우트(Admin SDK)를 통해 조회한다.
 export async function loadInvitationBySlug(slug: string): Promise<{ state: EditorState; id: string } | null> {
-  const q = query(collection(db, 'invitations'), where('slug', '==', slug), limit(1))
-  const snap = await getDocs(q)
-  if (snap.empty) return null
-  const docSnap = snap.docs[0]
-  const data = docSnap.data()
-  return {
-    id: docSnap.id,
-    state: {
-      template: data.template ?? 'classic-elegant',
-      weddingInfo: data.weddingInfo ?? defaultWeddingInfo,
-      musicSettings: data.musicSettings ?? defaultMusicSettings,
-      gallery: data.gallery ?? [],
-      calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
-      shareSettings: data.shareSettings ?? defaultShareSettings,
-      slug: data.slug ?? '',
-    },
-  }
+  const res = await fetch(`/api/slug-lookup?slug=${encodeURIComponent(slug)}`)
+  if (!res.ok) throw new Error('청첩장 조회에 실패했습니다')
+  const data = await res.json()
+  if (!data.id) return null
+  return { id: data.id, state: data.state }
 }
 
 export async function checkSlugAvailable(slug: string, excludeId: string): Promise<boolean> {
-  const q = query(collection(db, 'invitations'), where('slug', '==', slug), limit(1))
-  const snap = await getDocs(q)
-  if (snap.empty) return true
-  // available if the only match is the current invitation itself
-  return snap.docs[0].id === excludeId
+  const res = await fetch(
+    `/api/slug-availability?slug=${encodeURIComponent(slug)}&excludeId=${encodeURIComponent(excludeId)}`
+  )
+  if (!res.ok) throw new Error('URL 확인에 실패했습니다')
+  const data = await res.json()
+  return data.available as boolean
 }
 
 export async function duplicateInvitation(uid: string, invitationId: string): Promise<string> {
@@ -213,6 +210,8 @@ export async function duplicateInvitation(uid: string, invitationId: string): Pr
     uid,
     title: `${data.title || '청첩장'} (복사본)`,
     status: 'draft',
+    // 슬러그는 문서마다 고유해야 하므로 복제본은 비워서 자동 생성 ID로 접근하게 합니다.
+    slug: '',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })

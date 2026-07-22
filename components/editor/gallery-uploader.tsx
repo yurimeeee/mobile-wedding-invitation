@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Upload, X, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { type GalleryImage } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,10 @@ interface GalleryUploaderProps {
   onReorder: (images: GalleryImage[]) => void
 }
 
-export function GalleryUploader({ images, onAdd, onRemove }: GalleryUploaderProps) {
+export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryUploaderProps) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     const files = Array.from(e.dataTransfer.files)
@@ -49,6 +52,36 @@ export function GalleryUploader({ images, onAdd, onRemove }: GalleryUploaderProp
     })
     e.target.value = ''
   }, [images.length, onAdd])
+
+  const resetDrag = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleImageDragStart = (index: number) => (e: React.DragEvent) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleImageDragOver = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (draggedIndex === null || index === draggedIndex) return
+    if (index !== dragOverIndex) setDragOverIndex(index)
+  }
+
+  const handleImageDrop = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) {
+      resetDrag()
+      return
+    }
+    const reordered = [...images]
+    const [moved] = reordered.splice(draggedIndex, 1)
+    reordered.splice(index, 0, moved)
+    onReorder(reordered.map((img, i) => ({ ...img, order: i })))
+    resetDrag()
+  }
 
   return (
     <div className="space-y-4">
@@ -93,18 +126,27 @@ export function GalleryUploader({ images, onAdd, onRemove }: GalleryUploaderProp
       {/* Image grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          {images.map((image) => (
+          {images.map((image, index) => (
             <div
               key={image.id}
-              className="relative group aspect-square rounded-lg overflow-hidden bg-muted"
+              draggable
+              onDragStart={handleImageDragStart(index)}
+              onDragOver={handleImageDragOver(index)}
+              onDrop={handleImageDrop(index)}
+              onDragEnd={resetDrag}
+              className={cn(
+                "relative group aspect-square rounded-lg overflow-hidden bg-muted transition-all",
+                draggedIndex === index && "opacity-40",
+                dragOverIndex === index && draggedIndex !== index && "ring-2 ring-accent ring-offset-2"
+              )}
             >
               <img
                 src={image.url}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover pointer-events-none"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <button className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors cursor-grab">
+                <button className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors cursor-grab active:cursor-grabbing">
                   <GripVertical className="h-4 w-4 text-white" />
                 </button>
                 <button

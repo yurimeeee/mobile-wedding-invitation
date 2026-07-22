@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy } from 'lucide-react';
+import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { TemplateSelector } from '@/components/editor/template-selector';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
+import { EditorSettingsDialog } from '@/components/editor/editor-settings-dialog';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
@@ -56,6 +57,8 @@ export default function EditorPage() {
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'templates'>('edit');
   const [activeSection, setActiveSection] = useState('template');
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
 
   const {
     state,
@@ -215,11 +218,11 @@ export default function EditorPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   설정
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFullscreenPreview(true)}>
                   <Eye className="mr-2 h-4 w-4" />
                   전체 화면 미리보기
                 </DropdownMenuItem>
@@ -320,6 +323,41 @@ export default function EditorPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EditorSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        uid={auth.currentUser?.uid ?? ''}
+        invitationId={invitationId}
+        slug={state.slug}
+        onSlugChange={updateSlug}
+        onDeleted={() => router.push('/dashboard')}
+        onDuplicated={(newId) => router.push(`/editor/${newId}`)}
+      />
+
+      {/* Fullscreen preview */}
+      <AnimatePresence>
+        {fullscreenPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-muted/30"
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-4 right-4 z-10 bg-background"
+              onClick={() => setFullscreenPreview(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <div className="h-full overflow-auto">
+              <InvitationPreview state={state} invitationId={invitationId} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

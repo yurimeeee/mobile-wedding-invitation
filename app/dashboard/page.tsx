@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
 import { QrCodeModal } from '@/components/dashboard/qr-code-modal';
 import { GuestMessagesModal } from '@/components/dashboard/guest-messages-modal';
+import { NewInvitationDialog } from '@/components/dashboard/new-invitation-dialog';
 
 const templateColors: Record<string, string> = {
   'classic-elegant': 'from-amber-50 to-amber-100',
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [qrInvitation, setQrInvitation] = useState<DashboardInvitation | null>(null);
   const [messagesInvitation, setMessagesInvitation] = useState<DashboardInvitation | null>(null);
+  const [newDialogOpen, setNewDialogOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -67,6 +69,10 @@ export default function DashboardPage() {
           .then(setInvitations)
           .catch(() => {});
     }
+  };
+
+  const handleCreated = (id: string) => {
+    router.push(`/editor/${id}`);
   };
 
   const handleDuplicate = async (id: string) => {
@@ -167,12 +173,10 @@ export default function DashboardPage() {
             <h1 className="font-serif text-2xl sm:text-3xl font-semibold">나의 청첩장</h1>
             {/* <p className="text-muted-foreground mt-1">청첩장을 관리하고 새로 만드세요</p> */}
           </div>
-          <Link href="/editor/new">
-            <Button size="lg">
-              <Plus className="mr-2 h-4 w-4" />
-              새로 만들기
-            </Button>
-          </Link>
+          <Button size="lg" onClick={() => setNewDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            새로 만들기
+          </Button>
         </div>
 
         {/* Stats */}
@@ -361,11 +365,9 @@ export default function DashboardPage() {
             </div>
             <h2 className="font-serif text-xl font-semibold mb-2">아직 청첩장이 없어요</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">첫 번째 청첩장을 만들고 소중한 분들과 특별한 날을 공유하세요.</p>
-            <Link href="/editor/new">
-              <Button size="lg">
-                <Plus className="mr-2 h-4 w-4" />첫 번째 청첩장 만들기
-              </Button>
-            </Link>
+            <Button size="lg" onClick={() => setNewDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />첫 번째 청첩장 만들기
+            </Button>
           </motion.div>
         )}
       </main>
@@ -385,6 +387,15 @@ export default function DashboardPage() {
           onOpenChange={(open) => !open && setMessagesInvitation(null)}
           invitationId={messagesInvitation.id}
           title={messagesInvitation.title}
+        />
+      )}
+
+      {user && (
+        <NewInvitationDialog
+          open={newDialogOpen}
+          onOpenChange={setNewDialogOpen}
+          uid={user.uid}
+          onCreated={handleCreated}
         />
       )}
     </div>
