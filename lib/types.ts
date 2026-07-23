@@ -5,6 +5,7 @@ export interface EditorState {
   gallery: GalleryImage[]
   calendarSettings: CalendarSettings
   shareSettings: ShareSettings
+  privacySettings: PrivacySettings
   slug: string
 }
 
@@ -75,6 +76,12 @@ export interface MusicSettings {
   volume: number
   track: string
   customUrl?: string
+}
+
+export interface PrivacySettings {
+  lockEnabled: boolean
+  lockPassword: string
+  zoomPrevention: boolean
 }
 
 export interface RSVPSettings {
@@ -149,6 +156,12 @@ export const defaultMusicSettings: MusicSettings = {
   autoPlay: false,
   volume: 50,
   track: 'romantic-piano',
+}
+
+export const defaultPrivacySettings: PrivacySettings = {
+  lockEnabled: false,
+  lockPassword: '',
+  zoomPrevention: false,
 }
 
 export const defaultRSVPSettings: RSVPSettings = {

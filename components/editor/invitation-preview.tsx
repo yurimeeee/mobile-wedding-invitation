@@ -10,6 +10,7 @@ import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
 import { GuestMessageSection } from '@/components/invitation/guest-message-section';
+import { RSVPSection } from '@/components/invitation/rsvp-section';
 import Image from 'next/image';
 
 interface InvitationPreviewProps {
@@ -400,6 +401,19 @@ function PreviewContent({ state, cfg, invitationId, isDesktop }: PreviewContentP
           <Phone className="h-3 w-3 mr-1" />신부측 연락
         </Button>
       </div>
+
+      {/* RSVP */}
+      {invitationId && (
+        <div className="mx-4">
+          <RSVPSection
+            invitationId={invitationId}
+            textStyle={textStyle}
+            mutedStyle={mutedStyle}
+            sectionBg={cfg.sectionBg}
+            accentColor={cfg.isDark ? '#d4af37' : '#c47a85'}
+          />
+        </div>
+      )}
 
       {/* Guest messages */}
       {invitationId && (

@@ -5,6 +5,7 @@ import {
   defaultShareSettings,
   defaultWeddingInfo,
   defaultMusicSettings,
+  defaultPrivacySettings,
 } from '@/lib/types'
 
 // Firestore 보안 규칙은 status/uid로만 쿼리를 정적으로 검증할 수 있어
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
       gallery: data.gallery ?? [],
       calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
       shareSettings: data.shareSettings ?? defaultShareSettings,
+      privacySettings: data.privacySettings ?? defaultPrivacySettings,
       slug: data.slug ?? '',
     },
   })

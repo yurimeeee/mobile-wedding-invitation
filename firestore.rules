@@ -69,6 +69,19 @@ service cloud.firestore {
         allow read, create: if invitation().status == 'published' || isOwner();
         allow delete: if invitation().status == 'published' || isOwner();
       }
+
+      // 참석여부 응답: 발행된 청첩장에는 하객이 로그인 없이 남길 수 있지만,
+      // 다른 하객의 응답 내용은 볼 수 없고 소유자만 확인/삭제 가능
+      match /rsvps/{rsvpId} {
+        function invitation() {
+          return get(/databases/$(database)/documents/invitations/$(invitationId)).data;
+        }
+        function isOwner() {
+          return request.auth != null && request.auth.uid == invitation().uid;
+        }
+        allow create: if invitation().status == 'published';
+        allow read, delete: if isOwner();
+      }
     }
   }
 }

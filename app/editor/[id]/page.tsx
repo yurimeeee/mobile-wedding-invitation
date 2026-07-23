@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy, X } from 'lucide-react';
+import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy, X, Lock } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { TemplateSelector } from '@/components/editor/template-selector';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
+import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
 import { EditorSettingsDialog } from '@/components/editor/editor-settings-dialog';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
@@ -76,6 +77,7 @@ export default function EditorPage() {
     reorderGallery,
     updateCalendarSettings,
     updateShareSettings,
+    updatePrivacySettings,
     updateSlug,
   } = useEditorState(invitationId);
 
@@ -85,6 +87,7 @@ export default function EditorPage() {
     { id: 'gallery', label: '갤러리', icon: Image },
     { id: 'music', label: '음악', icon: Music },
     { id: 'share', label: '공유', icon: Share2 },
+    { id: 'privacy', label: '보안', icon: Lock },
   ];
 
   const handlePublish = async () => {
@@ -172,6 +175,7 @@ export default function EditorPage() {
                   invitationId={invitationId}
                   onSlugChange={updateSlug}
                 />
+                <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} />
               </motion.div>
             )}
             {mobileTab === 'preview' && (
@@ -287,6 +291,9 @@ export default function EditorPage() {
                     invitationId={invitationId}
                     onSlugChange={updateSlug}
                   />
+                </TabsContent>
+                <TabsContent value="privacy" className="mt-0">
+                  <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} />
                 </TabsContent>
               </Tabs>
             </div>

@@ -5,7 +5,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
 import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
-import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings } from './types'
+import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings } from './types'
 
 async function uploadNewImages(
   uid: string,
@@ -90,6 +90,7 @@ export async function saveInvitation(
       gallery,
       calendarSettings: state.calendarSettings,
       shareSettings,
+      privacySettings: state.privacySettings,
       slug: state.slug || '',
       status,
       updatedAt: serverTimestamp(),
@@ -112,6 +113,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
+    privacySettings: data.privacySettings ?? defaultPrivacySettings,
     slug: data.slug ?? '',
   }
 }

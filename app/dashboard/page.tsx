@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon, QrCode, MessageCircle } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon, QrCode, MessageCircle, Sparkles, RefreshCw, ClipboardCheck } from 'lucide-react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { loadUserInvitations, deleteInvitation, duplicateInvitation, type DashboardInvitation } from '@/lib/invitation-service';
@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
 import { QrCodeModal } from '@/components/dashboard/qr-code-modal';
 import { GuestMessagesModal } from '@/components/dashboard/guest-messages-modal';
+import { RSVPModal } from '@/components/dashboard/rsvp-modal';
 import { NewInvitationDialog } from '@/components/dashboard/new-invitation-dialog';
 
 const templateColors: Record<string, string> = {
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [qrInvitation, setQrInvitation] = useState<DashboardInvitation | null>(null);
   const [messagesInvitation, setMessagesInvitation] = useState<DashboardInvitation | null>(null);
+  const [rsvpInvitation, setRsvpInvitation] = useState<DashboardInvitation | null>(null);
   const [newDialogOpen, setNewDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -177,6 +179,39 @@ export default function DashboardPage() {
             <Plus className="mr-2 h-4 w-4" />
             새로 만들기
           </Button>
+        </div>
+
+        {/* Trust badges */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-5 flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                </div>
+                <Badge variant="secondary">무료로 100% 체험</Badge>
+              </div>
+              <h3 className="font-serif text-lg font-semibold mb-1">구매 전, 무료로 시안 제작</h3>
+              <p className="text-sm text-muted-foreground mb-3">시작은 무료 시안으로, 선택은 마음에 들 때.</p>
+              <p className="text-xs text-muted-foreground/70 mb-4">만족하지 않으면 언제든지 취소 가능합니다.</p>
+              <Button className="mt-auto w-fit" onClick={() => setNewDialogOpen(true)}>
+                청첩장 제작하기
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                  <RefreshCw className="h-4 w-4 text-green-600" />
+                </div>
+                <Badge variant="secondary">연중무휴 24시간 편집 지원</Badge>
+              </div>
+              <h3 className="font-serif text-lg font-semibold mb-1">구매 후에도 무제한 수정</h3>
+              <p className="text-sm text-muted-foreground mb-3">편집은 결제와 관계없습니다.</p>
+              <p className="text-xs text-muted-foreground/70">언제든 원하는 만큼 수정하세요.</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Stats */}
@@ -323,6 +358,10 @@ export default function DashboardPage() {
                               <MessageCircle className="mr-2 h-4 w-4" />
                               방명록
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setRsvpInvitation(invitation)} className="cursor-pointer">
+                              <ClipboardCheck className="mr-2 h-4 w-4" />
+                              참석여부
+                            </DropdownMenuItem>
                             {invitation.status === 'published' && (
                               <>
                                 <DropdownMenuItem onClick={() => handleCopyLink(invitation)} className="cursor-pointer">
@@ -387,6 +426,15 @@ export default function DashboardPage() {
           onOpenChange={(open) => !open && setMessagesInvitation(null)}
           invitationId={messagesInvitation.id}
           title={messagesInvitation.title}
+        />
+      )}
+
+      {rsvpInvitation && (
+        <RSVPModal
+          open={!!rsvpInvitation}
+          onOpenChange={(open) => !open && setRsvpInvitation(null)}
+          invitationId={rsvpInvitation.id}
+          title={rsvpInvitation.title}
         />
       )}
 

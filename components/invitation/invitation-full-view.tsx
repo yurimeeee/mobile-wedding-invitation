@@ -5,9 +5,11 @@ import { KakaoMapDisplay } from '@/components/editor/kakao-map'
 import { WeddingCalendar } from '@/components/editor/wedding-calendar'
 import { ShareSection } from '@/components/editor/share-section'
 import { GuestMessageSection } from '@/components/invitation/guest-message-section'
+import { RSVPSection } from '@/components/invitation/rsvp-section'
 import Image from 'next/image'
-import { MapPin, Phone, ChevronDown, Music, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, Phone, ChevronDown, Music, Heart, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -281,9 +283,45 @@ function GalleryLightbox({ images, initialIndex, onClose }: {
   )
 }
 
+// ─── Lock screen ──────────────────────────────────────────────────────────────
+function LockScreen({ onUnlock, correctPassword }: { onUnlock: () => void; correctPassword: string }) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password === correctPassword) {
+      onUnlock()
+    } else {
+      setError(true)
+    }
+  }
+
+  return (
+    <div className="min-h-screen max-w-[393px] mx-auto flex flex-col items-center justify-center px-8 bg-background">
+      <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-5">
+        <Lock className="h-5 w-5 text-accent" />
+      </div>
+      <h1 className="font-serif text-xl font-semibold mb-2">잠긴 청첩장이에요</h1>
+      <p className="text-sm text-muted-foreground mb-8 text-center">비밀번호를 입력하면 청첩장을 볼 수 있어요.</p>
+      <form onSubmit={handleSubmit} className="w-full space-y-3">
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setError(false) }}
+          placeholder="비밀번호"
+          autoFocus
+        />
+        {error && <p className="text-xs text-destructive text-center">비밀번호가 올바르지 않습니다.</p>}
+        <Button type="submit" className="w-full">확인</Button>
+      </form>
+    </div>
+  )
+}
+
 // ─── Main full view ───────────────────────────────────────────────────────────
 export function InvitationFullView({ state, invitationId }: InvitationFullViewProps) {
-  const { template, weddingInfo: info, musicSettings } = state
+  const { template, weddingInfo: info, musicSettings, privacySettings } = state
   const cfg = templateConfig[template]
   const mainImage = state.gallery.length > 0 ? state.gallery[0] : null
   const textStyle = { color: cfg.text }
@@ -293,6 +331,36 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
     ? `${window.location.origin}/invitation/${invitationId}`
     : ''
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [unlocked, setUnlocked] = useState(false)
+  const isLocked = privacySettings.lockEnabled && !unlocked
+
+  // 확대방지: 핀치 줌과 뷰포트 확대를 막는다
+  useEffect(() => {
+    if (!privacySettings.zoomPrevention) return
+
+    const viewportMeta = document.querySelector('meta[name="viewport"]')
+    const previousContent = viewportMeta?.getAttribute('content') ?? null
+    viewportMeta?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+
+    const preventPinch = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault()
+    }
+    let lastTouchEnd = 0
+    const preventDoubleTapZoom = (e: TouchEvent) => {
+      const now = Date.now()
+      if (now - lastTouchEnd <= 300) e.preventDefault()
+      lastTouchEnd = now
+    }
+
+    document.addEventListener('touchmove', preventPinch, { passive: false })
+    document.addEventListener('touchend', preventDoubleTapZoom, { passive: false })
+
+    return () => {
+      if (previousContent !== null) viewportMeta?.setAttribute('content', previousContent)
+      document.removeEventListener('touchmove', preventPinch)
+      document.removeEventListener('touchend', preventDoubleTapZoom)
+    }
+  }, [privacySettings.zoomPrevention])
 
   const trackUrl = musicSettings.customUrl || musicTracks.find(t => t.id === musicSettings.track)?.url || ''
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -315,6 +383,10 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
     } else {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
+  }
+
+  if (isLocked) {
+    return <LockScreen correctPassword={privacySettings.lockPassword} onUnlock={() => setUnlocked(true)} />
   }
 
   return (
@@ -368,13 +440,13 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
               {state.gallery.map((img, i) => (
                 <div
                   key={img.id}
-                  className="aspect-square overflow-hidden cursor-pointer"
-                  onClick={() => setLightboxIndex(i)}
+                  className={cn('aspect-square overflow-hidden', !privacySettings.zoomPrevention && 'cursor-pointer')}
+                  onClick={() => !privacySettings.zoomPrevention && setLightboxIndex(i)}
                 >
                   <img
                     src={img.url}
                     alt=""
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className={cn('w-full h-full object-cover transition-transform duration-300', !privacySettings.zoomPrevention && 'hover:scale-105')}
                   />
                 </div>
               ))}
@@ -436,6 +508,15 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
             </a>
           )}
         </div>
+
+        {/* RSVP */}
+        <RSVPSection
+          invitationId={invitationId}
+          textStyle={textStyle}
+          mutedStyle={mutedStyle}
+          sectionBg={cfg.sectionBg}
+          accentColor={cfg.isDark ? '#d4af37' : '#c47a85'}
+        />
 
         {/* Guest messages */}
         <GuestMessageSection

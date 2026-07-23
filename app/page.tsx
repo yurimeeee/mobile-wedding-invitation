@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Heart, MapPin, Music, Palette, Share2, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, Heart, MapPin, Music, Palette, Share2, Sparkles, Star, Lock, SearchX, BookOpen, Armchair } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -210,6 +210,64 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold mb-2">{feature.title}</h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Privacy & Extra Features */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">더 세심하게, 더 안전하게</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">청첩장을 더 편하고 안전하게 관리할 수 있는 기능들이에요.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            {[
+              {
+                icon: Lock,
+                title: '청첩장 잠금 설정',
+                description: '필요할 때, 청첩장을 볼 수 없게 잠금 설정이 가능해요.',
+                bullets: ['보안성과 프라이버시 확보', '비밀번호 입력시에만 열람 가능', '언제든지 잠금 설정/해제 가능'],
+              },
+              {
+                icon: SearchX,
+                title: '확대방지',
+                description: '사진을 확대할 수 없도록 설정 가능해요.',
+                bullets: ['핀치 줌 확대 방지', '청첩장 내 모든사진 확대 방지'],
+              },
+              {
+                icon: BookOpen,
+                title: '방명록',
+                description: '초대장을 받은 모든 분들이 축하글을 남길 수 있어요.',
+                bullets: ['방명록 비공개 설정 제공', '방명록 관리 페이지 제공', '신규 방명록 카톡 알림 받기'],
+              },
+              {
+                icon: Armchair,
+                title: '참석여부 · RSVP',
+                description: '참석 여부부터 다양한 설문을 받을 수 있어요.',
+                bullets: ['참석여부 응답 집계 대시보드 제공', '동행인원, 식사여부, 셔틀이용 등 설문 옵션 제공', '응답결과 엑셀 다운로드', '팝업 배너로 설정 가능', '신규 응답 카톡 알림 받기'],
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                className="p-6 rounded-xl bg-card border border-border"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <feature.icon className="h-5 w-5 text-foreground mb-4" strokeWidth={1.5} />
+                <h3 className="font-semibold mb-1.5">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{feature.description}</p>
+                <div className="h-px bg-border mb-4" />
+                <ul className="space-y-1">
+                  {feature.bullets.map((bullet) => (
+                    <li key={bullet} className="text-xs text-muted-foreground">· {bullet}</li>
+                  ))}
+                </ul>
               </motion.div>
             ))}
           </div>

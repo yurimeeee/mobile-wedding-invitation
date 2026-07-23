@@ -12,10 +12,12 @@ import {
   type GalleryImage,
   type CalendarSettings,
   type ShareSettings,
+  type PrivacySettings,
   defaultWeddingInfo,
   defaultMusicSettings,
   defaultCalendarSettings,
   defaultShareSettings,
+  defaultPrivacySettings,
   templates,
 } from '@/lib/types'
 
@@ -28,6 +30,7 @@ const initialState: EditorState = {
   gallery: [],
   calendarSettings: defaultCalendarSettings,
   shareSettings: defaultShareSettings,
+  privacySettings: defaultPrivacySettings,
   slug: '',
 }
 
@@ -120,6 +123,11 @@ export function useEditorState(invitationId: string) {
     bumpEdit()
   }
 
+  const updatePrivacySettings = (updates: Partial<PrivacySettings>) => {
+    setState((prev) => ({ ...prev, privacySettings: { ...prev.privacySettings, ...updates } }))
+    bumpEdit()
+  }
+
   const updateSlug = (slug: string) => {
     setState((prev) => ({ ...prev, slug }))
     bumpEdit()
@@ -175,6 +183,7 @@ export function useEditorState(invitationId: string) {
     reorderGallery,
     updateCalendarSettings,
     updateShareSettings,
+    updatePrivacySettings,
     updateSlug,
     templates,
   }
