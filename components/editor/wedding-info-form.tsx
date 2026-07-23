@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { User, Calendar, MapPin, Phone, CreditCard, Users } from 'lucide-react';
 import { AddressSearch } from '@/components/editor/kakao-map';
@@ -182,11 +183,29 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'아버지 성함'}</Label>
-                <Input value={info.groomFatherName} onChange={(e) => onChange({ groomFatherName: e.target.value })} placeholder="김철수" />
+                <div className="flex items-center gap-2">
+                  <Input value={info.groomFatherName} onChange={(e) => onChange({ groomFatherName: e.target.value })} placeholder="김철수" />
+                  <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
+                    <Checkbox
+                      checked={info.groomFatherDeceased}
+                      onCheckedChange={(v) => onChange({ groomFatherDeceased: v === true })}
+                    />
+                    故
+                  </label>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{'어머니 성함'}</Label>
-                <Input value={info.groomMotherName} onChange={(e) => onChange({ groomMotherName: e.target.value })} placeholder="박영희" />
+                <div className="flex items-center gap-2">
+                  <Input value={info.groomMotherName} onChange={(e) => onChange({ groomMotherName: e.target.value })} placeholder="박영희" />
+                  <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
+                    <Checkbox
+                      checked={info.groomMotherDeceased}
+                      onCheckedChange={(v) => onChange({ groomMotherDeceased: v === true })}
+                    />
+                    故
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -194,12 +213,47 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'아버지 성함'}</Label>
-                <Input value={info.brideFatherName} onChange={(e) => onChange({ brideFatherName: e.target.value })} placeholder="이정호" />
+                <div className="flex items-center gap-2">
+                  <Input value={info.brideFatherName} onChange={(e) => onChange({ brideFatherName: e.target.value })} placeholder="이정호" />
+                  <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
+                    <Checkbox
+                      checked={info.brideFatherDeceased}
+                      onCheckedChange={(v) => onChange({ brideFatherDeceased: v === true })}
+                    />
+                    故
+                  </label>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{'어머니 성함'}</Label>
-                <Input value={info.brideMotherName} onChange={(e) => onChange({ brideMotherName: e.target.value })} placeholder="최미선" />
+                <div className="flex items-center gap-2">
+                  <Input value={info.brideMotherName} onChange={(e) => onChange({ brideMotherName: e.target.value })} placeholder="최미선" />
+                  <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
+                    <Checkbox
+                      checked={info.brideMotherDeceased}
+                      onCheckedChange={(v) => onChange({ brideMotherDeceased: v === true })}
+                    />
+                    故
+                  </label>
+                </div>
               </div>
+            </div>
+
+            <div className="h-px bg-border" />
+
+            <div className="flex items-center justify-between">
+              <Label className="font-normal">{'故人 표기'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">국화 꽃으로 표기</span></Label>
+              <Switch
+                checked={info.showDeceasedMark}
+                onCheckedChange={(v) => onChange({ showDeceasedMark: v })}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="font-normal">{'항목 순서'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">신부측 먼저 표시</span></Label>
+              <Switch
+                checked={info.brideFirst}
+                onCheckedChange={(v) => onChange({ brideFirst: v })}
+              />
             </div>
           </AccordionContent>
         </AccordionItem>

@@ -108,7 +108,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
   const data = snap.data()
   return {
     template: data.template ?? 'classic-elegant',
-    weddingInfo: data.weddingInfo ?? defaultWeddingInfo,
+    weddingInfo: { ...defaultWeddingInfo, ...(data.weddingInfo ?? {}) },
     musicSettings: data.musicSettings ?? defaultMusicSettings,
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,

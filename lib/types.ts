@@ -40,12 +40,24 @@ export interface WeddingInfo {
   groomMotherName: string
   brideFatherName: string
   brideMotherName: string
+  groomFatherDeceased: boolean
+  groomMotherDeceased: boolean
+  brideFatherDeceased: boolean
+  brideMotherDeceased: boolean
   groomParentContact: string
   brideParentContact: string
   groomBankAccount: string
   brideBankAccount: string
   groomBankName: string
   brideBankName: string
+  showDeceasedMark: boolean
+  brideFirst: boolean
+}
+
+// 고인이신 부모님 성함 표시: showDeceasedMark가 켜져 있으면 국화 아이콘, 아니면 "故" 텍스트
+export function formatParentName(name: string, deceased: boolean, showDeceasedMark: boolean): string {
+  if (!name || !deceased) return name
+  return showDeceasedMark ? `🌼 ${name}` : `故 ${name}`
 }
 
 export interface GalleryImage {
@@ -126,12 +138,18 @@ export const defaultWeddingInfo: WeddingInfo = {
   groomMotherName: '',
   brideFatherName: '',
   brideMotherName: '',
+  groomFatherDeceased: false,
+  groomMotherDeceased: false,
+  brideFatherDeceased: false,
+  brideMotherDeceased: false,
   groomParentContact: '',
   brideParentContact: '',
   groomBankAccount: '',
   brideBankAccount: '',
   groomBankName: '',
   brideBankName: '',
+  showDeceasedMark: false,
+  brideFirst: false,
   latitude: 0,
   longitude: 0,
 }

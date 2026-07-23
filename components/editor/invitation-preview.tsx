@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Monitor, Phone, MapPin, ChevronDown, Heart, Music } from 'lucide-react';
-import { type EditorState, type GalleryImage, type TemplateType } from '@/lib/types';
+import { type EditorState, type GalleryImage, type TemplateType, formatParentName } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
@@ -268,15 +268,22 @@ function CoupleNames({ info, textStyle, accentColor }: {
   textStyle: React.CSSProperties
   accentColor?: string
 }) {
+  const groomKr = `${info.groomLastNameKr}${info.groomFirstNameKr}`
+  const brideKr = `${info.brideLastNameKr}${info.brideFirstNameKr}`
+  const first = info.brideFirst ? brideKr : groomKr
+  const second = info.brideFirst ? groomKr : brideKr
+  const firstEn = info.brideFirst ? info.brideFirstName : info.groomFirstName
+  const secondEn = info.brideFirst ? info.groomFirstName : info.brideFirstName
+
   return (
     <div className="text-center space-y-1">
       <h1 className="font-serif text-xl" style={textStyle}>
-        {info.groomLastNameKr}{info.groomFirstNameKr}
+        {first}
         <span className="mx-2 font-light" style={{ color: accentColor || '#c47a85' }}>·</span>
-        {info.brideLastNameKr}{info.brideFirstNameKr}
+        {second}
       </h1>
       <p className="text-xs tracking-widest" style={{ color: textStyle.color, opacity: 0.5 }}>
-        {info.groomFirstName} & {info.brideFirstName}
+        {firstEn} & {secondEn}
       </p>
     </div>
   )
@@ -298,6 +305,8 @@ function PreviewContent({ state, cfg, invitationId, isDesktop }: PreviewContentP
   const mutedStyle: React.CSSProperties = { color: cfg.text, opacity: 0.55 }
   const dividerStyle: React.CSSProperties = { background: cfg.divider }
   const sectionStyle: React.CSSProperties = { background: cfg.sectionBg }
+  const groomParentsLine = `${formatParentName(info.groomFatherName, info.groomFatherDeceased, info.showDeceasedMark)} · ${formatParentName(info.groomMotherName, info.groomMotherDeceased, info.showDeceasedMark)}의 아들 ${info.groomLastNameKr}${info.groomFirstNameKr}`
+  const brideParentsLine = `${formatParentName(info.brideFatherName, info.brideFatherDeceased, info.showDeceasedMark)} · ${formatParentName(info.brideMotherName, info.brideMotherDeceased, info.showDeceasedMark)}의 딸 ${info.brideLastNameKr}${info.brideFirstNameKr}`
 
   return (
     <div style={{ color: cfg.text }}>
@@ -333,12 +342,9 @@ function PreviewContent({ state, cfg, invitationId, isDesktop }: PreviewContentP
 
       {/* Parents */}
       <div className="text-center px-6 mb-8 space-y-1.5">
-        <p className="text-xs" style={mutedStyle}>
-          {info.groomFatherName} · {info.groomMotherName}의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
-        </p>
-        <p className="text-xs" style={mutedStyle}>
-          {info.brideFatherName} · {info.brideMotherName}의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
-        </p>
+        {(info.brideFirst ? [brideParentsLine, groomParentsLine] : [groomParentsLine, brideParentsLine]).map((line, i) => (
+          <p key={i} className="text-xs" style={mutedStyle}>{line}</p>
+        ))}
       </div>
 
       {/* Divider */}
@@ -391,14 +397,14 @@ function PreviewContent({ state, cfg, invitationId, isDesktop }: PreviewContentP
           className="flex-1 text-xs"
           style={cfg.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: cfg.text } : {}}
         >
-          <Phone className="h-3 w-3 mr-1" />신랑측 연락
+          <Phone className="h-3 w-3 mr-1" />{info.brideFirst ? '신부측 연락' : '신랑측 연락'}
         </Button>
         <Button
           variant="outline" size="sm"
           className="flex-1 text-xs"
           style={cfg.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: cfg.text } : {}}
         >
-          <Phone className="h-3 w-3 mr-1" />신부측 연락
+          <Phone className="h-3 w-3 mr-1" />{info.brideFirst ? '신랑측 연락' : '신부측 연락'}
         </Button>
       </div>
 

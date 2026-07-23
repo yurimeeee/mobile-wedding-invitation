@@ -1,6 +1,6 @@
 'use client'
 
-import { type EditorState, type GalleryImage, type TemplateType, musicTracks } from '@/lib/types'
+import { type EditorState, type GalleryImage, type TemplateType, musicTracks, formatParentName } from '@/lib/types'
 import { KakaoMapDisplay } from '@/components/editor/kakao-map'
 import { WeddingCalendar } from '@/components/editor/wedding-calendar'
 import { ShareSection } from '@/components/editor/share-section'
@@ -135,15 +135,22 @@ function HeroDarkLuxury({ info, mainImage }: { info: EditorState['weddingInfo'];
 }
 
 function CoupleNames({ info, color, accentColor }: { info: EditorState['weddingInfo']; color: string; accentColor?: string }) {
+  const groomKr = `${info.groomLastNameKr}${info.groomFirstNameKr}`
+  const brideKr = `${info.brideLastNameKr}${info.brideFirstNameKr}`
+  const first = info.brideFirst ? brideKr : groomKr
+  const second = info.brideFirst ? groomKr : brideKr
+  const firstEn = info.brideFirst ? info.brideFirstName : info.groomFirstName
+  const secondEn = info.brideFirst ? info.groomFirstName : info.brideFirstName
+
   return (
     <div className="text-center space-y-1.5">
       <h1 className="font-serif text-2xl" style={{ color }}>
-        {info.groomLastNameKr}{info.groomFirstNameKr}
+        {first}
         <span className="mx-3 font-light" style={{ color: accentColor || '#c47a85' }}>·</span>
-        {info.brideLastNameKr}{info.brideFirstNameKr}
+        {second}
       </h1>
       <p className="text-sm tracking-widest" style={{ color, opacity: 0.5 }}>
-        {info.groomFirstName} & {info.brideFirstName}
+        {firstEn} & {secondEn}
       </p>
     </div>
   )
@@ -163,18 +170,21 @@ function AccountSection({ info, cfg }: { info: EditorState['weddingInfo']; cfg: 
       </button>
       {open && (
         <div className="mt-4 space-y-3">
-          {info.groomBankName && (
-            <div className="flex justify-between items-center text-sm">
-              <span style={mutedStyle}>신랑 {info.groomLastNameKr}{info.groomFirstNameKr}</span>
-              <span style={textStyle}>{info.groomBankName} {info.groomBankAccount}</span>
+          {(info.brideFirst
+            ? [
+                { label: '신부', name: `${info.brideLastNameKr}${info.brideFirstNameKr}`, bank: info.brideBankName, account: info.brideBankAccount },
+                { label: '신랑', name: `${info.groomLastNameKr}${info.groomFirstNameKr}`, bank: info.groomBankName, account: info.groomBankAccount },
+              ]
+            : [
+                { label: '신랑', name: `${info.groomLastNameKr}${info.groomFirstNameKr}`, bank: info.groomBankName, account: info.groomBankAccount },
+                { label: '신부', name: `${info.brideLastNameKr}${info.brideFirstNameKr}`, bank: info.brideBankName, account: info.brideBankAccount },
+              ]
+          ).map((p) => p.bank && (
+            <div key={p.label} className="flex justify-between items-center text-sm">
+              <span style={mutedStyle}>{p.label} {p.name}</span>
+              <span style={textStyle}>{p.bank} {p.account}</span>
             </div>
-          )}
-          {info.brideBankName && (
-            <div className="flex justify-between items-center text-sm">
-              <span style={mutedStyle}>신부 {info.brideLastNameKr}{info.brideFirstNameKr}</span>
-              <span style={textStyle}>{info.brideBankName} {info.brideBankAccount}</span>
-            </div>
-          )}
+          ))}
         </div>
       )}
     </div>
@@ -389,6 +399,9 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
     return <LockScreen correctPassword={privacySettings.lockPassword} onUnlock={() => setUnlocked(true)} />
   }
 
+  const groomParentsLine = `${formatParentName(info.groomFatherName, info.groomFatherDeceased, info.showDeceasedMark)} · ${formatParentName(info.groomMotherName, info.groomMotherDeceased, info.showDeceasedMark)}의 아들 ${info.groomLastNameKr}${info.groomFirstNameKr}`
+  const brideParentsLine = `${formatParentName(info.brideFatherName, info.brideFatherDeceased, info.showDeceasedMark)} · ${formatParentName(info.brideMotherName, info.brideMotherDeceased, info.showDeceasedMark)}의 딸 ${info.brideLastNameKr}${info.brideFirstNameKr}`
+
   return (
     <div className="min-h-screen max-w-[393px] mx-auto" style={{ background: cfg.bg, color: cfg.text }}>
       {/* Hero */}
@@ -423,12 +436,9 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
 
         {/* Parents */}
         <div className="text-center mb-10 space-y-2">
-          <p className="text-sm" style={mutedStyle}>
-            {info.groomFatherName} · {info.groomMotherName}의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
-          </p>
-          <p className="text-sm" style={mutedStyle}>
-            {info.brideFatherName} · {info.brideMotherName}의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
-          </p>
+          {(info.brideFirst ? [brideParentsLine, groomParentsLine] : [groomParentsLine, brideParentsLine]).map((line, i) => (
+            <p key={i} className="text-sm" style={mutedStyle}>{line}</p>
+          ))}
         </div>
 
         <div className="h-px mb-10" style={dividerStyle} />
@@ -491,22 +501,17 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
 
         {/* Contact */}
         <div className="flex gap-2 mb-10">
-          {info.groomContact && (
-            <a href={`tel:${info.groomContact}`} className="flex-1">
+          {(info.brideFirst
+            ? [{ label: '신부측 연락', contact: info.brideContact }, { label: '신랑측 연락', contact: info.groomContact }]
+            : [{ label: '신랑측 연락', contact: info.groomContact }, { label: '신부측 연락', contact: info.brideContact }]
+          ).map((c) => c.contact && (
+            <a key={c.label} href={`tel:${c.contact}`} className="flex-1">
               <Button variant="outline" size="sm" className="w-full"
                 style={cfg.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: cfg.text } : {}}>
-                <Phone className="h-3 w-3 mr-1" />신랑측 연락
+                <Phone className="h-3 w-3 mr-1" />{c.label}
               </Button>
             </a>
-          )}
-          {info.brideContact && (
-            <a href={`tel:${info.brideContact}`} className="flex-1">
-              <Button variant="outline" size="sm" className="w-full"
-                style={cfg.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: cfg.text } : {}}>
-                <Phone className="h-3 w-3 mr-1" />신부측 연락
-              </Button>
-            </a>
-          )}
+          ))}
         </div>
 
         {/* RSVP */}
