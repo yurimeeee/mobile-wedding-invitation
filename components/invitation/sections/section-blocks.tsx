@@ -165,6 +165,42 @@ function HeroDarkLuxury({ info, mainImage, textStyle }: { info: EditorState['wed
   );
 }
 
+function formatWeddingDateLabel(weddingDate: string): string {
+  const date = new Date(weddingDate);
+  if (!weddingDate || Number.isNaN(date.getTime())) return '';
+  const dow = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}. ${mm}. ${dd} ${dow}`;
+}
+
+function HeroVintageForest({ info, mainImage }: { info: EditorState['weddingInfo']; mainImage: GalleryImage | null }) {
+  const groomLabel = info.groomFirstName || `${info.groomLastNameKr}${info.groomFirstNameKr}`;
+  const brideLabel = info.brideFirstName || `${info.brideLastNameKr}${info.brideFirstNameKr}`;
+  const first = info.brideFirst ? brideLabel : groomLabel;
+  const second = info.brideFirst ? groomLabel : brideLabel;
+  const dateLabel = formatWeddingDateLabel(info.weddingDate);
+
+  return (
+    <div className="relative w-full h-[380px] overflow-hidden">
+      {mainImage
+        ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+        : <div className="w-full h-full flex items-center justify-center" style={{ background: '#3D3830' }}><Heart className="w-10 h-10 text-white/20" /></div>
+      }
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15) 55%, transparent)' }} />
+      <div className="absolute inset-x-0 bottom-0 pb-7 px-6 text-center">
+        <p className="text-white/70 text-[10px] tracking-[0.3em] mb-2">WE ARE GETTING MARRIED</p>
+        <h1 className="font-serif italic text-2xl text-white mb-1.5">
+          {first}
+          <span className="mx-2 font-light text-white/70">&amp;</span>
+          {second}
+        </h1>
+        {dateLabel && <p className="text-white/75 text-[11px] tracking-widest">{dateLabel}</p>}
+      </div>
+    </div>
+  );
+}
+
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
 function CoupleNames({ info, textStyle, accentColor }: {
@@ -205,6 +241,7 @@ export function CoverBlock({ state, style }: SectionBlockProps) {
       {template === 'korean-traditional' && <HeroKoreanTraditional info={info} mainImage={mainImage} textStyle={textStyle} />}
       {template === 'floral-romantic'    && <HeroFloralRomantic    info={info} mainImage={mainImage} textStyle={textStyle} />}
       {template === 'dark-luxury'        && <HeroDarkLuxury        info={info} mainImage={mainImage} textStyle={textStyle} />}
+      {template === 'vintage-forest'     && <HeroVintageForest     info={info} mainImage={mainImage} />}
     </>
   );
 }

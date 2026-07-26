@@ -29,6 +29,14 @@ export interface SectionInstance {
 
 export type FreeElementType = 'sticker' | 'image' | 'text'
 
+export type TextFontFamily = 'sans' | 'serif'
+export type TextAlign = 'left' | 'center' | 'right'
+
+export const textFontFamilyMap: Record<TextFontFamily, string> = {
+  sans: 'Geist, system-ui, sans-serif',
+  serif: "'Noto Serif KR', 'Times New Roman', serif",
+}
+
 export interface FreeElement {
   id: string
   type: FreeElementType
@@ -45,6 +53,14 @@ export interface FreeElement {
   zIndex: number
   opacity: number
   locked: boolean
+  // text-only styling — all optional so elements saved before this field
+  // existed keep rendering with the old hardcoded defaults.
+  color?: string
+  fontSize?: number // % of canvas width, same unit convention as width/height
+  fontFamily?: TextFontFamily
+  bold?: boolean
+  italic?: boolean
+  align?: TextAlign
 }
 
 export interface CanvasBackground {
@@ -99,11 +115,12 @@ export const defaultCustomLayout: CustomLayout = {
 }
 
 export type TemplateType =
-  | 'classic-elegant' 
-  | 'modern-minimal' 
-  | 'floral-romantic' 
-  | 'dark-luxury' 
+  | 'classic-elegant'
+  | 'modern-minimal'
+  | 'floral-romantic'
+  | 'dark-luxury'
   | 'korean-traditional'
+  | 'vintage-forest'
 
 export interface WeddingInfo {
   groomLastName: string
@@ -285,6 +302,7 @@ export const templates: { id: TemplateType; name: string; nameKr: string; colors
   { id: 'floral-romantic', name: 'Floral Romantic', nameKr: '플로럴 로맨틱', colors: ['#fff5f5', '#d4a5a5', '#4a4a4a'] },
   { id: 'dark-luxury', name: 'Dark Luxury', nameKr: '다크 럭셔리', colors: ['#1a1a1a', '#d4af37', '#f5f5f5'] },
   { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통', colors: ['#f8f4e8', '#8b4513', '#2d2d2d'] },
+  { id: 'vintage-forest', name: 'Vintage Forest', nameKr: '빈티지 포레스트', colors: ['#f7f3ec', '#8b6f47', '#2e2a24'] },
 ]
 
 // 출처: Wikimedia Commons (Musopen 녹음 포함) — 전부 퍼블릭 도메인/CC0, 저작권 표시 불필요

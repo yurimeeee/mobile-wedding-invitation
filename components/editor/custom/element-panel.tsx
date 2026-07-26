@@ -58,6 +58,7 @@ export function ElementPanel({ uid, elements, selectedId, onSelect, onAdd, onUpd
       id, type: 'text', text: '텍스트를 입력하세요',
       x: 20, y: 10, width: 60, height: 12,
       rotation: 0, zIndex: nextZIndex(elements), opacity: 1, locked: false,
+      color: '#333333', fontSize: 5, fontFamily: 'sans', align: 'center', bold: false, italic: false,
     });
     onSelect(id);
   };

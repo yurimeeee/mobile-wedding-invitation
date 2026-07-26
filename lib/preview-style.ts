@@ -9,13 +9,14 @@ export interface PreviewStyleConfig {
   accent: string
 }
 
-export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'accent'>> = {
+export const templateConfig: Record<TemplateType, PreviewStyleConfig> = {
   'classic-elegant': {
     bg: '#FCFDF8',
     text: '#261C1D',
     divider: '#DDD2C8',
     sectionBg: 'rgba(0,0,0,0.04)',
     isDark: false,
+    accent: '#c47a85',
   },
   'modern-minimal': {
     bg: '#FFFFFF',
@@ -23,6 +24,7 @@ export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'acce
     divider: '#E5E5E5',
     sectionBg: 'rgba(0,0,0,0.04)',
     isDark: false,
+    accent: '#c47a85',
   },
   'floral-romantic': {
     bg: '#F8F4EB',
@@ -30,6 +32,7 @@ export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'acce
     divider: '#E1DBD5',
     sectionBg: 'rgba(0,0,0,0.04)',
     isDark: false,
+    accent: '#c47a85',
   },
   'dark-luxury': {
     bg: '#181818',
@@ -37,6 +40,7 @@ export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'acce
     divider: '#333',
     sectionBg: 'rgba(255,255,255,0.06)',
     isDark: true,
+    accent: '#d4af37',
   },
   'korean-traditional': {
     bg: '#F8F4EB',
@@ -44,6 +48,15 @@ export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'acce
     divider: '#E1DBD5',
     sectionBg: 'rgba(0,0,0,0.04)',
     isDark: false,
+    accent: '#c47a85',
+  },
+  'vintage-forest': {
+    bg: '#F7F3EC',
+    text: '#2E2A24',
+    divider: '#E3DACB',
+    sectionBg: 'rgba(139,111,71,0.08)',
+    isDark: false,
+    accent: '#8B6F47',
   },
 }
 
@@ -52,9 +65,8 @@ export const templateConfig: Record<TemplateType, Omit<PreviewStyleConfig, 'acce
 // 선택된 template의 원래 배경을 그대로 쓴다.
 export function resolvePreviewStyle(state: EditorState): PreviewStyleConfig {
   const base = templateConfig[state.template]
-  const accent = base.isDark ? '#d4af37' : '#c47a85'
   const background = state.customLayout?.background
 
   const bg = background?.type === 'color' && background.value ? background.value : base.bg
-  return { ...base, bg, accent }
+  return { ...base, bg }
 }

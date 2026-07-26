@@ -1,13 +1,18 @@
 'use client';
 
-import { ArrowLeft, BringToFront, SendToBack, Trash2 } from 'lucide-react';
-import type { FreeElement } from '@/lib/types';
+import { AlignCenter, AlignLeft, AlignRight, ArrowLeft, Bold, BringToFront, Italic, SendToBack, Trash2 } from 'lucide-react';
+import type { FreeElement, TextAlign, TextFontFamily } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+const textColorPresets = ['#222222', '#555555', '#FFFFFF', '#C9A961', '#B76E79', '#4F46E5'];
 
 interface ElementPropertiesProps {
   element: FreeElement;
@@ -67,13 +72,108 @@ export function ElementProperties({ element, elements, onChange, onRemove, onBac
       </div>
 
       {element.type === 'text' && (
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">텍스트</Label>
-          <Textarea
-            value={element.text ?? ''}
-            onChange={(e) => onChange({ text: e.target.value })}
-            rows={2}
-          />
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">텍스트</Label>
+            <Textarea
+              value={element.text ?? ''}
+              onChange={(e) => onChange({ text: e.target.value })}
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">글꼴</Label>
+            <Select
+              value={element.fontFamily ?? 'sans'}
+              onValueChange={(value) => onChange({ fontFamily: value as TextFontFamily })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sans">고딕</SelectItem>
+                <SelectItem value="serif">명조</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">글자 크기</Label>
+              <span className="text-xs text-muted-foreground">{Math.round((element.fontSize ?? 5) * 10) / 10}</span>
+            </div>
+            <Slider
+              value={[element.fontSize ?? 5]}
+              min={2}
+              max={15}
+              step={0.5}
+              onValueChange={([fontSize]) => onChange({ fontSize })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-xs text-muted-foreground shrink-0">색상</Label>
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              {textColorPresets.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => onChange({ color })}
+                  className={cn(
+                    'h-6 w-6 rounded-full border-2 transition-transform',
+                    (element.color ?? '#333333').toUpperCase() === color.toUpperCase() ? 'border-primary scale-110' : 'border-border'
+                  )}
+                  style={{ background: color }}
+                  aria-label={color}
+                />
+              ))}
+              <label className="relative h-6 w-6 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer overflow-hidden">
+                <input
+                  type="color"
+                  value={element.color ?? '#333333'}
+                  onChange={(e) => onChange({ color: e.target.value })}
+                  className="h-8 w-8 cursor-pointer opacity-0 absolute"
+                />
+                <span className="text-[9px] text-muted-foreground pointer-events-none">+</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground">스타일</Label>
+            <div className="flex items-center gap-2">
+              <ToggleGroup
+                type="multiple"
+                size="sm"
+                value={[element.bold && 'bold', element.italic && 'italic'].filter((v): v is string => !!v)}
+                onValueChange={(value) => onChange({ bold: value.includes('bold'), italic: value.includes('italic') })}
+              >
+                <ToggleGroupItem value="bold" aria-label="굵게">
+                  <Bold className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="italic" aria-label="기울임">
+                  <Italic className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={element.align ?? 'center'}
+                onValueChange={(value) => value && onChange({ align: value as TextAlign })}
+              >
+                <ToggleGroupItem value="left" aria-label="왼쪽 정렬">
+                  <AlignLeft className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="center" aria-label="가운데 정렬">
+                  <AlignCenter className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="right" aria-label="오른쪽 정렬">
+                  <AlignRight className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
         </div>
       )}
 

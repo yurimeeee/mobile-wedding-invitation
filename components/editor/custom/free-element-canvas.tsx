@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Stage, Layer, Image as KonvaImage, Text as KonvaText, Transformer } from 'react-konva';
 import useImage from 'use-image';
 import type Konva from 'konva';
-import type { FreeElement } from '@/lib/types';
+import { textFontFamilyMap, type FreeElement } from '@/lib/types';
 
 interface FreeElementCanvasProps {
   elements: FreeElement[];
@@ -72,13 +72,17 @@ function ElementNode({
   };
 
   if (element.type === 'text') {
+    const fontSizePct = element.fontSize ?? Math.max(12, ph * 0.4) / canvasWidth * 100;
+    const fontStyle = [element.bold && 'bold', element.italic && 'italic'].filter(Boolean).join(' ') || 'normal';
     return (
       <KonvaText
         {...commonProps}
         text={element.text || '텍스트'}
-        fontSize={Math.max(12, ph * 0.4)}
-        fill="#333333"
-        align="center"
+        fontSize={(fontSizePct / 100) * canvasWidth}
+        fontFamily={textFontFamilyMap[element.fontFamily ?? 'sans']}
+        fontStyle={fontStyle}
+        fill={element.color ?? '#333333'}
+        align={element.align ?? 'center'}
         verticalAlign="middle"
       />
     );

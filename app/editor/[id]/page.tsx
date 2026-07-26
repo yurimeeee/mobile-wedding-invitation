@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, ListOrdered, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Sticker, Link as LinkIcon, Copy, X, Lock } from 'lucide-react';
+import { ArrowLeft, Check, Eye, FileText, Image, ListOrdered, Loader2, MoreVertical, Music, Palette, Redo2, Save, Settings, Share2, Sticker, Link as LinkIcon, Copy, Undo2, X, Lock } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -93,7 +93,26 @@ export default function EditorPage() {
     addFreeElement,
     updateFreeElement,
     removeFreeElement,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useEditorState(invitationId);
+
+  // Cmd/Ctrl+Z undo, Cmd/Ctrl+Shift+Z redo — skipped while typing so native
+  // text-field undo isn't hijacked.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+      if (e.shiftKey) redo(); else undo();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
 
   const sections = [
     { id: 'template', label: '템플릿', icon: Palette },
@@ -149,11 +168,21 @@ export default function EditorPage() {
     return (
       <div className="h-screen flex flex-col bg-background overflow-hidden">
         <header className="sticky top-0 z-50 glass border-b border-border">
-          <div className="flex items-center justify-between px-4 h-14">
-            <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="flex items-center justify-between px-4 h-14 gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <SaveStatus />
+            <div className="flex items-center gap-1 shrink-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo} disabled={!canUndo} aria-label="실행 취소">
+                <Undo2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo} disabled={!canRedo} aria-label="다시 실행">
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 min-w-0 flex justify-center">
+              <SaveStatus />
+            </div>
             <Button size="sm" onClick={handlePublish} disabled={isActionLoading}>
               {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : '발행'}
             </Button>
@@ -246,6 +275,17 @@ export default function EditorPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo} disabled={!canUndo} aria-label="실행 취소" title="실행 취소 (⌘Z)">
+                <Undo2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo} disabled={!canRedo} aria-label="다시 실행" title="다시 실행 (⌘⇧Z)">
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="h-4 w-px bg-border" />
+
             <SaveStatus />
 
             <div className="h-4 w-px bg-border" />
@@ -290,7 +330,7 @@ export default function EditorPage() {
         <div className="w-[420px] border-r border-border flex flex-col">
           <div className="border-b border-border">
             <Tabs value={activeSection} onValueChange={setActiveSection}>
-              <TabsList className="w-full justify-start h-auto p-1 bg-transparent gap-1">
+              <TabsList className="w-full flex-wrap justify-start h-auto p-1 bg-transparent gap-1">
                 {sections.map((section) => (
                   <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-1.5 data-[state=active]:bg-muted">
                     <section.icon className="h-4 w-4" />

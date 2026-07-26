@@ -72,5 +72,20 @@ export function TemplateThumbnail({ id }: { id: TemplateType }) {
       </div>
     )
   }
+  if (id === 'vintage-forest') {
+    return (
+      <div className="w-full h-full relative overflow-hidden" style={{ background: '#3D3830' }}>
+        <div
+          className="absolute inset-x-0 bottom-0 h-20"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}
+        />
+        <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5">
+          <div className="w-16 h-1 rounded" style={{ background: 'rgba(255,255,255,0.5)' }} />
+          <div className="w-20 h-2.5 rounded" style={{ background: 'rgba(255,255,255,0.9)' }} />
+          <div className="w-12 h-1.5 rounded" style={{ background: 'rgba(255,255,255,0.6)' }} />
+        </div>
+      </div>
+    )
+  }
   return null
 }

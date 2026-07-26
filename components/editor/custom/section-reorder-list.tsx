@@ -1,6 +1,7 @@
 'use client';
 
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Eye, EyeOff, GripVertical } from 'lucide-react';
@@ -53,7 +54,7 @@ export function SectionReorderList({
   return (
     <div className="min-w-0 w-full">
       <p className="text-sm text-muted-foreground mb-3">드래그해서 섹션 순서를 바꾸고, 눈 아이콘으로 표시 여부를 정할 수 있어요.</p>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToParentElement]}>
         <SortableContext items={ordered.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           <div className="min-w-0 space-y-2">
             {ordered.map((s) => (
