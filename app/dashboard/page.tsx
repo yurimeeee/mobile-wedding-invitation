@@ -4,10 +4,30 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, MoreVertical, Pencil, Trash2, Copy, ExternalLink, LogOut, Settings, Clock, FileText, Heart, Loader2, Link as LinkIcon, QrCode, MessageCircle, Sparkles, RefreshCw, ClipboardCheck } from 'lucide-react';
+import {
+  Plus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Copy,
+  ExternalLink,
+  LogOut,
+  Settings,
+  Clock,
+  FileText,
+  Heart,
+  Loader2,
+  Link as LinkIcon,
+  QrCode,
+  MessageCircle,
+  Sparkles,
+  RefreshCw,
+  ClipboardCheck,
+} from 'lucide-react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { loadUserInvitations, deleteInvitation, duplicateInvitation, type DashboardInvitation } from '@/lib/invitation-service';
+import { type EditorMode } from '@/lib/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -73,8 +93,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCreated = (id: string) => {
-    router.push(`/editor/${id}`);
+  const handleCreated = (id: string, mode: EditorMode) => {
+    router.push(mode === 'custom' ? `/editor/${id}?start=custom` : `/editor/${id}`);
   };
 
   const handleDuplicate = async (id: string) => {
@@ -205,7 +225,7 @@ export default function DashboardPage() {
                 <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
                   <RefreshCw className="h-4 w-4 text-green-600" />
                 </div>
-                <Badge variant="secondary">연중무휴 24시간 편집 지원</Badge>
+                <Badge variant="secondary">24시간 편집 지원</Badge>
               </div>
               <h3 className="font-serif text-lg font-semibold mb-1">구매 후에도 무제한 수정</h3>
               <p className="text-sm text-muted-foreground mb-3">편집은 결제와 관계없습니다.</p>
@@ -296,11 +316,7 @@ export default function DashboardPage() {
                     <Link href={`/editor/${invitation.id}`}>
                       <div className={`aspect-[3/4] bg-gradient-to-br ${templateColors[invitation.template] || 'from-gray-50 to-gray-100'} relative overflow-hidden`}>
                         {invitation.thumbnail ? (
-                          <img
-                            src={invitation.thumbnail}
-                            alt={invitation.title || '청첩장 미리보기'}
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
+                          <img src={invitation.thumbnail} alt={invitation.title || '청첩장 미리보기'} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
                           /* Mini preview */
                           <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 ${invitation.template === 'dark-luxury' ? 'text-white' : ''}`}>
@@ -412,12 +428,7 @@ export default function DashboardPage() {
       </main>
 
       {qrInvitation && (
-        <QrCodeModal
-          open={!!qrInvitation}
-          onOpenChange={(open) => !open && setQrInvitation(null)}
-          url={getInvitationUrl(qrInvitation)}
-          title={qrInvitation.title}
-        />
+        <QrCodeModal open={!!qrInvitation} onOpenChange={(open) => !open && setQrInvitation(null)} url={getInvitationUrl(qrInvitation)} title={qrInvitation.title} />
       )}
 
       {messagesInvitation && (
@@ -430,22 +441,10 @@ export default function DashboardPage() {
       )}
 
       {rsvpInvitation && (
-        <RSVPModal
-          open={!!rsvpInvitation}
-          onOpenChange={(open) => !open && setRsvpInvitation(null)}
-          invitationId={rsvpInvitation.id}
-          title={rsvpInvitation.title}
-        />
+        <RSVPModal open={!!rsvpInvitation} onOpenChange={(open) => !open && setRsvpInvitation(null)} invitationId={rsvpInvitation.id} title={rsvpInvitation.title} />
       )}
 
-      {user && (
-        <NewInvitationDialog
-          open={newDialogOpen}
-          onOpenChange={setNewDialogOpen}
-          uid={user.uid}
-          onCreated={handleCreated}
-        />
-      )}
+      {user && <NewInvitationDialog open={newDialogOpen} onOpenChange={setNewDialogOpen} uid={user.uid} onCreated={handleCreated} />}
     </div>
   );
 }

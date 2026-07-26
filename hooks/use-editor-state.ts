@@ -13,11 +13,15 @@ import {
   type CalendarSettings,
   type ShareSettings,
   type PrivacySettings,
+  type SectionInstance,
+  type FreeElement,
+  type CanvasBackground,
   defaultWeddingInfo,
   defaultMusicSettings,
   defaultCalendarSettings,
   defaultShareSettings,
   defaultPrivacySettings,
+  defaultCustomLayout,
   templates,
 } from '@/lib/types'
 
@@ -32,6 +36,8 @@ const initialState: EditorState = {
   shareSettings: defaultShareSettings,
   privacySettings: defaultPrivacySettings,
   slug: '',
+  mode: 'template',
+  customLayout: defaultCustomLayout,
 }
 
 export function useEditorState(invitationId: string) {
@@ -133,6 +139,66 @@ export function useEditorState(invitationId: string) {
     bumpEdit()
   }
 
+  const reorderSections = (sections: SectionInstance[]) => {
+    setState((prev) => ({
+      ...prev,
+      customLayout: { ...(prev.customLayout ?? defaultCustomLayout), sections },
+    }))
+    bumpEdit()
+  }
+
+  const toggleSectionVisibility = (id: string) => {
+    setState((prev) => {
+      const layout = prev.customLayout ?? defaultCustomLayout
+      return {
+        ...prev,
+        customLayout: {
+          ...layout,
+          sections: layout.sections.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)),
+        },
+      }
+    })
+    bumpEdit()
+  }
+
+  const setBackground = (background: CanvasBackground) => {
+    setState((prev) => ({
+      ...prev,
+      customLayout: { ...(prev.customLayout ?? defaultCustomLayout), background },
+    }))
+    bumpEdit()
+  }
+
+  const addFreeElement = (element: FreeElement) => {
+    setState((prev) => {
+      const layout = prev.customLayout ?? defaultCustomLayout
+      return { ...prev, customLayout: { ...layout, freeElements: [...layout.freeElements, element] } }
+    })
+    bumpEdit()
+  }
+
+  const updateFreeElement = (id: string, updates: Partial<FreeElement>) => {
+    setState((prev) => {
+      const layout = prev.customLayout ?? defaultCustomLayout
+      return {
+        ...prev,
+        customLayout: {
+          ...layout,
+          freeElements: layout.freeElements.map((el) => (el.id === id ? { ...el, ...updates } : el)),
+        },
+      }
+    })
+    bumpEdit()
+  }
+
+  const removeFreeElement = (id: string) => {
+    setState((prev) => {
+      const layout = prev.customLayout ?? defaultCustomLayout
+      return { ...prev, customLayout: { ...layout, freeElements: layout.freeElements.filter((el) => el.id !== id) } }
+    })
+    bumpEdit()
+  }
+
   // --- Manual save / publish ---
   const saveDraft = async () => {
     const user = auth.currentUser
@@ -185,6 +251,12 @@ export function useEditorState(invitationId: string) {
     updateShareSettings,
     updatePrivacySettings,
     updateSlug,
+    reorderSections,
+    toggleSectionVisibility,
+    setBackground,
+    addFreeElement,
+    updateFreeElement,
+    removeFreeElement,
     templates,
   }
 }

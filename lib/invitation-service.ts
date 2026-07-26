@@ -5,7 +5,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
 import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
-import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings } from './types'
+import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout } from './types'
 
 async function uploadNewImages(
   uid: string,
@@ -92,6 +92,8 @@ export async function saveInvitation(
       shareSettings,
       privacySettings: state.privacySettings,
       slug: state.slug || '',
+      mode: state.mode ?? 'template',
+      ...(state.customLayout && { customLayout: state.customLayout }),
       status,
       updatedAt: serverTimestamp(),
       ...(!snap.exists() && { createdAt: serverTimestamp() }),
@@ -115,13 +117,16 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     shareSettings: data.shareSettings ?? defaultShareSettings,
     privacySettings: data.privacySettings ?? defaultPrivacySettings,
     slug: data.slug ?? '',
+    mode: data.mode ?? 'template',
+    customLayout: data.customLayout ?? defaultCustomLayout,
   }
 }
 
 export async function createNewInvitation(
   uid: string,
   template?: EditorState['template'],
-  slug?: string
+  slug?: string,
+  mode?: EditorState['mode']
 ): Promise<string> {
   const docRef = doc(collection(db, 'invitations'))
   await setDoc(docRef, {
@@ -129,6 +134,7 @@ export async function createNewInvitation(
     status: 'draft',
     ...(template && { template }),
     ...(slug && { slug }),
+    ...(mode && { mode }),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })

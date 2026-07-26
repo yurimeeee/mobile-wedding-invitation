@@ -1,13 +1,13 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Link as LinkIcon, Copy, X, Lock } from 'lucide-react';
+import { ArrowLeft, Check, Eye, FileText, Image, ListOrdered, Loader2, MoreVertical, Music, Palette, Save, Settings, Share2, Sticker, Link as LinkIcon, Copy, X, Lock } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { GalleryUploader } from '@/components/editor/gallery-uploader';
@@ -21,6 +21,11 @@ import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
 import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
 import { EditorSettingsDialog } from '@/components/editor/editor-settings-dialog';
+import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
+import { ElementPanel } from '@/components/editor/custom/element-panel';
+import { BackgroundPicker } from '@/components/editor/custom/background-picker';
+import { defaultCustomLayout } from '@/lib/types';
+import { templateConfig } from '@/lib/preview-style';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
@@ -31,7 +36,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 export default function EditorPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const rawId = params.id as string;
+  const startCustom = searchParams.get('start') === 'custom';
 
   const [invitationId, setInvitationId] = useState<string>(rawId === 'new' ? '' : rawId);
   const [isCreating, setIsCreating] = useState(rawId === 'new');
@@ -56,7 +63,8 @@ export default function EditorPage() {
 
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'templates'>('edit');
-  const [activeSection, setActiveSection] = useState('template');
+  const [activeSection, setActiveSection] = useState(startCustom ? 'elements' : 'template');
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
@@ -79,11 +87,19 @@ export default function EditorPage() {
     updateShareSettings,
     updatePrivacySettings,
     updateSlug,
+    reorderSections,
+    toggleSectionVisibility,
+    setBackground,
+    addFreeElement,
+    updateFreeElement,
+    removeFreeElement,
   } = useEditorState(invitationId);
 
   const sections = [
     { id: 'template', label: '템플릿', icon: Palette },
     { id: 'info', label: '정보', icon: FileText },
+    { id: 'order', label: '순서', icon: ListOrdered },
+    { id: 'elements', label: '요소', icon: Sticker },
     { id: 'gallery', label: '갤러리', icon: Image },
     { id: 'music', label: '음악', icon: Music },
     { id: 'share', label: '공유', icon: Share2 },
@@ -164,6 +180,20 @@ export default function EditorPage() {
             {mobileTab === 'edit' && (
               <motion.div key="edit" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-6">
                 <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
+                <SectionReorderList
+                  sections={(state.customLayout ?? defaultCustomLayout).sections}
+                  onReorder={reorderSections}
+                  onToggleVisibility={toggleSectionVisibility}
+                />
+                <ElementPanel
+                  uid={auth.currentUser?.uid ?? ''}
+                  elements={(state.customLayout ?? defaultCustomLayout).freeElements}
+                  selectedId={selectedElementId}
+                  onSelect={setSelectedElementId}
+                  onAdd={addFreeElement}
+                  onUpdate={updateFreeElement}
+                  onRemove={removeFreeElement}
+                />
                 <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
                 <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
                 <ShareSettingsForm
@@ -184,8 +214,13 @@ export default function EditorPage() {
               </motion.div>
             )}
             {mobileTab === 'templates' && (
-              <motion.div key="templates" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4">
+              <motion.div key="templates" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-6">
                 <TemplateSelector selected={state.template} onSelect={setTemplate} />
+                <BackgroundPicker
+                  background={(state.customLayout ?? defaultCustomLayout).background}
+                  templateBg={templateConfig[state.template].bg}
+                  onChange={setBackground}
+                />
               </motion.div>
             )}
           </AnimatePresence>
@@ -269,11 +304,34 @@ export default function EditorPage() {
           <ScrollArea className="flex-1">
             <div className="p-4">
               <Tabs value={activeSection} onValueChange={setActiveSection}>
-                <TabsContent value="template" className="mt-0">
+                <TabsContent value="template" className="mt-0 space-y-6">
                   <TemplateSelector selected={state.template} onSelect={setTemplate} />
+                  <BackgroundPicker
+                    background={(state.customLayout ?? defaultCustomLayout).background}
+                    templateBg={templateConfig[state.template].bg}
+                    onChange={setBackground}
+                  />
                 </TabsContent>
                 <TabsContent value="info" className="mt-0">
                   <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
+                </TabsContent>
+                <TabsContent value="order" className="mt-0">
+                  <SectionReorderList
+                    sections={(state.customLayout ?? defaultCustomLayout).sections}
+                    onReorder={reorderSections}
+                    onToggleVisibility={toggleSectionVisibility}
+                  />
+                </TabsContent>
+                <TabsContent value="elements" className="mt-0">
+                  <ElementPanel
+                    uid={auth.currentUser?.uid ?? ''}
+                    elements={(state.customLayout ?? defaultCustomLayout).freeElements}
+                    selectedId={selectedElementId}
+                    onSelect={setSelectedElementId}
+                    onAdd={addFreeElement}
+                    onUpdate={updateFreeElement}
+                    onRemove={removeFreeElement}
+                  />
                 </TabsContent>
                 <TabsContent value="gallery" className="mt-0">
                   <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
@@ -301,7 +359,14 @@ export default function EditorPage() {
         </div>
 
         <div className="flex-1 bg-muted/30">
-          <InvitationPreview state={state} invitationId={invitationId} />
+          <InvitationPreview
+            state={state}
+            invitationId={invitationId}
+            elementsEditable={activeSection === 'elements'}
+            selectedElementId={selectedElementId}
+            onSelectElement={setSelectedElementId}
+            onChangeElement={updateFreeElement}
+          />
         </div>
       </div>
 

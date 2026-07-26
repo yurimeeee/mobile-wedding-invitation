@@ -7,6 +7,95 @@ export interface EditorState {
   shareSettings: ShareSettings
   privacySettings: PrivacySettings
   slug: string
+  mode: EditorMode
+  customLayout?: CustomLayout
+}
+
+// ─── Custom editor (free-form section/element editor) ─────────────────────
+
+export type EditorMode = 'template' | 'custom'
+
+export type SectionKind =
+  | 'cover' | 'greeting' | 'calendar' | 'gallery'
+  | 'location' | 'account' | 'guestbook' | 'rsvp' | 'share'
+
+export interface SectionInstance {
+  id: string
+  kind: SectionKind
+  order: number
+  visible: boolean
+  bg?: string
+}
+
+export type FreeElementType = 'sticker' | 'image' | 'text'
+
+export interface FreeElement {
+  id: string
+  type: FreeElementType
+  src?: string
+  text?: string
+  // x/y/width/height are % of the canvas reference frame (0-100), not px —
+  // this keeps element position resolution-independent between the editor
+  // canvas and the guest's actual device width.
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
+  zIndex: number
+  opacity: number
+  locked: boolean
+}
+
+export interface CanvasBackground {
+  type: 'color' | 'gradient' | 'image'
+  value: string
+}
+
+export interface CustomLayout {
+  sections: SectionInstance[]
+  freeElements: FreeElement[]
+  background: CanvasBackground
+}
+
+export const sectionKindLabels: Record<SectionKind, string> = {
+  cover: '메인 커버',
+  greeting: '인사말',
+  calendar: '일시/캘린더',
+  gallery: '갤러리',
+  location: '오시는 길',
+  account: '마음 전하는 곳',
+  guestbook: '방명록',
+  rsvp: '참석 여부',
+  share: '공유',
+}
+
+// 사용자가 직접 업로드하는 요소(스티커/이미지) — 업로드한 본인에게만 보이고 사용 가능하다
+// (Firestore: users/{uid}/customElements, Storage: users/{uid}/elements).
+export interface CustomElementAsset {
+  id: string
+  url: string
+  name: string
+  width: number
+  height: number
+  createdAt: string
+}
+
+export const MAX_CUSTOM_ELEMENT_FILE_SIZE = 2 * 1024 * 1024 // 2MB
+export const MAX_CUSTOM_ELEMENT_DIMENSION = 2000 // px (width and height)
+
+export const defaultCustomLayout: CustomLayout = {
+  sections: (
+    ['cover', 'greeting', 'calendar', 'gallery', 'location', 'account', 'rsvp', 'guestbook', 'share'] as SectionKind[]
+  ).map((kind, order) => ({
+    id: `section-${kind}`,
+    kind,
+    order,
+    visible: true,
+  })),
+  freeElements: [],
+  // value: '' means "no override, use the selected template's background"
+  background: { type: 'color', value: '' },
 }
 
 export type TemplateType =
@@ -114,6 +203,8 @@ export interface Invitation {
   createdAt: string
   updatedAt: string
   thumbnail?: string
+  mode?: EditorMode
+  customLayout?: CustomLayout
 }
 
 export const defaultWeddingInfo: WeddingInfo = {
