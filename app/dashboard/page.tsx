@@ -146,7 +146,7 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 glass border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <Logo width={140} height={24} />
             </Link>
 
@@ -210,11 +210,12 @@ export default function DashboardPage() {
                 <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                   <Sparkles className="h-4 w-4 text-accent" />
                 </div>
-                <Badge variant="secondary">무료로 100% 체험</Badge>
+                <Badge variant="secondary">100% 무료 체험</Badge>
               </div>
-              <h3 className="font-serif text-lg font-semibold mb-1">구매 전, 무료로 시안 제작</h3>
-              <p className="text-sm text-muted-foreground mb-3">시작은 무료 시안으로, 선택은 마음에 들 때.</p>
-              <p className="text-xs text-muted-foreground/70 mb-4">만족하지 않으면 언제든지 취소 가능합니다.</p>
+              <h3 className="font-serif text-lg font-semibold mb-1">완성본을 먼저 확인하세요</h3>
+              <p className="text-sm text-muted-foreground mb-3">미리 만드는 나만의 모바일 청첩장</p>
+              <p className="text-xs text-muted-foreground/70 mb-4">모든 템플릿과 기능을 마음껏 체험해보고, 완벽히 마음에 들 때 결정하세요.</p>
+
               <Button className="mt-auto w-fit" onClick={() => setNewDialogOpen(true)}>
                 청첩장 제작하기
               </Button>
@@ -226,11 +227,11 @@ export default function DashboardPage() {
                 <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
                   <RefreshCw className="h-4 w-4 text-green-600" />
                 </div>
-                <Badge variant="secondary">24시간 편집 지원</Badge>
+                <Badge variant="secondary">24시간 자유로운 편집</Badge>
               </div>
-              <h3 className="font-serif text-lg font-semibold mb-1">구매 후에도 무제한 수정</h3>
-              <p className="text-sm text-muted-foreground mb-3">편집은 결제와 관계없습니다.</p>
-              <p className="text-xs text-muted-foreground/70">언제든 원하는 만큼 수정하세요.</p>
+              <h3 className="font-serif text-lg font-semibold mb-1">예식 당일까지 무제한 수정</h3>
+              <p className="text-sm text-muted-foreground mb-3">일정이 변경되어도 걱정 마세요. 원하는 만큼 언제든 수정할 수 있어요.</p>
+              {/* <p className="text-xs text-muted-foreground/70">일정이 변경되어도 걱정 마세요. 원하는 만큼 언제든 수정할 수 있어요.</p> */}
             </CardContent>
           </Card>
         </div>
@@ -245,7 +246,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">{isLoadingInvitations ? <Loader2 className="h-5 w-5 animate-spin" /> : invitations.length}</p>
-                  <p className="text-sm text-muted-foreground">전체 청첩장</p>
+                  <p className="text-sm text-muted-foreground">전체</p>
                 </div>
               </div>
             </CardContent>
@@ -260,7 +261,7 @@ export default function DashboardPage() {
                   <p className="text-2xl font-semibold">
                     {isLoadingInvitations ? <Loader2 className="h-5 w-5 animate-spin" /> : invitations.filter((i) => i.status === 'published').length}
                   </p>
-                  <p className="text-sm text-muted-foreground">게시됨</p>
+                  <p className="text-sm text-muted-foreground">게시 중</p>
                 </div>
               </div>
             </CardContent>
@@ -275,7 +276,7 @@ export default function DashboardPage() {
                   <p className="text-2xl font-semibold">
                     {isLoadingInvitations ? <Loader2 className="h-5 w-5 animate-spin" /> : invitations.filter((i) => i.status === 'draft').length}
                   </p>
-                  <p className="text-sm text-muted-foreground">임시저장</p>
+                  <p className="text-sm text-muted-foreground">임시 저장</p>
                 </div>
               </div>
             </CardContent>
@@ -287,7 +288,7 @@ export default function DashboardPage() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <h2 className="font-medium">최근 편집</h2>
+              <h2 className="font-medium">최근 편집한 청첩장</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3].map((i) => (

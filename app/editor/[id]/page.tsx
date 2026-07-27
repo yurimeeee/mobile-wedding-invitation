@@ -64,7 +64,8 @@ export default function EditorPage() {
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'templates'>('edit');
   const [activeSection, setActiveSection] = useState(startCustom ? 'elements' : 'template');
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
@@ -113,6 +114,58 @@ export default function EditorPage() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo]);
+
+  const freeElements = (state.customLayout ?? defaultCustomLayout).freeElements;
+
+  // Clicking any member of an existing group selects the whole group — same as
+  // Figma. Shift-click toggles that element (or its whole group) in/out of the
+  // current selection instead of replacing it.
+  const handleSelectElement = (id: string | null, opts?: { shift?: boolean }) => {
+    if (id === null) {
+      setSelectedElementIds([]);
+      return;
+    }
+    const el = freeElements.find((e) => e.id === id);
+    const members = el?.groupId
+      ? freeElements.filter((e) => e.groupId === el.groupId).map((e) => e.id)
+      : [id];
+
+    if (opts?.shift) {
+      setSelectedElementIds((prev) => {
+        const allSelected = members.every((m) => prev.includes(m));
+        return allSelected ? prev.filter((p) => !members.includes(p)) : Array.from(new Set([...prev, ...members]));
+      });
+    } else {
+      setSelectedElementIds(members);
+    }
+  };
+
+  const groupSelectedElements = () => {
+    if (selectedElementIds.length < 2) return;
+    const groupId = crypto.randomUUID();
+    selectedElementIds.forEach((id) => updateFreeElement(id, { groupId }));
+  };
+
+  const ungroupSelectedElements = () => {
+    selectedElementIds.forEach((id) => updateFreeElement(id, { groupId: null }));
+  };
+
+  // Cmd/Ctrl+G group, Cmd/Ctrl+Shift+G ungroup — same shortcut as Figma. Skipped
+  // while typing, and only active with a selection so it can't fire from elsewhere
+  // in the editor (e.g. other tabs) and steal the browser's own Ctrl+G for nothing.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'g') return;
+      if (selectedElementIds.length === 0) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+      if (e.shiftKey) ungroupSelectedElements(); else groupSelectedElements();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedElementIds, freeElements]);
 
   const sections = [
     { id: 'template', label: '템플릿', icon: Palette },
@@ -214,14 +267,32 @@ export default function EditorPage() {
                   onReorder={reorderSections}
                   onToggleVisibility={toggleSectionVisibility}
                 />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">요소 캔버스</p>
+                  <p className="text-xs text-muted-foreground">캔버스 안에서 스티커·텍스트를 직접 드래그해 위치를 옮기고, 모서리를 잡아 크기·회전을 조절할 수 있어요.</p>
+                  <div className="rounded-lg border border-border overflow-hidden" style={{ height: 720 }}>
+                    <InvitationPreview
+                      state={state}
+                      invitationId={invitationId}
+                      elementsEditable
+                      selectedElementIds={selectedElementIds}
+                      onSelectElement={handleSelectElement}
+                      onChangeElement={updateFreeElement}
+                      onCanvasSize={setCanvasSize}
+                    />
+                  </div>
+                </div>
                 <ElementPanel
                   uid={auth.currentUser?.uid ?? ''}
-                  elements={(state.customLayout ?? defaultCustomLayout).freeElements}
-                  selectedId={selectedElementId}
-                  onSelect={setSelectedElementId}
+                  elements={freeElements}
+                  selectedIds={selectedElementIds}
+                  onSelect={handleSelectElement}
                   onAdd={addFreeElement}
                   onUpdate={updateFreeElement}
                   onRemove={removeFreeElement}
+                  onGroup={groupSelectedElements}
+                  onUngroup={ungroupSelectedElements}
+                  canvasSize={canvasSize}
                 />
                 <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
                 <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
@@ -269,7 +340,7 @@ export default function EditorPage() {
               <span className="text-sm">돌아가기</span>
             </Link>
             <div className="h-4 w-px bg-border" />
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <Logo width={120} height={20} />
             </Link>
           </div>
@@ -365,12 +436,15 @@ export default function EditorPage() {
                 <TabsContent value="elements" className="mt-0">
                   <ElementPanel
                     uid={auth.currentUser?.uid ?? ''}
-                    elements={(state.customLayout ?? defaultCustomLayout).freeElements}
-                    selectedId={selectedElementId}
-                    onSelect={setSelectedElementId}
+                    elements={freeElements}
+                    selectedIds={selectedElementIds}
+                    onSelect={handleSelectElement}
                     onAdd={addFreeElement}
                     onUpdate={updateFreeElement}
                     onRemove={removeFreeElement}
+                    onGroup={groupSelectedElements}
+                    onUngroup={ungroupSelectedElements}
+                    canvasSize={canvasSize}
                   />
                 </TabsContent>
                 <TabsContent value="gallery" className="mt-0">
@@ -403,9 +477,10 @@ export default function EditorPage() {
             state={state}
             invitationId={invitationId}
             elementsEditable={activeSection === 'elements'}
-            selectedElementId={selectedElementId}
-            onSelectElement={setSelectedElementId}
+            selectedElementIds={selectedElementIds}
+            onSelectElement={handleSelectElement}
             onChangeElement={updateFreeElement}
+            onCanvasSize={setCanvasSize}
           />
         </div>
       </div>

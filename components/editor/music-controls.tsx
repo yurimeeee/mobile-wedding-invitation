@@ -50,7 +50,7 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
     <div className="space-y-4">
       <div>
         <h3 className="font-medium mb-1">배경 음악</h3>
-        <p className="text-sm text-muted-foreground">청첩장에 배경 음악을 추가하세요</p>
+        <p className="text-sm text-muted-foreground">분위기를 더해줄 음악을 설정해 보세요.</p>
       </div>
 
       <div className="space-y-4 p-4 rounded-lg bg-muted/50">

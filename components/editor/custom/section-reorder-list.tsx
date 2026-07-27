@@ -15,11 +15,7 @@ function SortableRow({ section, onToggle }: { section: SectionInstance; onToggle
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        'flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2',
-        isDragging && 'opacity-50',
-        !section.visible && 'opacity-40'
-      )}
+      className={cn('flex w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2', isDragging && 'opacity-50', !section.visible && 'opacity-40')}
     >
       <button {...attributes} {...listeners} type="button" className="shrink-0 cursor-grab touch-none text-muted-foreground">
         <GripVertical className="h-4 w-4" />
@@ -33,7 +29,9 @@ function SortableRow({ section, onToggle }: { section: SectionInstance; onToggle
 }
 
 export function SectionReorderList({
-  sections, onReorder, onToggleVisibility,
+  sections,
+  onReorder,
+  onToggleVisibility,
 }: {
   sections: SectionInstance[];
   onReorder: (sections: SectionInstance[]) => void;
@@ -52,8 +50,11 @@ export function SectionReorderList({
   };
 
   return (
-    <div className="min-w-0 w-full">
-      <p className="text-sm text-muted-foreground mb-3">드래그해서 섹션 순서를 바꾸고, 눈 아이콘으로 표시 여부를 정할 수 있어요.</p>
+    <div className="min-w-0 w-full space-y-4">
+      <div>
+        <h3 className="font-medium mb-1">섹션 순서</h3>
+        <p className="text-sm text-muted-foreground">섹션의 순서와 표시 여부를 변경해 보세요.</p>
+      </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToParentElement]}>
         <SortableContext items={ordered.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           <div className="min-w-0 space-y-2">

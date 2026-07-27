@@ -20,8 +20,8 @@ export function PrivacySettingsForm({ privacySettings, onChange }: PrivacySettin
       {/* 청첩장 잠금 설정 */}
       <div className="space-y-3">
         <div>
-          <h3 className="font-medium mb-1">청첩장 잠금 설정</h3>
-          <p className="text-sm text-muted-foreground">필요할 때, 청첩장을 볼 수 없게 잠금 설정이 가능해요.</p>
+          <h3 className="font-medium mb-1">청첩장 잠금</h3>
+          <p className="text-sm text-muted-foreground">원하는 시점에 청첩장을 비공개할 수 있어요.</p>
         </div>
         <div className="space-y-4 p-4 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between">

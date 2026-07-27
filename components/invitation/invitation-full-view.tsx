@@ -208,15 +208,17 @@ function SectionStage({ state, invitationId, invitationUrl, onOpenLightbox }: {
       </div>
 
       {/* Free elements are decorative only on the guest page — no drag/resize here */}
-      <FreeElementCanvas
-        elements={elements}
-        canvasWidth={size.width}
-        canvasHeight={size.height}
-        interactive={false}
-        selectedId={null}
-        onSelect={() => {}}
-        onChange={() => {}}
-      />
+      {elements.length > 0 && (
+        <FreeElementCanvas
+          elements={elements}
+          canvasWidth={size.width}
+          canvasHeight={size.height}
+          interactive={false}
+          selectedIds={[]}
+          onSelect={() => {}}
+          onChange={() => {}}
+        />
+      )}
     </div>
   )
 }

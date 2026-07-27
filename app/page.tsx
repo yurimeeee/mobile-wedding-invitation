@@ -1,6 +1,8 @@
 'use client';
 
-import { ArrowRight, Heart, MapPin, Music, Palette, Share2, Sparkles, Star, Lock, SearchX, BookOpen, Armchair } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Check, Heart, MapPin, Music, Palette, Share2, Sparkles, Star, Lock, SearchX, BookOpen, Armchair } from 'lucide-react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -8,6 +10,7 @@ import { Logo } from '@/components/logo';
 import { motion } from 'framer-motion';
 import { TemplateThumbnail } from '@/components/editor/template-thumbnail';
 import { type TemplateType, templates } from '@/lib/types';
+import { auth } from '@/lib/firebase';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -24,6 +27,21 @@ const stagger = {
 };
 
 export default function LandingPage() {
+  // 로그인된 상태로 마케팅 홈에 들어와도 "로그인/시작하기"가 다시 뜨면 로그아웃된 것처럼
+  // 보인다 — 실제로는 세션이 살아있으니, 로그인 여부에 따라 CTA를 대시보드로 바꿔준다.
+  // onAuthStateChanged는 비동기라 첫 응답 전까지는 user가 무조건 null이라, authChecked로
+  // "아직 확인 안 됨"과 "확인했는데 로그아웃 상태"를 구분해 로그인 버튼이 잠깐 스쳐 보이는 걸 막는다.
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, []);
+  const primaryHref = user ? '/dashboard' : '/signup';
+
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -45,14 +63,24 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  로그인
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm">시작하기</Button>
-              </Link>
+              {!authChecked ? (
+                <div className="h-9 w-[88px] rounded-md bg-muted animate-pulse" />
+              ) : user ? (
+                <Link href="/dashboard">
+                  <Button size="sm">대시보드로 이동</Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">
+                      로그인
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm">시작하기</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -78,9 +106,9 @@ export default function LandingPage() {
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup">
+            <Link href={primaryHref}>
               <Button size="lg" className="min-w-[180px]">
-                시작하기
+                {user ? '대시보드로 이동' : '시작하기'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -168,33 +196,33 @@ export default function LandingPage() {
             {[
               {
                 icon: Palette,
-                title: '아름다운 템플릿',
-                description: '클래식, 모던, 플로럴, 한국 전통 디자인 중에서 선택하세요.',
+                title: '디자인 템플릿',
+                description: '감성적인 에디토리얼부터 모던한 스타일까지, 취향에 맞게 선택해 보세요.',
               },
               {
                 icon: Music,
                 title: '배경 음악',
-                description: '청첩장이 열릴 때 로맨틱한 음악이 자동으로 재생됩니다.',
+                description: '청첩장을 열 때 흘러나오는 음악으로 첫인상의 분위기를 더해 보세요.',
               },
               {
                 icon: MapPin,
-                title: '카카오맵 연동',
-                description: '통합 지도로 하객들이 예식장을 쉽게 찾을 수 있도록 도와주세요.',
+                title: '스마트 길안내',
+                description: '지도와 내비게이션 연결로 하객분들이 오시는 길을 편안하게 안내해 드립니다.',
               },
               {
                 icon: Share2,
                 title: '간편 공유',
-                description: '카카오톡, SMS로 공유하거나 QR코드를 생성하세요.',
+                description: '카카오톡, 문자, QR코드 등 원하는 방식으로 손쉽게 소식을 전해 보세요.',
               },
               {
                 icon: Heart,
-                title: 'RSVP 관리',
-                description: '한 곳에서 참석 여부를 수집하고 하객 명단을 관리하세요.',
+                title: '참석 여부 (RSVP)',
+                description: '하객들의 참석 여부를 한눈에 확인하고 손쉽게 명단을 관리해 보세요.',
               },
               {
                 icon: Star,
                 title: '포토 갤러리',
-                description: '아름다운 약혼 및 웨딩 사진을 청첩장에 담아 보여주세요.',
+                description: '두 사람의 소중한 순간이 담긴 사진들을 감각적인 갤러리로 채워보세요.',
               },
             ].map((feature, index) => (
               <motion.div
@@ -248,7 +276,13 @@ export default function LandingPage() {
                 icon: Armchair,
                 title: '참석여부 · RSVP',
                 description: '참석 여부부터 다양한 설문을 받을 수 있어요.',
-                bullets: ['참석여부 응답 집계 대시보드 제공', '동행인원, 식사여부, 셔틀이용 등 설문 옵션 제공', '응답결과 엑셀 다운로드', '팝업 배너로 설정 가능', '신규 응답 카톡 알림 받기'],
+                bullets: [
+                  '참석여부 응답 집계 대시보드 제공',
+                  '동행인원, 식사여부, 셔틀이용 등 설문 옵션 제공',
+                  '응답결과 엑셀 다운로드',
+                  '팝업 배너로 설정 가능',
+                  '신규 응답 카톡 알림 받기',
+                ],
               },
             ].map((feature, index) => (
               <motion.div
@@ -265,7 +299,9 @@ export default function LandingPage() {
                 <div className="h-px bg-border mb-4" />
                 <ul className="space-y-1">
                   {feature.bullets.map((bullet) => (
-                    <li key={bullet} className="text-xs text-muted-foreground">· {bullet}</li>
+                    <li key={bullet} className="text-xs text-muted-foreground">
+                      · {bullet}
+                    </li>
                   ))}
                 </ul>
               </motion.div>
@@ -292,12 +328,8 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link href="/signup">
-                  <motion.div
-                    className="aspect-[3/4] rounded-xl border border-border overflow-hidden cursor-pointer"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
+                <Link href={primaryHref}>
+                  <motion.div className="aspect-[3/4] rounded-xl border border-border overflow-hidden cursor-pointer" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <TemplateThumbnail id={template.id} />
                   </motion.div>
                   <div className="mt-3">
@@ -311,14 +343,72 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section id="pricing" className="py-20 px-4 bg-card">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">Pricing</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">가격은 단순하게, 기능은 아낌없이.</p>
+          </div>
+
+          <motion.div
+            className="max-w-md mx-auto rounded-2xl border border-border bg-background p-8 shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent-foreground text-xs mb-5">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>1회 결제 · 평생 이용</span>
+            </div>
+
+            <h3 className="font-serif text-xl font-semibold mb-1">웨딩인비 청첩장</h3>
+            <p className="text-sm text-muted-foreground mb-6">모든 템플릿과 기능이 처음부터 다 열려 있어요.</p>
+
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="font-serif text-4xl font-semibold">29,000원</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-6">월 구독 아님 · 발행 후 추가 비용 없음</p>
+
+            <Link href={primaryHref} className="block mb-6">
+              <Button size="lg" className="w-full">
+                {user ? '대시보드로 이동' : '무료로 시작하기'}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <p className="text-xs text-center text-muted-foreground mb-6">
+              결제 전까지는 무료예요. 시안이 마음에 들 때 결제해 발행하세요.
+            </p>
+
+            <div className="h-px bg-border mb-6" />
+
+            <ul className="space-y-3">
+              {[
+                '디자인 템플릿 전체 이용',
+                '자유 커스텀 에디터 (스티커·텍스트·배경)',
+                '방명록 · 참석여부(RSVP) 응답 관리',
+                '카카오톡 · 링크 · QR코드 공유',
+                '청첩장 잠금 · 확대방지 설정',
+                '결제 후에도 무제한 수정',
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm">
+                  <Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">지금 바로 청첩장을 만들어보세요</h2>
           <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">우리만의 모바일 청첩장으로 특별한 날을 공유한 수천 커플과 함께하세요.</p>
-          <Link href="/signup">
+          <Link href={primaryHref}>
             <Button size="lg" variant="secondary" className="min-w-[180px]">
-              청첩장 만들러가기
+              {user ? '내 청첩장 관리하기' : '청첩장 만들러가기'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

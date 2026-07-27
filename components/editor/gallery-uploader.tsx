@@ -87,7 +87,7 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
     <div className="space-y-4">
       <div>
         <h3 className="font-medium mb-1">포토 갤러리</h3>
-        <p className="text-sm text-muted-foreground">웨딩 및 약혼 사진을 업로드하세요</p>
+        <p className="text-sm text-muted-foreground">소중한 순간이 담긴 사진을 채워보세요.</p>
       </div>
 
       {/* Upload area */}

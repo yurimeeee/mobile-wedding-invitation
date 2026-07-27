@@ -24,17 +24,24 @@ export interface SectionInstance {
   kind: SectionKind
   order: number
   visible: boolean
-  bg?: string
 }
 
-export type FreeElementType = 'sticker' | 'image' | 'text'
+export type FreeElementType = 'sticker' | 'image' | 'text' | 'shape'
 
 export type TextFontFamily = 'sans' | 'serif'
 export type TextAlign = 'left' | 'center' | 'right'
+export type ShapeKind = 'line' | 'rect' | 'circle' | 'heart'
 
 export const textFontFamilyMap: Record<TextFontFamily, string> = {
   sans: 'Geist, system-ui, sans-serif',
   serif: "'Noto Serif KR', 'Times New Roman', serif",
+}
+
+export const shapeKindLabels: Record<ShapeKind, string> = {
+  line: '라인',
+  rect: '사각형',
+  circle: '원',
+  heart: '하트',
 }
 
 export interface FreeElement {
@@ -53,6 +60,13 @@ export interface FreeElement {
   zIndex: number
   opacity: number
   locked: boolean
+  // undefined/true = visible; only false hides it. Optional so elements saved
+  // before this field existed keep rendering as before.
+  visible?: boolean
+  // Elements sharing the same groupId move/resize together as one unit.
+  // Nullable (not just optional) because ungrouping writes `null` explicitly —
+  // Firestore's setDoc rejects literal `undefined` field values.
+  groupId?: string | null
   // text-only styling — all optional so elements saved before this field
   // existed keep rendering with the old hardcoded defaults.
   color?: string
@@ -61,6 +75,8 @@ export interface FreeElement {
   bold?: boolean
   italic?: boolean
   align?: TextAlign
+  // shape-only — which primitive to draw; fill color reuses `color` above
+  shapeKind?: ShapeKind
 }
 
 export interface CanvasBackground {

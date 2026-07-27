@@ -19,18 +19,24 @@ interface InvitationPreviewProps {
   state: EditorState;
   invitationId: string;
   elementsEditable?: boolean;
-  selectedElementId?: string | null;
-  onSelectElement?: (id: string | null) => void;
+  selectedElementIds?: string[];
+  onSelectElement?: (id: string | null, opts?: { shift?: boolean }) => void;
   onChangeElement?: (id: string, updates: Partial<FreeElement>) => void;
+  /** Fires with the measured mobile canvas's actual pixel size — needed by callers
+   * that want to compute positions in real px (e.g. vertical centering), since
+   * FreeElement.y is a % of this dynamic page height, not of canvasWidth like
+   * x/width/height are. */
+  onCanvasSize?: (size: { width: number; height: number }) => void;
 }
 
 export function InvitationPreview({
   state,
   invitationId,
   elementsEditable = false,
-  selectedElementId = null,
+  selectedElementIds = [],
   onSelectElement,
   onChangeElement,
+  onCanvasSize,
 }: InvitationPreviewProps) {
   const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
   const cfg = resolvePreviewStyle(state);
@@ -64,9 +70,10 @@ export function InvitationPreview({
                   cfg={cfg}
                   invitationId={invitationId}
                   elementsEditable={elementsEditable}
-                  selectedElementId={selectedElementId}
+                  selectedElementIds={selectedElementIds}
                   onSelectElement={onSelectElement}
                   onChangeElement={onChangeElement}
+                  onCanvasSize={onCanvasSize}
                 />
               </div>
             </motion.div>
@@ -93,15 +100,16 @@ interface MobileCanvasStageProps {
   cfg: ReturnType<typeof resolvePreviewStyle>;
   invitationId: string;
   elementsEditable: boolean;
-  selectedElementId: string | null;
-  onSelectElement?: (id: string | null) => void;
+  selectedElementIds: string[];
+  onSelectElement?: (id: string | null, opts?: { shift?: boolean }) => void;
   onChangeElement?: (id: string, updates: Partial<FreeElement>) => void;
+  onCanvasSize?: (size: { width: number; height: number }) => void;
 }
 
 // Wraps PreviewContent with an absolutely-positioned Konva stage on top, sized to match
 // the content's natural (scrollable) height so free elements scroll together with the page.
 function MobileCanvasStage({
-  state, cfg, invitationId, elementsEditable, selectedElementId, onSelectElement, onChangeElement,
+  state, cfg, invitationId, elementsEditable, selectedElementIds, onSelectElement, onChangeElement, onCanvasSize,
 }: MobileCanvasStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -110,11 +118,13 @@ function MobileCanvasStage({
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      const next = { width: entry.contentRect.width, height: entry.contentRect.height };
+      setSize(next);
+      onCanvasSize?.(next);
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [onCanvasSize]);
 
   const elements = state.customLayout?.freeElements ?? [];
 
@@ -122,16 +132,18 @@ function MobileCanvasStage({
     <div className="w-full h-full overflow-y-auto">
       <div ref={containerRef} className="relative">
         <PreviewContent state={state} cfg={cfg} invitationId={invitationId} />
-        <FreeElementCanvas
-          elements={elements}
-          canvasWidth={size.width}
-          canvasHeight={size.height}
-          interactive={elementsEditable}
-          selectedId={selectedElementId}
-          onSelect={(id) => onSelectElement?.(id)}
-          onChange={(id, updates) => onChangeElement?.(id, updates)}
-          handleColor={cfg.accent}
-        />
+        {elements.length > 0 && (
+          <FreeElementCanvas
+            elements={elements}
+            canvasWidth={size.width}
+            canvasHeight={size.height}
+            interactive={elementsEditable}
+            selectedIds={selectedElementIds}
+            onSelect={(id) => onSelectElement?.(id)}
+            onChange={(id, updates) => onChangeElement?.(id, updates)}
+            handleColor={cfg.accent}
+          />
+        )}
       </div>
     </div>
   );
