@@ -93,6 +93,7 @@ export async function saveInvitation(
       privacySettings: state.privacySettings,
       slug: state.slug || '',
       mode: state.mode ?? 'template',
+      introStyle: state.introStyle ?? 'fade',
       ...(state.customLayout && { customLayout: state.customLayout }),
       status,
       updatedAt: serverTimestamp(),
@@ -119,6 +120,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout ?? defaultCustomLayout,
+    introStyle: data.introStyle ?? 'fade',
   }
 }
 

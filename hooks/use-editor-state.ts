@@ -17,6 +17,7 @@ import {
   type FreeElement,
   type CanvasBackground,
   type CustomLayout,
+  type IntroStyle,
   defaultWeddingInfo,
   defaultMusicSettings,
   defaultCalendarSettings,
@@ -45,11 +46,11 @@ const initialState: EditorState = {
   slug: '',
   mode: 'template',
   customLayout: defaultCustomLayout,
+  introStyle: 'fade',
 }
 
 export function useEditorState(invitationId: string) {
   const [state, setState] = useState<EditorState>(initialState)
-  const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(!!invitationId)
@@ -57,10 +58,6 @@ export function useEditorState(invitationId: string) {
   // Ref to track latest state without triggering effects
   const stateRef = useRef(state)
   useEffect(() => { stateRef.current = state }, [state])
-
-  // editCount increments only on user edits — prevents auto-save loop after gallery URL updates
-  const [editCount, setEditCount] = useState(0)
-  const bumpEdit = () => setEditCount((c) => c + 1)
 
   // --- Undo/redo history for the custom layout editor (sections, background, free elements) ---
   const [history, setHistory] = useState<{ past: CustomLayout[]; future: CustomLayout[] }>({ past: [], future: [] })
@@ -108,7 +105,6 @@ export function useEditorState(invitationId: string) {
       setState((s) => ({ ...s, customLayout: prevLayout }))
       return { past: h.past.slice(0, -1), future: [currentLayout, ...h.future] }
     })
-    bumpEdit()
   }
 
   const redo = () => {
@@ -120,7 +116,6 @@ export function useEditorState(invitationId: string) {
       setState((s) => ({ ...s, customLayout: nextLayout }))
       return { past: [...h.past, currentLayout], future: h.future.slice(1) }
     })
-    bumpEdit()
   }
 
   // Load existing invitation from Firestore
@@ -137,77 +132,49 @@ export function useEditorState(invitationId: string) {
       .finally(() => setIsLoading(false))
   }, [invitationId])
 
-  // Auto-save (debounced, triggers only on user edits)
-  useEffect(() => {
-    if (!editCount || !invitationId || isLoading) return
-    const user = auth.currentUser
-    if (!user) return
-
-    const timer = setTimeout(async () => {
-      setIsSaving(true)
-      try {
-        const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
-        setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
-        setLastSaved(new Date())
-      } catch {
-        // silent fail for auto-save
-      } finally {
-        setIsSaving(false)
-      }
-    }, 2000)
-
-    return () => clearTimeout(timer)
-  }, [editCount, invitationId, isLoading])
-
   // --- State updaters ---
   const setTemplate = (template: TemplateType) => {
     setState((prev) => ({ ...prev, template }))
-    bumpEdit()
+  }
+
+  const setIntroStyle = (introStyle: IntroStyle) => {
+    setState((prev) => ({ ...prev, introStyle }))
   }
 
   const updateWeddingInfo = (updates: Partial<WeddingInfo>) => {
     setState((prev) => ({ ...prev, weddingInfo: { ...prev.weddingInfo, ...updates } }))
-    bumpEdit()
   }
 
   const setMusicSettings = (settings: MusicSettings) => {
     setState((prev) => ({ ...prev, musicSettings: settings }))
-    bumpEdit()
   }
 
   const addGalleryImage = (image: GalleryImage) => {
     setState((prev) => ({ ...prev, gallery: [...prev.gallery, image] }))
-    bumpEdit()
   }
 
   const removeGalleryImage = (id: string) => {
     setState((prev) => ({ ...prev, gallery: prev.gallery.filter((img) => img.id !== id) }))
-    bumpEdit()
   }
 
   const reorderGallery = (images: GalleryImage[]) => {
     setState((prev) => ({ ...prev, gallery: images }))
-    bumpEdit()
   }
 
   const updateCalendarSettings = (updates: Partial<CalendarSettings>) => {
     setState((prev) => ({ ...prev, calendarSettings: { ...prev.calendarSettings, ...updates } }))
-    bumpEdit()
   }
 
   const updateShareSettings = (updates: Partial<ShareSettings>) => {
     setState((prev) => ({ ...prev, shareSettings: { ...prev.shareSettings, ...updates } }))
-    bumpEdit()
   }
 
   const updatePrivacySettings = (updates: Partial<PrivacySettings>) => {
     setState((prev) => ({ ...prev, privacySettings: { ...prev.privacySettings, ...updates } }))
-    bumpEdit()
   }
 
   const updateSlug = (slug: string) => {
     setState((prev) => ({ ...prev, slug }))
-    bumpEdit()
   }
 
   const reorderSections = (sections: SectionInstance[]) => {
@@ -216,7 +183,6 @@ export function useEditorState(invitationId: string) {
       ...prev,
       customLayout: { ...(prev.customLayout ?? defaultCustomLayout), sections },
     }))
-    bumpEdit()
   }
 
   const toggleSectionVisibility = (id: string) => {
@@ -231,7 +197,6 @@ export function useEditorState(invitationId: string) {
         },
       }
     })
-    bumpEdit()
   }
 
   const setBackground = (background: CanvasBackground) => {
@@ -240,7 +205,6 @@ export function useEditorState(invitationId: string) {
       ...prev,
       customLayout: { ...(prev.customLayout ?? defaultCustomLayout), background },
     }))
-    bumpEdit()
   }
 
   const addFreeElement = (element: FreeElement) => {
@@ -249,7 +213,6 @@ export function useEditorState(invitationId: string) {
       const layout = prev.customLayout ?? defaultCustomLayout
       return { ...prev, customLayout: { ...layout, freeElements: [...layout.freeElements, element] } }
     })
-    bumpEdit()
   }
 
   const updateFreeElement = (id: string, updates: Partial<FreeElement>) => {
@@ -264,7 +227,6 @@ export function useEditorState(invitationId: string) {
         },
       }
     })
-    bumpEdit()
   }
 
   const removeFreeElement = (id: string) => {
@@ -273,7 +235,6 @@ export function useEditorState(invitationId: string) {
       const layout = prev.customLayout ?? defaultCustomLayout
       return { ...prev, customLayout: { ...layout, freeElements: layout.freeElements.filter((el) => el.id !== id) } }
     })
-    bumpEdit()
   }
 
   // --- Manual save / publish ---
@@ -312,13 +273,13 @@ export function useEditorState(invitationId: string) {
 
   return {
     state,
-    isSaving,
     lastSaved,
     isLoading,
     isActionLoading,
     saveDraft,
     publish,
     setTemplate,
+    setIntroStyle,
     updateWeddingInfo,
     setMusicSettings,
     addGalleryImage,

@@ -6,6 +6,7 @@ import { Heart } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { loadInvitation, loadInvitationBySlug } from '@/lib/invitation-service'
 import { type EditorState } from '@/lib/types'
+import { getIntroMotion } from '@/lib/intro-motion'
 import { InvitationFullView } from '@/components/invitation/invitation-full-view'
 
 export default function InvitationViewPage() {
@@ -81,12 +82,7 @@ export default function InvitationViewPage() {
           </motion.p>
         </motion.div>
       ) : (
-        <motion.div
-          key="content"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
-        >
+        <motion.div key="content" {...getIntroMotion(state.introStyle)}>
           <InvitationFullView state={state} invitationId={resolvedId} />
         </motion.div>
       )}

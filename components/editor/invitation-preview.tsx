@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Monitor, Music } from 'lucide-react';
 import { type EditorState, type FreeElement, defaultCustomLayout } from '@/lib/types';
 import { resolvePreviewStyle } from '@/lib/preview-style';
+import { getIntroMotion } from '@/lib/intro-motion';
 import { Button } from '@/components/ui/button';
 import { sectionRegistry } from '@/components/invitation/sections/section-registry';
 
@@ -27,6 +28,10 @@ interface InvitationPreviewProps {
    * FreeElement.y is a % of this dynamic page height, not of canvasWidth like
    * x/width/height are. */
   onCanvasSize?: (size: { width: number; height: number }) => void;
+  /** Bump this to replay the intro entrance animation in the mobile preview —
+   * e.g. from a "미리보기 재생" button next to the intro style picker, since
+   * otherwise picking a style has no visible feedback until you publish. */
+  introReplayKey?: number;
 }
 
 export function InvitationPreview({
@@ -37,6 +42,7 @@ export function InvitationPreview({
   onSelectElement,
   onChangeElement,
   onCanvasSize,
+  introReplayKey = 0,
 }: InvitationPreviewProps) {
   const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
   const cfg = resolvePreviewStyle(state);
@@ -74,6 +80,7 @@ export function InvitationPreview({
                   onSelectElement={onSelectElement}
                   onChangeElement={onChangeElement}
                   onCanvasSize={onCanvasSize}
+                  introReplayKey={introReplayKey}
                 />
               </div>
             </motion.div>
@@ -104,12 +111,13 @@ interface MobileCanvasStageProps {
   onSelectElement?: (id: string | null, opts?: { shift?: boolean }) => void;
   onChangeElement?: (id: string, updates: Partial<FreeElement>) => void;
   onCanvasSize?: (size: { width: number; height: number }) => void;
+  introReplayKey?: number;
 }
 
 // Wraps PreviewContent with an absolutely-positioned Konva stage on top, sized to match
 // the content's natural (scrollable) height so free elements scroll together with the page.
 function MobileCanvasStage({
-  state, cfg, invitationId, elementsEditable, selectedElementIds, onSelectElement, onChangeElement, onCanvasSize,
+  state, cfg, invitationId, elementsEditable, selectedElementIds, onSelectElement, onChangeElement, onCanvasSize, introReplayKey = 0,
 }: MobileCanvasStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -130,7 +138,7 @@ function MobileCanvasStage({
 
   return (
     <div className="w-full h-full overflow-y-auto">
-      <div ref={containerRef} className="relative">
+      <motion.div ref={containerRef} key={introReplayKey} className="relative" {...getIntroMotion(state.introStyle)}>
         <PreviewContent state={state} cfg={cfg} invitationId={invitationId} />
         {elements.length > 0 && (
           <FreeElementCanvas
@@ -139,12 +147,12 @@ function MobileCanvasStage({
             canvasHeight={size.height}
             interactive={elementsEditable}
             selectedIds={selectedElementIds}
-            onSelect={(id) => onSelectElement?.(id)}
+            onSelect={(id, opts) => onSelectElement?.(id, opts)}
             onChange={(id, updates) => onChangeElement?.(id, updates)}
             handleColor={cfg.accent}
           />
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

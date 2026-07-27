@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { ArrowLeft, Circle, Eye, EyeOff, Group, Heart, Loader2, Lock, Minus, Square, Trash2, Type, Ungroup, Unlock, Upload } from 'lucide-react';
+import { ArrowLeft, Circle, Eye, EyeOff, GripVertical, Group, Heart, Loader2, Lock, Minus, Square, Trash2, Type, Ungroup, Unlock, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { type CustomElementAsset, type FreeElement, type ShapeKind, shapeKindLabels, MAX_CUSTOM_ELEMENT_FILE_SIZE, MAX_CUSTOM_ELEMENT_DIMENSION } from '@/lib/types';
 import { uploadCustomElement, loadCustomElements, deleteCustomElement, CustomElementValidationError } from '@/lib/custom-element-service';
 import { cn } from '@/lib/utils';
@@ -158,6 +162,53 @@ function ElementRow({
   );
 }
 
+interface Cluster {
+  key: string;
+  items: FreeElement[];
+}
+
+function SortableCluster({
+  cluster, selectedIds, onSelect, onUpdate, onRemove,
+}: {
+  cluster: Cluster;
+  selectedIds: string[];
+  onSelect: (id: string | null, opts?: { shift?: boolean }) => void;
+  onUpdate: (id: string, updates: Partial<FreeElement>) => void;
+  onRemove: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: cluster.key });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  if (cluster.items.length === 1) {
+    const el = cluster.items[0];
+    return (
+      <div ref={setNodeRef} style={style} className={cn('flex items-center gap-1', isDragging && 'opacity-50')}>
+        <button {...attributes} {...listeners} type="button" className="shrink-0 cursor-grab touch-none p-1 text-muted-foreground" aria-label="순서 변경">
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <ElementRow el={el} selected={selectedIds.includes(el.id)} nested={false} onSelect={onSelect} onUpdate={onUpdate} onRemove={onRemove} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className={cn('rounded-lg border border-accent/50 bg-accent/5 p-1.5 space-y-1', isDragging && 'opacity-50')}>
+      <div className="flex items-center gap-1 px-1.5 py-0.5">
+        <button {...attributes} {...listeners} type="button" className="shrink-0 cursor-grab touch-none text-accent" aria-label="순서 변경">
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <Group className="h-3 w-3 text-accent" />
+        <span className="text-[11px] font-medium text-accent">그룹 · {cluster.items.length}개</span>
+      </div>
+      {cluster.items.map((el) => (
+        <ElementRow key={el.id} el={el} selected={selectedIds.includes(el.id)} nested onSelect={onSelect} onUpdate={onUpdate} onRemove={onRemove} />
+      ))}
+    </div>
+  );
+}
+
 function ElementList({
   elements,
   selectedIds,
@@ -171,47 +222,58 @@ function ElementList({
   onUpdate: (id: string, updates: Partial<FreeElement>) => void;
   onRemove: (id: string) => void;
 }) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
   if (elements.length === 0) return null;
 
-  // Cluster grouped elements together (visually bracketed) so a group reads as one
-  // unit in the list, even though its members can be scattered through zIndex order.
+  // Cluster grouped elements together (visually bracketed, and dragged as one unit)
+  // so a group reads and reorders as a single stacking unit in the list.
   const seenGroups = new Set<string>();
-  const clusters: (FreeElement | FreeElement[])[] = [];
+  const clusters: Cluster[] = [];
   elements.forEach((el) => {
     if (el.groupId) {
       if (seenGroups.has(el.groupId)) return;
       seenGroups.add(el.groupId);
-      clusters.push(elements.filter((e) => e.groupId === el.groupId));
+      clusters.push({ key: el.groupId, items: elements.filter((e) => e.groupId === el.groupId) });
     } else {
-      clusters.push(el);
+      clusters.push({ key: el.id, items: [el] });
     }
   });
+
+  // Front-most (highest zIndex) cluster at the top, matching a typical layer panel.
+  const rank = (c: Cluster) => Math.max(...c.items.map((i) => i.zIndex));
+  const ordered = [...clusters].sort((a, b) => rank(b) - rank(a));
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = ordered.findIndex((c) => c.key === active.id);
+    const newIndex = ordered.findIndex((c) => c.key === over.id);
+    const moved = arrayMove(ordered, oldIndex, newIndex);
+    const total = moved.length;
+    moved.forEach((cluster, i) => {
+      const zIndex = total - i;
+      cluster.items.forEach((item) => {
+        if (item.zIndex !== zIndex) onUpdate(item.id, { zIndex });
+      });
+    });
+  };
 
   return (
     <div>
       <p className="text-sm font-medium mb-2">추가된 요소</p>
-      <p className="text-xs text-muted-foreground mb-2">Shift+클릭으로 여러 개를 선택해 그룹으로 묶을 수 있어요.</p>
-      <div className="space-y-2">
-        {clusters.map((cluster) => {
-          if (!Array.isArray(cluster)) {
-            return (
-              <ElementRow key={cluster.id} el={cluster} selected={selectedIds.includes(cluster.id)} nested={false} onSelect={onSelect} onUpdate={onUpdate} onRemove={onRemove} />
-            );
-          }
-          const groupId = cluster[0].groupId as string;
-          return (
-            <div key={groupId} className="rounded-lg border border-accent/50 bg-accent/5 p-1.5 space-y-1">
-              <div className="flex items-center gap-1 px-1.5 py-0.5">
-                <Group className="h-3 w-3 text-accent" />
-                <span className="text-[11px] font-medium text-accent">그룹 · {cluster.length}개</span>
-              </div>
-              {cluster.map((el) => (
-                <ElementRow key={el.id} el={el} selected={selectedIds.includes(el.id)} nested onSelect={onSelect} onUpdate={onUpdate} onRemove={onRemove} />
-              ))}
-            </div>
-          );
-        })}
-      </div>
+      <p className="text-xs text-muted-foreground mb-2">
+        Shift+클릭으로 여러 개를 선택해 그룹으로 묶고, 손잡이를 드래그해 쌓임 순서를 바꿀 수 있어요.
+      </p>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToParentElement]}>
+        <SortableContext items={ordered.map((c) => c.key)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {ordered.map((cluster) => (
+              <SortableCluster key={cluster.key} cluster={cluster} selectedIds={selectedIds} onSelect={onSelect} onUpdate={onUpdate} onRemove={onRemove} />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

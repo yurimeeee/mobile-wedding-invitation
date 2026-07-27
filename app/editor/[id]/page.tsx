@@ -1,35 +1,56 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, Eye, FileText, Image, ListOrdered, Loader2, MoreVertical, Music, Palette, Redo2, Save, Settings, Share2, Sticker, Link as LinkIcon, Copy, Undo2, X, Lock } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Eye,
+  FileText,
+  Image,
+  Link as LinkIcon,
+  ListOrdered,
+  Loader2,
+  Lock,
+  MoreVertical,
+  Music,
+  Palette,
+  Redo2,
+  Save,
+  Settings,
+  Share2,
+  Sticker,
+  Undo2,
+  X,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
+import { BackgroundPicker } from '@/components/editor/custom/background-picker';
 import { Button } from '@/components/ui/button';
+import { EditorSettingsDialog } from '@/components/editor/editor-settings-dialog';
+import { ElementPanel } from '@/components/editor/custom/element-panel';
 import { GalleryUploader } from '@/components/editor/gallery-uploader';
+import { IntroStylePicker } from '@/components/editor/custom/intro-style-picker';
 import { InvitationPreview } from '@/components/editor/invitation-preview';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { MusicControls } from '@/components/editor/music-controls';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
+import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
+import { ShareSettingsForm } from '@/components/editor/share-settings-form';
 import { TemplateSelector } from '@/components/editor/template-selector';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
-import { ShareSettingsForm } from '@/components/editor/share-settings-form';
-import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
-import { EditorSettingsDialog } from '@/components/editor/editor-settings-dialog';
-import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
-import { ElementPanel } from '@/components/editor/custom/element-panel';
-import { BackgroundPicker } from '@/components/editor/custom/background-picker';
-import { defaultCustomLayout } from '@/lib/types';
-import { templateConfig } from '@/lib/preview-style';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
+import { defaultCustomLayout } from '@/lib/types';
 import { onAuthStateChanged } from 'firebase/auth';
+import { templateConfig } from '@/lib/preview-style';
+import { toast } from 'sonner';
 import { useEditorState } from '@/hooks/use-editor-state';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -66,19 +87,20 @@ export default function EditorPage() {
   const [activeSection, setActiveSection] = useState(startCustom ? 'elements' : 'template');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [introReplayKey, setIntroReplayKey] = useState(0);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
 
   const {
     state,
-    isSaving,
     lastSaved,
     isLoading,
     isActionLoading,
     saveDraft,
     publish,
     setTemplate,
+    setIntroStyle,
     updateWeddingInfo,
     setMusicSettings,
     addGalleryImage,
@@ -100,16 +122,25 @@ export default function EditorPage() {
     canRedo,
   } = useEditorState(invitationId);
 
+  // Bumping the replay key alongside the style change re-mounts the preview's
+  // intro motion.div, so picking an option plays it immediately — no separate
+  // "play" button needed.
+  const handleIntroStyleChange = (style: Parameters<typeof setIntroStyle>[0]) => {
+    setIntroStyle(style);
+    setIntroReplayKey((k) => k + 1);
+  };
+
   // Cmd/Ctrl+Z undo, Cmd/Ctrl+Shift+Z redo — skipped while typing so native
   // text-field undo isn't hijacked.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
       e.preventDefault();
-      if (e.shiftKey) redo(); else undo();
+      if (e.shiftKey) redo();
+      else undo();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -126,9 +157,7 @@ export default function EditorPage() {
       return;
     }
     const el = freeElements.find((e) => e.id === id);
-    const members = el?.groupId
-      ? freeElements.filter((e) => e.groupId === el.groupId).map((e) => e.id)
-      : [id];
+    const members = el?.groupId ? freeElements.filter((e) => e.groupId === el.groupId).map((e) => e.id) : [id];
 
     if (opts?.shift) {
       setSelectedElementIds((prev) => {
@@ -161,7 +190,39 @@ export default function EditorPage() {
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
       e.preventDefault();
-      if (e.shiftKey) ungroupSelectedElements(); else groupSelectedElements();
+      if (e.shiftKey) ungroupSelectedElements();
+      else groupSelectedElements();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedElementIds, freeElements]);
+
+  // Arrow keys nudge every selected (and unlocked) element by the same delta —
+  // 0.5% normally, 3% with Shift held for bigger moves. x/y are both raw %
+  // values (same convention NumberField already uses), so this stays consistent
+  // with every other position control even though x is %-of-width and y is
+  // %-of-height under the hood.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+      if (selectedElementIds.length === 0) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+
+      const step = e.shiftKey ? 3 : 0.5;
+      const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+      const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+
+      selectedElementIds.forEach((id) => {
+        const el = freeElements.find((e2) => e2.id === id);
+        if (!el || el.locked) return;
+        updateFreeElement(id, {
+          x: Math.min(100, Math.max(0, el.x + dx)),
+          y: Math.max(0, el.y + dy),
+        });
+      });
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -199,9 +260,8 @@ export default function EditorPage() {
 
   const SaveStatus = () => (
     <div className="flex items-center gap-1 text-sm text-muted-foreground">
-      {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-      {!isSaving && lastSaved && <Check className="h-4 w-4 text-green-500" />}
-      <span>{isSaving ? '저장 중...' : lastSaved ? `${lastSaved.toLocaleTimeString()} 저장됨` : ''}</span>
+      {lastSaved && <Check className="h-4 w-4 text-green-500" />}
+      <span>{lastSaved ? `${lastSaved.toLocaleTimeString()} 저장됨` : ''}</span>
     </div>
   );
 
@@ -262,11 +322,7 @@ export default function EditorPage() {
             {mobileTab === 'edit' && (
               <motion.div key="edit" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-6">
                 <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
-                <SectionReorderList
-                  sections={(state.customLayout ?? defaultCustomLayout).sections}
-                  onReorder={reorderSections}
-                  onToggleVisibility={toggleSectionVisibility}
-                />
+                <SectionReorderList sections={(state.customLayout ?? defaultCustomLayout).sections} onReorder={reorderSections} onToggleVisibility={toggleSectionVisibility} />
                 <div className="space-y-2">
                   <p className="text-sm font-medium">요소 캔버스</p>
                   <p className="text-xs text-muted-foreground">캔버스 안에서 스티커·텍스트를 직접 드래그해 위치를 옮기고, 모서리를 잡아 크기·회전을 조절할 수 있어요.</p>
@@ -316,11 +372,8 @@ export default function EditorPage() {
             {mobileTab === 'templates' && (
               <motion.div key="templates" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="p-4 space-y-6">
                 <TemplateSelector selected={state.template} onSelect={setTemplate} />
-                <BackgroundPicker
-                  background={(state.customLayout ?? defaultCustomLayout).background}
-                  templateBg={templateConfig[state.template].bg}
-                  onChange={setBackground}
-                />
+                <BackgroundPicker background={(state.customLayout ?? defaultCustomLayout).background} templateBg={templateConfig[state.template].bg} onChange={setBackground} />
+                <IntroStylePicker value={state.introStyle ?? 'fade'} onChange={handleIntroStyleChange} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -412,26 +465,19 @@ export default function EditorPage() {
             </Tabs>
           </div>
 
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <div className="p-4">
               <Tabs value={activeSection} onValueChange={setActiveSection}>
                 <TabsContent value="template" className="mt-0 space-y-6">
                   <TemplateSelector selected={state.template} onSelect={setTemplate} />
-                  <BackgroundPicker
-                    background={(state.customLayout ?? defaultCustomLayout).background}
-                    templateBg={templateConfig[state.template].bg}
-                    onChange={setBackground}
-                  />
+                  <BackgroundPicker background={(state.customLayout ?? defaultCustomLayout).background} templateBg={templateConfig[state.template].bg} onChange={setBackground} />
+                  <IntroStylePicker value={state.introStyle ?? 'fade'} onChange={handleIntroStyleChange} />
                 </TabsContent>
                 <TabsContent value="info" className="mt-0">
                   <WeddingInfoForm info={state.weddingInfo} onChange={updateWeddingInfo} calendarSettings={state.calendarSettings} onCalendarChange={updateCalendarSettings} />
                 </TabsContent>
                 <TabsContent value="order" className="mt-0">
-                  <SectionReorderList
-                    sections={(state.customLayout ?? defaultCustomLayout).sections}
-                    onReorder={reorderSections}
-                    onToggleVisibility={toggleSectionVisibility}
-                  />
+                  <SectionReorderList sections={(state.customLayout ?? defaultCustomLayout).sections} onReorder={reorderSections} onToggleVisibility={toggleSectionVisibility} />
                 </TabsContent>
                 <TabsContent value="elements" className="mt-0">
                   <ElementPanel
@@ -469,7 +515,7 @@ export default function EditorPage() {
                 </TabsContent>
               </Tabs>
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         <div className="flex-1 bg-muted/30">
@@ -481,6 +527,7 @@ export default function EditorPage() {
             onSelectElement={handleSelectElement}
             onChangeElement={updateFreeElement}
             onCanvasSize={setCanvasSize}
+            introReplayKey={introReplayKey}
           />
         </div>
       </div>
@@ -499,7 +546,8 @@ export default function EditorPage() {
             </div>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={handleCopyLink}>
-                <Copy className="h-4 w-4 mr-2" />링크 복사
+                <Copy className="h-4 w-4 mr-2" />
+                링크 복사
               </Button>
               <Button variant="outline" asChild>
                 <a href={publishedUrl ?? ''} target="_blank" rel="noopener noreferrer">
@@ -525,18 +573,8 @@ export default function EditorPage() {
       {/* Fullscreen preview */}
       <AnimatePresence>
         {fullscreenPreview && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-muted/30"
-          >
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute top-4 right-4 z-10 bg-background"
-              onClick={() => setFullscreenPreview(false)}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-muted/30">
+            <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10 bg-background" onClick={() => setFullscreenPreview(false)}>
               <X className="h-4 w-4" />
             </Button>
             <div className="h-full overflow-auto">

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
@@ -277,6 +278,40 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
         />
       </div>
 
+      <div className="space-y-3 rounded-lg border border-border p-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">그림자</Label>
+          <Switch checked={!!element.shadow} onCheckedChange={(shadow) => onChange({ shadow })} />
+        </div>
+
+        {!(element.type === 'shape' && element.shapeKind === 'line') && (
+          <>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">테두리</Label>
+              <Switch checked={!!element.borderEnabled} onCheckedChange={(borderEnabled) => onChange({ borderEnabled })} />
+            </div>
+
+            {element.borderEnabled && (
+              <>
+                <ColorField color={element.borderColor ?? '#000000'} onChange={(borderColor) => onChange({ borderColor })} />
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">두께</Label>
+                    <span className="text-xs text-muted-foreground">{Math.round((element.borderWidth ?? 1) * 10) / 10}</span>
+                  </div>
+                  <Slider
+                    value={[element.borderWidth ?? 1]}
+                    min={0.2}
+                    max={3}
+                    step={0.2}
+                    onValueChange={([borderWidth]) => onChange({ borderWidth })}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

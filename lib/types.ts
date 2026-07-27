@@ -9,11 +9,23 @@ export interface EditorState {
   slug: string
   mode: EditorMode
   customLayout?: CustomLayout
+  introStyle?: IntroStyle
 }
 
 // ─── Custom editor (free-form section/element editor) ─────────────────────
 
 export type EditorMode = 'template' | 'custom'
+
+// 청첩장 첫 진입 시 콘텐츠가 나타나는 방식 — 로딩 인디케이터(하트 펄스)는 스타일과
+// 무관하게 동일하게 유지하고, 콘텐츠가 준비된 뒤의 등장 트랜지션만 바뀐다.
+export type IntroStyle = 'fade' | 'slide-up' | 'zoom' | 'none'
+
+export const introStyleLabels: Record<IntroStyle, { name: string; description: string }> = {
+  fade: { name: '페이드인', description: '은은하게 스며들 듯 나타나요' },
+  'slide-up': { name: '슬라이드업', description: '아래에서 위로 올라오며 나타나요' },
+  zoom: { name: '확대 등장', description: '살짝 작은 상태에서 커지며 나타나요' },
+  none: { name: '즉시 표시', description: '효과 없이 바로 보여줘요' },
+}
 
 export type SectionKind =
   | 'cover' | 'greeting' | 'calendar' | 'gallery'
@@ -77,6 +89,14 @@ export interface FreeElement {
   align?: TextAlign
   // shape-only — which primitive to draw; fill color reuses `color` above
   shapeKind?: ShapeKind
+  // drop shadow — on/off only, uses one fixed preset rather than exposing
+  // blur/offset knobs. Applies to every element type.
+  shadow?: boolean
+  // border/stroke — not offered for shapeKind 'line', since a line already
+  // uses its own `color` as its stroke and a second stroke would conflict.
+  borderEnabled?: boolean
+  borderColor?: string
+  borderWidth?: number // % of canvas width, same unit convention as fontSize
 }
 
 export interface CanvasBackground {

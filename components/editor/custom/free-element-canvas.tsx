@@ -23,7 +23,7 @@ interface FreeElementCanvasProps {
   canvasHeight: number;
   interactive: boolean;
   selectedIds: string[];
-  onSelect: (id: string | null) => void;
+  onSelect: (id: string | null, opts?: { shift?: boolean }) => void;
   onChange: (id: string, updates: Partial<FreeElement>) => void;
   /** Resize/rotate handle color — defaults to the current template's accent color. */
   handleColor?: string;
@@ -38,7 +38,7 @@ function ElementNode({
   canvasWidth: number;
   canvasHeight: number;
   interactive: boolean;
-  onSelect: () => void;
+  onSelect: (opts?: { shift?: boolean }) => void;
   onChange: (updates: Partial<FreeElement>) => void;
   onDragStart: (node: Konva.Node) => void;
   onDragMove: (node: Konva.Node) => void;
@@ -52,6 +52,12 @@ function ElementNode({
   const pw = (element.width / 100) * canvasWidth;
   const ph = (element.height / 100) * canvasWidth;
 
+  // Border reuses Konva's stroke/strokeWidth, which the 'line' shape already uses for
+  // its own color — a second stroke there would just overwrite it, so line skips this.
+  const borderProps = element.borderEnabled && !(element.type === 'shape' && element.shapeKind === 'line')
+    ? { stroke: element.borderColor ?? '#000000', strokeWidth: ((element.borderWidth ?? 1) / 100) * canvasWidth }
+    : {};
+
   const commonProps = {
     ref: registerRef,
     x: px,
@@ -62,7 +68,15 @@ function ElementNode({
     opacity: element.opacity,
     draggable: interactive && !element.locked,
     listening: interactive,
-    onClick: (e: Konva.KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; onSelect(); },
+    ...(element.shadow ? {
+      shadowColor: '#000000',
+      shadowBlur: 12,
+      shadowOffsetX: 0,
+      shadowOffsetY: 4,
+      shadowOpacity: 0.3,
+    } : {}),
+    ...borderProps,
+    onClick: (e: Konva.KonvaEventObject<MouseEvent>) => { e.cancelBubble = true; onSelect({ shift: e.evt.shiftKey }); },
     onTap: (e: Konva.KonvaEventObject<Event>) => { e.cancelBubble = true; onSelect(); },
     // dragBoundFunc is Konva's sanctioned interception point for constraining/snapping
     // drag position — mutating node.x()/y() from an onDragMove handler instead gets
@@ -271,7 +285,7 @@ export function FreeElementCanvas({
             canvasWidth={canvasWidth}
             canvasHeight={canvasHeight}
             interactive={interactive}
-            onSelect={() => onSelect(el.id)}
+            onSelect={(opts) => onSelect(el.id, opts)}
             onChange={(updates) => onChange(el.id, updates)}
             onDragStart={(node) => handleGroupDragStart(el.id, node)}
             onDragMove={(node) => handleGroupDragMove(el.id, node)}
