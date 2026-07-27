@@ -3,7 +3,7 @@ import {
   collection, query, where, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
-import { db, storage } from './firebase'
+import { auth, db, storage } from './firebase'
 import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
 import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout } from './types'
 
@@ -154,6 +154,7 @@ export interface DashboardInvitation {
   weddingDate: string
   slug: string
   thumbnail: string
+  viewCount: number
 }
 
 export async function loadUserInvitations(uid: string): Promise<DashboardInvitation[]> {
@@ -181,6 +182,7 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
         weddingDate: d.weddingInfo?.weddingDate ?? '',
         slug: d.slug ?? '',
         thumbnail: d.gallery?.[0]?.url ?? '',
+        viewCount: d.viewCount ?? 0,
       }
     })
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
@@ -198,6 +200,15 @@ export async function loadInvitationBySlug(slug: string): Promise<{ state: Edito
   const data = await res.json()
   if (!data.id) return null
   return { id: data.id, state: data.state }
+}
+
+export async function recordInvitationView(invitationId: string): Promise<void> {
+  const token = await auth.currentUser?.getIdToken().catch(() => undefined)
+  await fetch('/api/invitation-view', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
+    body: JSON.stringify({ id: invitationId }),
+  }).catch(() => {})
 }
 
 export async function checkSlugAvailable(slug: string, excludeId: string): Promise<boolean> {
@@ -220,6 +231,7 @@ export async function duplicateInvitation(uid: string, invitationId: string): Pr
     uid,
     title: `${data.title || '청첩장'} (복사본)`,
     status: 'draft',
+    viewCount: 0,
     // 슬러그는 문서마다 고유해야 하므로 복제본은 비워서 자동 생성 ID로 접근하게 합니다.
     slug: '',
     createdAt: serverTimestamp(),

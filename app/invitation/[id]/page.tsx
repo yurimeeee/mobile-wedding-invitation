@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Heart } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { loadInvitation, loadInvitationBySlug } from '@/lib/invitation-service'
+import { loadInvitation, loadInvitationBySlug, recordInvitationView } from '@/lib/invitation-service'
 import { type EditorState } from '@/lib/types'
 import { getIntroMotion } from '@/lib/intro-motion'
 import { InvitationFullView } from '@/components/invitation/invitation-full-view'
@@ -25,6 +25,7 @@ export default function InvitationViewPage() {
         if (bySlug) {
           setState(bySlug.state)
           setResolvedId(bySlug.id)
+          recordInvitationView(bySlug.id)
           return
         }
       } catch (e) {
@@ -37,6 +38,7 @@ export default function InvitationViewPage() {
         if (byId) {
           setState(byId)
           setResolvedId(id)
+          recordInvitationView(id)
           return
         }
       } catch (e) {

@@ -23,6 +23,7 @@ import {
   Sparkles,
   RefreshCw,
   ClipboardCheck,
+  Eye,
 } from 'lucide-react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -353,7 +354,15 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between">
                         <div className="min-w-0">
                           <h3 className="font-medium truncate">{invitation.title || '제목 없음'}</h3>
-                          <p className="text-xs text-muted-foreground">{formatWeddingDate(invitation.weddingDate)}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <p>{formatWeddingDate(invitation.weddingDate)}</p>
+                            {invitation.status === 'published' && (
+                              <span className="flex items-center gap-0.5 shrink-0">
+                                <Eye className="h-3 w-3" />
+                                {invitation.viewCount}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
