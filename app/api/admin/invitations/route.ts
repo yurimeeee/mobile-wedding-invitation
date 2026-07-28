@@ -12,11 +12,31 @@ export async function GET(request: NextRequest) {
   const admin = await requireAdminRequest(request)
   if (!admin) return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 401 })
 
-  const snapshot = await adminDb.collection('invitations').get()
+  const [snapshot, rsvpsSnap] = await Promise.all([
+    adminDb.collection('invitations').get(),
+    adminDb.collectionGroup('rsvps').select().get(),
+  ])
   const docs = snapshot.docs.map((d) => {
     const data = d.data() as Record<string, unknown>
-    return { id: d.id, uid: data.uid, weddingInfo: data.weddingInfo, template: data.template, status: data.status, slug: data.slug, createdAt: data.createdAt, updatedAt: data.updatedAt }
+    return {
+      id: d.id,
+      uid: data.uid,
+      weddingInfo: data.weddingInfo,
+      template: data.template,
+      status: data.status,
+      slug: data.slug,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      viewCount: typeof data.viewCount === 'number' ? data.viewCount : 0,
+    }
   })
+
+  const rsvpCountByInvitation = new Map<string, number>()
+  for (const rsvpDoc of rsvpsSnap.docs) {
+    const invitationId = rsvpDoc.ref.parent.parent?.id
+    if (!invitationId) continue
+    rsvpCountByInvitation.set(invitationId, (rsvpCountByInvitation.get(invitationId) ?? 0) + 1)
+  }
 
   const uniqueUids = Array.from(new Set(docs.map((d) => d.uid).filter((uid): uid is string => typeof uid === 'string')))
 
@@ -56,10 +76,23 @@ export async function GET(request: NextRequest) {
       slug: d.slug ?? '',
       createdAt: toIso(d.createdAt),
       updatedAt: toIso(d.updatedAt),
-      views: 0,
-      rsvps: 0,
+      views: d.viewCount,
+      rsvps: rsvpCountByInvitation.get(d.id) ?? 0,
     }
   })
 
   return NextResponse.json({ invitations })
+}
+
+export async function DELETE(request: NextRequest) {
+  const admin = await requireAdminRequest(request)
+  if (!admin) return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 401 })
+
+  const body = await request.json().catch(() => null) as { ids?: string[] } | null
+  if (!Array.isArray(body?.ids) || body.ids.length === 0 || !body.ids.every((id) => typeof id === 'string')) {
+    return NextResponse.json({ error: 'ids(string[]) 값이 필요합니다.' }, { status: 400 })
+  }
+
+  await Promise.all(body.ids.map((id) => adminDb.recursiveDelete(adminDb.collection('invitations').doc(id))))
+  return NextResponse.json({ ids: body.ids })
 }

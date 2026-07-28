@@ -1,4 +1,5 @@
 import { auth } from './firebase'
+import type { EditorState } from './types'
 
 async function authedFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const user = auth.currentUser
@@ -79,6 +80,30 @@ export function fetchAdminInvitations() {
   return authedFetch<{ invitations: AdminInvitation[] }>('/api/admin/invitations')
 }
 
+export function fetchAdminInvitationState(id: string) {
+  return authedFetch<{ state: EditorState }>(`/api/admin/invitations/${id}`)
+}
+
+export function setInvitationStatus(id: string, status: 'draft' | 'published') {
+  return authedFetch<{ id: string; status: 'draft' | 'published' }>(`/api/admin/invitations/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  })
+}
+
+export function deleteAdminInvitation(id: string) {
+  return authedFetch<{ id: string }>(`/api/admin/invitations/${id}`, { method: 'DELETE' })
+}
+
+export function bulkDeleteAdminInvitations(ids: string[]) {
+  return authedFetch<{ ids: string[] }>('/api/admin/invitations', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  })
+}
+
 export function fetchAdminUsers() {
   return authedFetch<{ users: AdminUser[] }>('/api/admin/users')
 }
@@ -100,4 +125,33 @@ export function saveUserNote(uid: string, note: string) {
       body: JSON.stringify({ note }),
     }
   )
+}
+
+export interface AdminTemplateItem {
+  id: string
+  name: string
+  nameKr: string
+  colors: string[]
+  usageCount: number
+  disabled: boolean
+}
+
+export function fetchAdminTemplates() {
+  return authedFetch<{ templates: AdminTemplateItem[] }>('/api/admin/templates')
+}
+
+export function setTemplateDisabled(templateId: string, disabled: boolean) {
+  return authedFetch<{ templateId: string; disabled: boolean }>('/api/admin/templates', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ templateId, disabled }),
+  })
+}
+
+export function getPasswordResetLink(uid: string) {
+  return authedFetch<{ link: string }>(`/api/admin/users/${uid}/reset-password-link`, { method: 'POST' })
+}
+
+export function deleteAdminUser(uid: string) {
+  return authedFetch<{ id: string }>(`/api/admin/users/${uid}`, { method: 'DELETE' })
 }

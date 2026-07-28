@@ -21,9 +21,12 @@ import type { AdminStatsResponse } from "@/lib/admin-data-client"
 
 interface RecentInvitationsProps {
   invitations: AdminStatsResponse["recentInvitations"]
+  onPreview: (id: string) => void
+  onDeactivate: (id: string) => void
+  onDelete: (id: string) => void
 }
 
-export function RecentInvitations({ invitations }: RecentInvitationsProps) {
+export function RecentInvitations({ invitations, onPreview, onDeactivate, onDelete }: RecentInvitationsProps) {
   return (
     <Card>
       <CardHeader>
@@ -80,16 +83,21 @@ export function RecentInvitations({ invitations }: RecentInvitationsProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onPreview(inv.id)}>
                           <Eye className="mr-2 size-4" />
                           보기
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <PowerOff className="mr-2 size-4" />
-                          비활성화
-                        </DropdownMenuItem>
+                        {inv.status === "published" && (
+                          <DropdownMenuItem onClick={() => onDeactivate(inv.id)}>
+                            <PowerOff className="mr-2 size-4" />
+                            비활성화
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => onDelete(inv.id)}
+                        >
                           <Trash2 className="mr-2 size-4" />
                           삭제
                         </DropdownMenuItem>

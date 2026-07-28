@@ -24,17 +24,17 @@ export function StatCards({ stats }: StatCardsProps) {
       icon: LayoutTemplate,
     },
     {
-      label: "총 조회수 / RSVP",
+      label: "총 조회수",
       value: stats.totalViews.toLocaleString("ko-KR"),
       growth: null,
-      growthLabel: "추적 예정",
+      growthLabel: "발행된 청첩장 누적 조회",
       icon: Eye,
     },
     {
       label: "전환율",
       value: `${stats.conversionRatePct}%`,
       growth: null,
-      growthLabel: "추적 예정",
+      growthLabel: "조회 대비 RSVP 응답 비율",
       icon: TrendingUp,
     },
   ]

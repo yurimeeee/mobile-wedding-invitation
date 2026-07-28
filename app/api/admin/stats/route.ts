@@ -15,13 +15,26 @@ export async function GET(request: NextRequest) {
   const admin = await requireAdminRequest(request)
   if (!admin) return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 401 })
 
-  const snapshot = await adminDb.collection('invitations').get()
+  const [snapshot, rsvpCountSnap] = await Promise.all([
+    adminDb.collection('invitations').get(),
+    adminDb.collectionGroup('rsvps').count().get(),
+  ])
   const docs = snapshot.docs.map((d) => {
     const data = d.data() as Record<string, unknown>
-    return { id: d.id, title: data.title, template: data.template, status: data.status, createdAt: data.createdAt }
+    return {
+      id: d.id,
+      title: data.title,
+      template: data.template,
+      status: data.status,
+      createdAt: data.createdAt,
+      viewCount: typeof data.viewCount === 'number' ? data.viewCount : 0,
+    }
   })
 
   const totalInvitations = docs.length
+  const totalViews = docs.reduce((sum, d) => sum + d.viewCount, 0)
+  const totalRsvps = rsvpCountSnap.data().count
+  const conversionRatePct = totalViews > 0 ? Math.round((totalRsvps / totalViews) * 100) : 0
 
   const now = new Date()
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -90,8 +103,8 @@ export async function GET(request: NextRequest) {
     totalInvitations,
     invitationsGrowthPct,
     totalTemplates: templates.length,
-    totalViews: 0,
-    conversionRatePct: 0,
+    totalViews,
+    conversionRatePct,
     monthly,
     templatePopularity,
     recentInvitations,

@@ -4,6 +4,7 @@ export type AccountStatus = "활성" | "차단"
 
 export interface ManagedInvitation {
   id: string
+  slug: string
   coupleNames: string
   groomName: string
   brideName: string
@@ -66,6 +67,7 @@ function makeInvitation(i: number): ManagedInvitation {
   const expMonth = ((month + 2 - 1) % 12) + 1
   return {
     id: `INV-${20500 - i}`,
+    slug: '',
     coupleNames: `${groom} & ${bride}`,
     groomName: groom,
     brideName: bride,

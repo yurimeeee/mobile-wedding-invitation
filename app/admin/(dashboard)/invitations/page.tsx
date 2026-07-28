@@ -32,14 +32,22 @@ import {
   statusOptions,
   type ManagedInvitation,
 } from "@/lib/admin-data-extended"
-import { fetchAdminInvitations, type AdminInvitation } from "@/lib/admin-data-client"
+import {
+  fetchAdminInvitations,
+  setInvitationStatus,
+  deleteAdminInvitation,
+  bulkDeleteAdminInvitations,
+  type AdminInvitation,
+} from "@/lib/admin-data-client"
 import { templates } from "@/lib/types"
 import type { DateRange } from "react-day-picker"
+import { toast } from "sonner"
 
 function toManagedInvitation(inv: AdminInvitation): ManagedInvitation {
   const templateMeta = templates.find((t) => t.id === inv.templateId)
   return {
     id: inv.id,
+    slug: inv.slug,
     coupleNames: inv.coupleNames,
     groomName: inv.groomName,
     brideName: inv.brideName,
@@ -122,6 +130,58 @@ export default function InvitationsPage() {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   const toggleAll = () =>
     setSelected((prev) => (prev.length === filtered.length ? [] : filtered.map((i) => i.id)))
+
+  const handlePreview = (inv: ManagedInvitation) => {
+    window.open(`/admin/preview/${inv.id}`, "_blank")
+  }
+
+  const handleCopyLink = async (inv: ManagedInvitation) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : ""
+    const url = `${origin}/invitation/${inv.slug || inv.id}`
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success("공유 링크를 복사했습니다.")
+    } catch {
+      toast.error("링크 복사에 실패했습니다.")
+    }
+  }
+
+  const handleToggleVisibility = async (inv: ManagedInvitation) => {
+    const nextStatus = inv.status === "공개" ? "draft" : "published"
+    try {
+      await setInvitationStatus(inv.id, nextStatus)
+      setManagedInvitations((prev) =>
+        prev.map((i) => (i.id === inv.id ? { ...i, status: nextStatus === "published" ? "공개" : "비공개" } : i))
+      )
+      toast.success(nextStatus === "published" ? "공개로 전환했습니다." : "비공개로 전환했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "상태 변경 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleDelete = async (inv: ManagedInvitation) => {
+    if (!window.confirm(`'${inv.coupleNames}' 청첩장을 삭제할까요? 되돌릴 수 없습니다.`)) return
+    try {
+      await deleteAdminInvitation(inv.id)
+      setManagedInvitations((prev) => prev.filter((i) => i.id !== inv.id))
+      setSelected((prev) => prev.filter((id) => id !== inv.id))
+      toast.success("청첩장을 삭제했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "삭제 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`선택한 ${selected.length}건을 삭제할까요? 되돌릴 수 없습니다.`)) return
+    try {
+      await bulkDeleteAdminInvitations(selected)
+      setManagedInvitations((prev) => prev.filter((i) => !selected.includes(i.id)))
+      setSelected([])
+      toast.success("선택한 청첩장을 삭제했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "일괄 삭제 중 오류가 발생했습니다.")
+    }
+  }
 
   const dateLabel = dateRange?.from
     ? dateRange.to
@@ -264,7 +324,7 @@ export default function InvitationsPage() {
               <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
                 선택 해제
               </Button>
-              <Button size="sm" variant="destructive">
+              <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
                 <Trash2 className="mr-1.5 size-4" />
                 일괄 삭제
               </Button>
@@ -279,9 +339,19 @@ export default function InvitationsPage() {
           selected={selected}
           onToggle={toggle}
           onToggleAll={toggleAll}
+          onPreview={handlePreview}
+          onCopyLink={handleCopyLink}
+          onToggleVisibility={handleToggleVisibility}
+          onDelete={handleDelete}
         />
       ) : (
-        <InvitationsGrid invitations={filtered} />
+        <InvitationsGrid
+          invitations={filtered}
+          onPreview={handlePreview}
+          onCopyLink={handleCopyLink}
+          onToggleVisibility={handleToggleVisibility}
+          onDelete={handleDelete}
+        />
       )}
       </main>
     </>

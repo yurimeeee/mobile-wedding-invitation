@@ -42,8 +42,16 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountStatusBadge } from "@/components/admin/status-badges"
 import { AdminNoteModal } from "@/components/admin/admin-note-modal"
+import { UserDetailDialog } from "@/components/admin/user-detail-dialog"
 import { accountStatusOptions, type ManagedUser } from "@/lib/admin-data-extended"
-import { fetchAdminUsers, setUserDisabled, saveUserNote, type AdminUser } from "@/lib/admin-data-client"
+import {
+  fetchAdminUsers,
+  setUserDisabled,
+  saveUserNote,
+  getPasswordResetLink,
+  deleteAdminUser,
+  type AdminUser,
+} from "@/lib/admin-data-client"
 import { toast } from "sonner"
 
 function formatRelative(iso: string): string {
@@ -82,6 +90,8 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("전체")
   const [noteUser, setNoteUser] = useState<ManagedUser | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [detailUser, setDetailUser] = useState<ManagedUser | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
     fetchAdminUsers()
@@ -118,6 +128,56 @@ export default function UsersPage() {
     setModalOpen(true)
   }
 
+  const openDetail = (user: ManagedUser) => {
+    setDetailUser(user)
+    setDetailOpen(true)
+  }
+
+  const exportCsv = () => {
+    const header = ["이름", "이메일", "가입일", "제작한 청첩장", "공개 중", "최근 활동", "상태", "메모"]
+    const rows = filtered.map((u) => [
+      u.name,
+      u.email,
+      u.joinDate,
+      String(u.totalCreated),
+      String(u.currentlyPublic),
+      u.lastActivityLabel,
+      u.status,
+      u.adminNote,
+    ])
+    const csv = [header, ...rows]
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+      .join("\n")
+    const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `사용자목록_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const copyResetLink = async (user: ManagedUser) => {
+    try {
+      const { link } = await getPasswordResetLink(user.id)
+      await navigator.clipboard.writeText(link)
+      toast.success("비밀번호 재설정 링크를 복사했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "링크 생성 중 오류가 발생했습니다.")
+    }
+  }
+
+  const removeUser = async (user: ManagedUser) => {
+    if (!window.confirm(`'${user.name}' 계정을 삭제할까요? 되돌릴 수 없습니다.`)) return
+    try {
+      await deleteAdminUser(user.id)
+      setUsers((prev) => prev.filter((u) => u.id !== user.id))
+      toast.success("사용자 계정을 삭제했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "삭제 중 오류가 발생했습니다.")
+    }
+  }
+
   const saveNote = async (userId: string, note: string) => {
     try {
       const result = await saveUserNote(userId, note)
@@ -143,7 +203,7 @@ export default function UsersPage() {
             가입 사용자와 청첩장 이용 현황을 관리합니다.
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={exportCsv}>
           <Download className="mr-2 size-4" />
           사용자 CSV 내보내기
         </Button>
@@ -259,7 +319,7 @@ export default function UsersPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openDetail(user)}>
                         <UserCog className="mr-2 size-4" />
                         사용자 상세 보기
                       </DropdownMenuItem>
@@ -267,7 +327,7 @@ export default function UsersPage() {
                         <StickyNote className="mr-2 size-4" />
                         메모 편집
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => copyResetLink(user)}>
                         <KeyRound className="mr-2 size-4" />
                         비밀번호 재설정 링크
                       </DropdownMenuItem>
@@ -276,7 +336,10 @@ export default function UsersPage() {
                         <Ban className="mr-2 size-4" />
                         {user.status === "차단" ? "차단 해제" : "사용자 차단"}
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive">
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => removeUser(user)}
+                      >
                         <Trash2 className="mr-2 size-4" />
                         사용자 삭제
                       </DropdownMenuItem>
@@ -295,6 +358,7 @@ export default function UsersPage() {
         onOpenChange={setModalOpen}
         onSave={saveNote}
       />
+      <UserDetailDialog user={detailUser} open={detailOpen} onOpenChange={setDetailOpen} />
       </main>
     </>
   )

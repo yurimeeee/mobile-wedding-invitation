@@ -1,6 +1,6 @@
 "use client"
 
-import { MoreHorizontal, Pencil, Link2, Eye, EyeOff, Trash2 } from "lucide-react"
+import { MoreHorizontal, Link2, Eye, EyeOff, Trash2 } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -26,9 +26,22 @@ interface InvitationsTableProps {
   selected: string[]
   onToggle: (id: string) => void
   onToggleAll: () => void
+  onPreview: (inv: ManagedInvitation) => void
+  onCopyLink: (inv: ManagedInvitation) => void
+  onToggleVisibility: (inv: ManagedInvitation) => void
+  onDelete: (inv: ManagedInvitation) => void
 }
 
-export function InvitationsTable({ invitations, selected, onToggle, onToggleAll }: InvitationsTableProps) {
+export function InvitationsTable({
+  invitations,
+  selected,
+  onToggle,
+  onToggleAll,
+  onPreview,
+  onCopyLink,
+  onToggleVisibility,
+  onDelete,
+}: InvitationsTableProps) {
   const allSelected = invitations.length > 0 && selected.length === invitations.length
 
   return (
@@ -98,15 +111,15 @@ export function InvitationsTable({ invitations, selected, onToggle, onToggleAll 
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem>
-                      <Pencil className="mr-2 size-4" />
-                      관리자 강제 편집
+                    <DropdownMenuItem onClick={() => onPreview(inv)}>
+                      <Eye className="mr-2 size-4" />
+                      미리보기
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onCopyLink(inv)}>
                       <Link2 className="mr-2 size-4" />
                       공유 링크 복사
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onToggleVisibility(inv)}>
                       {inv.status === "공개" ? (
                         <>
                           <EyeOff className="mr-2 size-4" />
@@ -120,7 +133,7 @@ export function InvitationsTable({ invitations, selected, onToggle, onToggleAll 
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(inv)}>
                       <Trash2 className="mr-2 size-4" />
                       삭제
                     </DropdownMenuItem>

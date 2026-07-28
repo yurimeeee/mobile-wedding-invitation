@@ -1,6 +1,6 @@
 "use client"
 
-import { MoreHorizontal, Pencil, Link2, Eye, EyeOff, Trash2, Heart } from "lucide-react"
+import { MoreHorizontal, Link2, Eye, EyeOff, Trash2, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,7 +36,15 @@ function PreviewCard({ inv }: { inv: ManagedInvitation }) {
   )
 }
 
-export function InvitationsGrid({ invitations }: { invitations: ManagedInvitation[] }) {
+interface InvitationsGridProps {
+  invitations: ManagedInvitation[]
+  onPreview: (inv: ManagedInvitation) => void
+  onCopyLink: (inv: ManagedInvitation) => void
+  onToggleVisibility: (inv: ManagedInvitation) => void
+  onDelete: (inv: ManagedInvitation) => void
+}
+
+export function InvitationsGrid({ invitations, onPreview, onCopyLink, onToggleVisibility, onDelete }: InvitationsGridProps) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
       {invitations.map((inv) => (
@@ -46,13 +54,13 @@ export function InvitationsGrid({ invitations }: { invitations: ManagedInvitatio
               <PreviewCard inv={inv} />
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-foreground/60 opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
-              <Button size="sm" variant="secondary" className="w-28">
+              <Button size="sm" variant="secondary" className="w-28" onClick={() => onPreview(inv)}>
                 <Eye className="mr-1.5 size-4" />
                 빠른 보기
               </Button>
-              <Button size="sm" variant="secondary" className="w-28">
-                <Pencil className="mr-1.5 size-4" />
-                관리자 편집
+              <Button size="sm" variant="secondary" className="w-28" onClick={() => onCopyLink(inv)}>
+                <Link2 className="mr-1.5 size-4" />
+                링크 복사
               </Button>
             </div>
             <div className="absolute left-2 top-2">
@@ -77,15 +85,15 @@ export function InvitationsGrid({ invitations }: { invitations: ManagedInvitatio
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem>
-                    <Pencil className="mr-2 size-4" />
-                    관리자 강제 편집
+                  <DropdownMenuItem onClick={() => onPreview(inv)}>
+                    <Eye className="mr-2 size-4" />
+                    미리보기
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onCopyLink(inv)}>
                     <Link2 className="mr-2 size-4" />
                     공유 링크 복사
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onToggleVisibility(inv)}>
                     {inv.status === "공개" ? (
                       <>
                         <EyeOff className="mr-2 size-4" />
@@ -99,7 +107,7 @@ export function InvitationsGrid({ invitations }: { invitations: ManagedInvitatio
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(inv)}>
                     <Trash2 className="mr-2 size-4" />
                     삭제
                   </DropdownMenuItem>

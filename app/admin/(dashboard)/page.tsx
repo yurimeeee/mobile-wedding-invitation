@@ -6,7 +6,13 @@ import { StatCards } from "@/components/admin/stat-cards"
 import { InvitationsChart } from "@/components/admin/invitations-chart"
 import { TemplatePopularity } from "@/components/admin/template-popularity"
 import { RecentInvitations } from "@/components/admin/recent-invitations"
-import { fetchAdminStats, type AdminStatsResponse } from "@/lib/admin-data-client"
+import {
+  fetchAdminStats,
+  setInvitationStatus,
+  deleteAdminInvitation,
+  type AdminStatsResponse,
+} from "@/lib/admin-data-client"
+import { toast } from "sonner"
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStatsResponse | null>(null)
@@ -17,6 +23,42 @@ export default function AdminDashboardPage() {
       .then(setStats)
       .catch((err: Error) => setError(err.message))
   }, [])
+
+  const handlePreview = (id: string) => {
+    window.open(`/admin/preview/${id}`, "_blank")
+  }
+
+  const handleDeactivate = async (id: string) => {
+    try {
+      await setInvitationStatus(id, "draft")
+      setStats((prev) =>
+        prev
+          ? {
+              ...prev,
+              recentInvitations: prev.recentInvitations.map((inv) =>
+                inv.id === id ? { ...inv, status: "draft" } : inv
+              ),
+            }
+          : prev
+      )
+      toast.success("비공개로 전환했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "처리 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("이 청첩장을 삭제할까요? 되돌릴 수 없습니다.")) return
+    try {
+      await deleteAdminInvitation(id)
+      setStats((prev) =>
+        prev ? { ...prev, recentInvitations: prev.recentInvitations.filter((inv) => inv.id !== id) } : prev
+      )
+      toast.success("청첩장을 삭제했습니다.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "삭제 중 오류가 발생했습니다.")
+    }
+  }
 
   return (
     <>
@@ -46,7 +88,12 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <RecentInvitations invitations={stats.recentInvitations} />
+            <RecentInvitations
+              invitations={stats.recentInvitations}
+              onPreview={handlePreview}
+              onDeactivate={handleDeactivate}
+              onDelete={handleDelete}
+            />
           </>
         )}
       </main>
