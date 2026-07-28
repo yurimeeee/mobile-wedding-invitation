@@ -73,7 +73,8 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
       })
       setSubmitted(true)
       toast.success('참석여부가 전달되었습니다')
-    } catch {
+    } catch (e) {
+      console.error('[rsvp] submit error:', e)
       toast.error('전달에 실패했습니다')
     } finally {
       setIsSubmitting(false)

@@ -1,6 +1,26 @@
 'use client';
 
-import { AlignCenter, AlignCenterHorizontal, AlignCenterVertical, AlignLeft, AlignRight, ArrowLeft, Bold, BringToFront, Copy, Italic, Lock, SendToBack, Trash2, Unlock } from 'lucide-react';
+import {
+  AlignCenter,
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
+  AlignHorizontalJustifyStart,
+  AlignLeft,
+  AlignRight,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignVerticalJustifyStart,
+  ArrowLeft,
+  Bold,
+  BringToFront,
+  Copy,
+  Italic,
+  Lock,
+  SendToBack,
+  Trash2,
+  Unlock,
+  type LucideIcon,
+} from 'lucide-react';
 import type { FreeElement, TextAlign, TextFontFamily } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -84,6 +104,63 @@ function NumberField({ label, value, onCommit, min, max, step = 1, disabled }: {
   );
 }
 
+function CompactField({ prefix, value, onCommit, min, max, step = 1, disabled, suffix }: {
+  prefix: string;
+  value: number;
+  onCommit: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  disabled?: boolean;
+  suffix?: string;
+}) {
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 select-none text-[11px] font-medium text-muted-foreground">
+        {prefix}
+      </span>
+      <Input
+        type="number"
+        className={cn('h-8 pl-6 text-sm', suffix && 'pr-6')}
+        value={Math.round(value * 10) / 10}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          if (!Number.isNaN(next)) onCommit(next);
+        }}
+      />
+      {suffix && (
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 select-none text-[11px] text-muted-foreground">
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function AlignIconButton({ icon: Icon, onClick, disabled, label }: {
+  icon: LucideIcon;
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className="flex h-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+    >
+      <Icon className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
 export function ElementProperties({ element, elements, onChange, onRemove, onDuplicate, onBack, canvasSize }: ElementPropertiesProps) {
   const bringToFront = () => {
     const max = elements.reduce((m, el) => Math.max(m, el.zIndex), 0);
@@ -107,6 +184,16 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
     const ph = (element.height / 100) * canvasSize.width;
     const yPercent = ((canvasSize.height / 2 - ph / 2) / canvasSize.height) * 100;
     onChange({ y: Math.max(0, yPercent) });
+  };
+
+  const alignLeft = () => onChange({ x: 0 });
+  const alignRight = () => onChange({ x: Math.max(0, 100 - element.width) });
+  const alignTop = () => onChange({ y: 0 });
+
+  const alignBottom = () => {
+    if (canvasSize.height === 0) return;
+    const ph = (element.height / 100) * canvasSize.width;
+    onChange({ y: Math.max(0, ((canvasSize.height - ph) / canvasSize.height) * 100) });
   };
 
   return (
@@ -219,49 +306,68 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
         <ColorField color={element.color ?? '#8B6F47'} onChange={(color) => onChange({ color })} />
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <NumberField label="X (%)" value={element.x} min={0} max={100} onCommit={(x) => onChange({ x })} disabled={element.locked} />
-        <NumberField label="Y (%)" value={element.y} min={0} onCommit={(y) => onChange({ y })} disabled={element.locked} />
-        <NumberField label="폭 (%)" value={element.width} min={2} max={100} onCommit={(width) => onChange({ width })} disabled={element.locked} />
-        <NumberField label="높이 (%)" value={element.height} min={2} max={100} onCommit={(height) => onChange({ height })} disabled={element.locked} />
+      <div className="space-y-3 rounded-lg border border-border p-3">
+        <p className="text-sm font-medium">위치</p>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">정렬</Label>
+          <div className="grid grid-cols-6 gap-1">
+            <AlignIconButton icon={AlignHorizontalJustifyStart} onClick={alignLeft} disabled={element.locked} label="왼쪽 정렬" />
+            <AlignIconButton icon={AlignHorizontalJustifyCenter} onClick={centerHorizontal} disabled={element.locked} label="가로 중앙 정렬" />
+            <AlignIconButton icon={AlignHorizontalJustifyEnd} onClick={alignRight} disabled={element.locked} label="오른쪽 정렬" />
+            <AlignIconButton icon={AlignVerticalJustifyStart} onClick={alignTop} disabled={element.locked} label="위쪽 정렬" />
+            <AlignIconButton
+              icon={AlignVerticalJustifyCenter}
+              onClick={centerVertical}
+              disabled={element.locked || canvasSize.height === 0}
+              label="세로 중앙 정렬"
+            />
+            <AlignIconButton
+              icon={AlignVerticalJustifyEnd}
+              onClick={alignBottom}
+              disabled={element.locked || canvasSize.height === 0}
+              label="아래쪽 정렬"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">위치 (%)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <CompactField prefix="X" value={element.x} min={0} max={100} onCommit={(x) => onChange({ x })} disabled={element.locked} />
+            <CompactField prefix="Y" value={element.y} min={0} onCommit={(y) => onChange({ y })} disabled={element.locked} />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">크기 (%)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <CompactField prefix="W" value={element.width} min={2} max={100} onCommit={(width) => onChange({ width })} disabled={element.locked} />
+            <CompactField prefix="H" value={element.height} min={2} max={100} onCommit={(height) => onChange({ height })} disabled={element.locked} />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">회전</Label>
+          <CompactField
+            prefix="∠"
+            value={element.rotation}
+            min={-180}
+            max={180}
+            suffix="°"
+            onCommit={(rotation) => onChange({ rotation })}
+            disabled={element.locked}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={centerHorizontal} disabled={element.locked} aria-label="가로 중앙 정렬" title="가로 중앙 정렬">
-          <AlignCenterHorizontal className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={centerVertical}
-          disabled={element.locked || canvasSize.height === 0}
-          aria-label="세로 중앙 정렬"
-          title="세로 중앙 정렬"
-        >
-          <AlignCenterVertical className="h-4 w-4" />
-        </Button>
         <Button variant="outline" size="sm" className="flex-1" onClick={bringToFront} aria-label="맨 앞으로" title="맨 앞으로">
           <BringToFront className="h-4 w-4" />
         </Button>
         <Button variant="outline" size="sm" className="flex-1" onClick={sendToBack} aria-label="맨 뒤로" title="맨 뒤로">
           <SendToBack className="h-4 w-4" />
         </Button>
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs text-muted-foreground">회전</Label>
-          <span className="text-xs text-muted-foreground">{Math.round(element.rotation)}°</span>
-        </div>
-        <Slider
-          value={[element.rotation]}
-          min={-180}
-          max={180}
-          step={1}
-          onValueChange={([rotation]) => onChange({ rotation })}
-          disabled={element.locked}
-        />
       </div>
 
       <div className="space-y-1">

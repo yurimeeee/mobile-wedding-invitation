@@ -28,14 +28,15 @@ export async function addGuestMessage(
   name: string,
   password: string,
   contents: string
-): Promise<void> {
+): Promise<GuestMessage> {
   const passwordHash = await hashPassword(password)
-  await addDoc(messagesCollection(invitationId), {
+  const docRef = await addDoc(messagesCollection(invitationId), {
     name,
     passwordHash,
     contents,
     createdAt: serverTimestamp(),
   })
+  return { id: docRef.id, name, contents, createdAt: new Date() }
 }
 
 export async function loadGuestMessages(invitationId: string): Promise<GuestMessage[]> {

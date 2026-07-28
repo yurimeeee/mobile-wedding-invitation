@@ -40,12 +40,12 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
 
     setIsSubmitting(true)
     try {
-      await addGuestMessage(invitationId, form.name.trim(), form.password.trim(), form.contents.trim())
+      const newMessage = await addGuestMessage(invitationId, form.name.trim(), form.password.trim(), form.contents.trim())
+      setMessages((prev) => [newMessage, ...prev])
       toast.success('메시지가 등록되었습니다')
       setForm({ name: '', password: '', contents: '' })
-      const updated = await loadGuestMessages(invitationId)
-      setMessages(updated)
-    } catch {
+    } catch (e) {
+      console.error('[guest-message] submit error:', e)
       toast.error('메시지 등록에 실패했습니다')
     } finally {
       setIsSubmitting(false)

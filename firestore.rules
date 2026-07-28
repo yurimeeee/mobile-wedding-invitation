@@ -84,7 +84,7 @@ service cloud.firestore {
         function isOwner() {
           return request.auth != null && request.auth.uid == invitation().uid;
         }
-        allow create: if invitation().status == 'published';
+        allow create: if invitation().status == 'published' || isOwner();
         allow read, delete: if isOwner();
       }
     }
