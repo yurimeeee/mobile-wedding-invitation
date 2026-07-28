@@ -192,7 +192,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-row items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="font-serif text-2xl sm:text-3xl font-semibold">나의 청첩장</h1>
             {/* <p className="text-muted-foreground mt-1">청첩장을 관리하고 새로 만드세요</p> */}
@@ -238,7 +238,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
               <h2 className="font-medium">최근 편집한 청첩장</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="overflow-hidden">
                   <div className="aspect-[3/4] bg-muted animate-pulse" />
@@ -312,7 +312,7 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
               <h2 className="font-medium">최근 편집</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {invitations.slice(0, 4).map((invitation, index) => (
                 <motion.div key={invitation.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
                   <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow">
