@@ -94,6 +94,11 @@ export default function UsersPage() {
   const [detailOpen, setDetailOpen] = useState(false)
 
   useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q")
+    if (q) setSearch(q)
+  }, [])
+
+  useEffect(() => {
     fetchAdminUsers()
       .then(({ users: fetched }) => setUsers(fetched.map(toManagedUser)))
       .catch((err: Error) => setLoadError(err.message))

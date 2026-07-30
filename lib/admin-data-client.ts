@@ -127,6 +127,23 @@ export function saveUserNote(uid: string, note: string) {
   )
 }
 
+export interface AdminAnalyticsResponse {
+  totalCreated: number
+  totalCreatedGrowthPct: number | null
+  mostActiveDay: string
+  mostActiveDayCount: number
+  publishRatePct: number
+  avgViewsPerInvitation: number
+  creationByDay: { day: string; count: number }[]
+  modeBreakdown: { mode: string; value: number; fill: string }[]
+  statusBreakdown: { status: string; value: number; fill: string }[]
+  topInvitations: { id: string; coupleNames: string; views: number; status: 'draft' | 'published' }[]
+}
+
+export function fetchAdminAnalytics() {
+  return authedFetch<AdminAnalyticsResponse>('/api/admin/analytics')
+}
+
 export interface AdminTemplateItem {
   id: string
   name: string

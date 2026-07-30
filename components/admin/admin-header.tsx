@@ -2,11 +2,11 @@
 
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
-import { Search, Bell, Moon, Sun } from "lucide-react"
+import { Bell, Moon, Sun } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { AdminSearch } from "@/components/admin/admin-search"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -59,10 +59,7 @@ export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="검색..." className="w-56 pl-9" />
-        </div>
+        <AdminSearch />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
