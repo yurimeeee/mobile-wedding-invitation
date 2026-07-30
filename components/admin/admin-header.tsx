@@ -1,6 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Bell, Moon, Sun } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -31,6 +32,7 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [notifications, setNotifications] = useState<AdminNotification[]>([])
@@ -41,6 +43,11 @@ export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
       .then(({ notifications }) => setNotifications(notifications))
       .catch(() => {})
   }, [])
+
+  const goToNotification = (n: AdminNotification) => {
+    const path = n.target.type === "invitation" ? "/admin/invitations" : "/admin/users"
+    router.push(`${path}?q=${encodeURIComponent(n.target.query)}`)
+  }
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background/80 backdrop-blur px-4">
@@ -78,7 +85,11 @@ export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
               <p className="px-2 py-4 text-center text-sm text-muted-foreground">새로운 알림이 없습니다.</p>
             ) : (
               notifications.map((n) => (
-                <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 py-2">
+                <DropdownMenuItem
+                  key={n.id}
+                  className="flex flex-col items-start gap-1 py-2"
+                  onClick={() => goToNotification(n)}
+                >
                   <span className="text-sm leading-snug">{n.text}</span>
                   <span className="text-xs text-muted-foreground">{formatRelativeTime(n.createdAt)}</span>
                 </DropdownMenuItem>

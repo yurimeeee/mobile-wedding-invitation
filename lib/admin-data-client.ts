@@ -131,6 +131,7 @@ export interface AdminNotification {
   id: string
   text: string
   createdAt: string
+  target: { type: 'invitation'; query: string } | { type: 'user'; query: string }
 }
 
 export function fetchAdminNotifications() {

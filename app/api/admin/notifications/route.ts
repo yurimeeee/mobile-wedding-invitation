@@ -3,10 +3,15 @@ import { Timestamp } from 'firebase-admin/firestore'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { requireAdminRequest } from '@/lib/admin-api-auth'
 
+type NotificationTarget =
+  | { type: 'invitation'; query: string }
+  | { type: 'user'; query: string }
+
 interface Notification {
   id: string
   text: string
   createdAt: string
+  target: NotificationTarget
 }
 
 async function listAllAuthUsers() {
@@ -34,8 +39,13 @@ export async function GET(request: NextRequest) {
       const data = d.data() as Record<string, unknown>
       const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : null
       if (!createdAt) return null
-      const title = typeof data.title === 'string' ? data.title.replace(/\s*웨딩$/, '') : '이름 미입력'
-      return { id: `inv-${d.id}`, text: `새로운 청첩장이 제작되었습니다: ${title}`, createdAt: createdAt.toISOString() }
+      const title = typeof data.title === 'string' ? data.title.replace(/\s*웨딩$/, '') : ''
+      return {
+        id: `inv-${d.id}`,
+        text: `새로운 청첩장이 제작되었습니다: ${title || '이름 미입력'}`,
+        createdAt: createdAt.toISOString(),
+        target: { type: 'invitation', query: title || d.id },
+      }
     })
     .filter((n): n is Notification => n !== null)
 
@@ -47,6 +57,7 @@ export async function GET(request: NextRequest) {
       id: `user-${u.uid}`,
       text: `신규 사용자가 가입했습니다: ${u.displayName || u.email || '알 수 없음'}`,
       createdAt: new Date(u.metadata.creationTime).toISOString(),
+      target: { type: 'user', query: u.email ?? '' },
     }))
 
   const notifications = [...invitationNotifications, ...userNotifications]

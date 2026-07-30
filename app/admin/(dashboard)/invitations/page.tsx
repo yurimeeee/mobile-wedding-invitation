@@ -91,6 +91,11 @@ export default function InvitationsPage() {
   const [selected, setSelected] = useState<string[]>([])
 
   useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q")
+    if (q) setSearch(q)
+  }, [])
+
+  useEffect(() => {
     fetchAdminInvitations()
       .then(({ invitations }) => setManagedInvitations(invitations.map(toManagedInvitation)))
       .catch((err: Error) => setError(err.message))
