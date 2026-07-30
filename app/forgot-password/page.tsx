@@ -2,7 +2,7 @@
 
 import { Mail, CheckCircle2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail, type ActionCodeSettings } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,13 @@ export default function ForgotPasswordPage() {
     setError('');
     setIsLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      // Firebase 기본 호스팅 페이지(firebaseapp.com) 대신 우리 사이트의
+      // /reset-password 화면으로 바로 이동하도록 지정한다.
+      const actionCodeSettings: ActionCodeSettings = {
+        url: `${window.location.origin}/reset-password`,
+        handleCodeInApp: true,
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setSent(true);
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? '';
