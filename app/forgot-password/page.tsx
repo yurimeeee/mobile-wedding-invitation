@@ -24,11 +24,12 @@ export default function ForgotPasswordPage() {
     setError('');
     setIsLoading(true);
     try {
-      // Firebase 기본 호스팅 페이지(firebaseapp.com) 대신 우리 사이트의
-      // /reset-password 화면으로 바로 이동하도록 지정한다.
+      // 비밀번호 재설정은 항상 Firebase 호스팅 페이지(.../__/auth/action)를 먼저 거치고,
+      // 이 url은 그 페이지에서 재설정을 마친 뒤 보여주는 "계속하기" 링크로만 쓰인다.
+      // 이 시점엔 oobCode가 이미 소모된 뒤라 /reset-password로 보내면 "만료된 링크"로
+      // 오인되므로 사이트 루트로 보낸다.
       const actionCodeSettings: ActionCodeSettings = {
-        url: `${window.location.origin}/reset-password`,
-        handleCodeInApp: true,
+        url: window.location.origin,
       };
       await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setSent(true);
