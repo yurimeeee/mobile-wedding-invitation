@@ -23,23 +23,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { fetchAdminNotifications, type AdminNotification } from "@/lib/admin-data-client"
+import { formatRelativeTime } from "@/lib/utils"
 
 interface AdminHeaderProps {
   breadcrumb: string
 }
 
-const notifications = [
-  { id: 1, text: "새로운 청첩장이 제작되었습니다: 김민수 & 이지영", time: "5분 전" },
-  { id: 2, text: "'파스텔 가든 N01' 템플릿 사용량이 300건을 돌파했습니다", time: "1시간 전" },
-  { id: 3, text: "신규 사용자 12명이 가입했습니다", time: "3시간 전" },
-]
-
 export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [notifications, setNotifications] = useState<AdminNotification[]>([])
 
   useEffect(() => {
     setMounted(true)
+    fetchAdminNotifications()
+      .then(({ notifications }) => setNotifications(notifications))
+      .catch(() => {})
   }, [])
 
   return (
@@ -65,19 +65,25 @@ export function AdminHeader({ breadcrumb }: AdminHeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="size-5" />
-              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
+              {notifications.length > 0 && (
+                <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
+              )}
               <span className="sr-only">알림</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel>알림</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {notifications.map((n) => (
-              <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 py-2">
-                <span className="text-sm leading-snug">{n.text}</span>
-                <span className="text-xs text-muted-foreground">{n.time}</span>
-              </DropdownMenuItem>
-            ))}
+            {notifications.length === 0 ? (
+              <p className="px-2 py-4 text-center text-sm text-muted-foreground">새로운 알림이 없습니다.</p>
+            ) : (
+              notifications.map((n) => (
+                <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 py-2">
+                  <span className="text-sm leading-snug">{n.text}</span>
+                  <span className="text-xs text-muted-foreground">{formatRelativeTime(n.createdAt)}</span>
+                </DropdownMenuItem>
+              ))
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

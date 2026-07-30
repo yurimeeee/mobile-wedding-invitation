@@ -127,6 +127,16 @@ export function saveUserNote(uid: string, note: string) {
   )
 }
 
+export interface AdminNotification {
+  id: string
+  text: string
+  createdAt: string
+}
+
+export function fetchAdminNotifications() {
+  return authedFetch<{ notifications: AdminNotification[] }>('/api/admin/notifications')
+}
+
 export interface AdminAnalyticsResponse {
   totalCreated: number
   totalCreatedGrowthPct: number | null

@@ -53,17 +53,7 @@ import {
   type AdminUser,
 } from "@/lib/admin-data-client"
 import { toast } from "sonner"
-
-function formatRelative(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime()
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  if (diffHours < 1) return "방금 전"
-  if (diffHours < 24) return `${diffHours}시간 전`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays === 1) return "어제"
-  if (diffDays < 7) return `${diffDays}일 전`
-  return iso.slice(0, 10)
-}
+import { formatRelativeTime } from "@/lib/utils"
 
 function toManagedUser(u: AdminUser): ManagedUser {
   const lastActivityIso = u.lastSignInAt ?? u.lastInvitationAt
@@ -75,7 +65,7 @@ function toManagedUser(u: AdminUser): ManagedUser {
     totalCreated: u.totalCreated,
     currentlyPublic: u.currentlyPublic,
     lastActivity: lastActivityIso ? lastActivityIso.slice(0, 10) : "-",
-    lastActivityLabel: lastActivityIso ? formatRelative(lastActivityIso) : "활동 없음",
+    lastActivityLabel: lastActivityIso ? formatRelativeTime(lastActivityIso) : "활동 없음",
     status: u.disabled ? "차단" : "활성",
     adminNote: u.note,
     noteHistory: u.noteHistory,
