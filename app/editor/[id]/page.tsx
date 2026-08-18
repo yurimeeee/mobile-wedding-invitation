@@ -54,6 +54,15 @@ import { toast } from 'sonner';
 import { useEditorState } from '@/hooks/use-editor-state';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+function SaveStatus({ lastSaved }: { lastSaved: Date | null }) {
+  return (
+    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+      {lastSaved && <Check className="h-4 w-4 text-green-500" />}
+      <span>{lastSaved ? `${lastSaved.toLocaleTimeString()} 저장됨` : ''}</span>
+    </div>
+  );
+}
+
 export default function EditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -258,13 +267,6 @@ export default function EditorPage() {
     }
   };
 
-  const SaveStatus = () => (
-    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-      {lastSaved && <Check className="h-4 w-4 text-green-500" />}
-      <span>{lastSaved ? `${lastSaved.toLocaleTimeString()} 저장됨` : ''}</span>
-    </div>
-  );
-
   if (isCreating || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -294,7 +296,7 @@ export default function EditorPage() {
               </Button>
             </div>
             <div className="flex-1 min-w-0 flex justify-center">
-              <SaveStatus />
+              <SaveStatus lastSaved={lastSaved} />
             </div>
             <Button size="sm" onClick={handlePublish} disabled={isActionLoading}>
               {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : '발행'}
@@ -410,7 +412,7 @@ export default function EditorPage() {
 
             <div className="h-4 w-px bg-border" />
 
-            <SaveStatus />
+            <SaveStatus lastSaved={lastSaved} />
 
             <div className="h-4 w-px bg-border" />
 

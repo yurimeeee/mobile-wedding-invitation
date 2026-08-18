@@ -4,6 +4,7 @@ import { type EditorState, type GalleryImage, musicTracks, defaultCustomLayout }
 import { resolvePreviewStyle } from '@/lib/preview-style'
 import { fullViewSectionRegistry } from '@/components/invitation/full-view/section-registry'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { Music, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,13 +74,15 @@ function GalleryLightbox({ images, initialIndex, onClose }: {
 
       {/* Image */}
       <div
-        className="flex-1 flex items-center justify-center px-4 min-h-0"
+        className="relative flex-1 flex items-center justify-center px-4 min-h-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <img
+        <Image
           src={images[current].url}
           alt=""
-          className="max-w-full max-h-full object-contain select-none"
+          fill
+          sizes="100vw"
+          className="object-contain select-none"
           draggable={false}
         />
       </div>

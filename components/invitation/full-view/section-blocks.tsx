@@ -40,9 +40,9 @@ function HeroClassicElegant({ info, mainImage }: { info: EditorState['weddingInf
     <div className="flex flex-col items-center pt-12 pb-6 px-8">
       <Image src="/assets/templates/type_1/save_the_date.svg" alt="save the date" width={106} height={40} className="mb-5" />
       <Image src="/assets/templates/type_1/wedding_day.svg" alt="wedding day" width={230} height={40} className="mb-10" />
-      <div className="w-[250px] h-[362px] rounded-full overflow-hidden mb-10" style={{ background: 'rgba(0,0,0,0.06)' }}>
+      <div className="relative w-[250px] h-[362px] rounded-full overflow-hidden mb-10" style={{ background: 'rgba(0,0,0,0.06)' }}>
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <Image src={mainImage.url} alt="메인" fill sizes="250px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-12 h-12 opacity-10" /></div>}
       </div>
       <CoupleNames info={info} color="#261C1D" />
@@ -56,9 +56,9 @@ function HeroModernMinimal({ info, mainImage }: { info: EditorState['weddingInfo
       <div className="relative w-full">
         <Image src="/assets/templates/type_2/wedding_day.svg" alt="wedding day" width={230} height={40}
           className="absolute top-5 left-1/2 -translate-x-1/2 z-10" />
-        <div className="w-full aspect-[3/4] overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+        <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
           {mainImage
-            ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+            ? <Image src={mainImage.url} alt="메인" fill sizes="393px" className="object-cover" />
             : <div className="w-full h-full flex items-center justify-center"><Heart className="w-12 h-12 opacity-10" /></div>}
         </div>
       </div>
@@ -79,7 +79,7 @@ function HeroKoreanTraditional({ info, mainImage }: { info: EditorState['wedding
         width: 320, height: 428, borderTopLeftRadius: 180, borderTopRightRadius: 180, background: 'rgba(0,0,0,0.06)',
       }}>
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <Image src={mainImage.url} alt="메인" fill sizes="320px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-12 h-12 opacity-10" /></div>}
         {dateOverlay && (
           <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white font-bold opacity-80"
@@ -104,13 +104,13 @@ function HeroFloralRomantic({ info, mainImage }: { info: EditorState['weddingInf
           className="absolute -right-10 bottom-10 pointer-events-none select-none" style={{ zIndex: 1 }} />
         <Image src="/assets/templates/type_4/flower_3.png" alt="" width={150} height={150}
           className="absolute -left-10 bottom-20 pointer-events-none select-none" style={{ zIndex: 1 }} />
-        <div className="relative overflow-hidden" style={{
+        <div className="relative overflow-hidden aspect-[3/4]" style={{
           width: 218, border: '10px solid white', zIndex: 2,
           boxShadow: '0 10px 10px rgba(99,99,99,0), 0 6px 6px rgba(88,88,88,0.082)',
         }}>
           {mainImage
-            ? <img src={mainImage.url} alt="메인" className="w-full h-auto" />
-            : <div className="w-full aspect-[3/4] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            ? <Image src={mainImage.url} alt="메인" fill sizes="218px" className="object-cover" />
+            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.06)' }}>
                 <Heart className="w-10 h-10 opacity-10" />
               </div>}
         </div>
@@ -125,9 +125,9 @@ function HeroDarkLuxury({ info, mainImage }: { info: EditorState['weddingInfo'];
     <div className="flex flex-col items-center pt-12 pb-6 px-8">
       <p className="text-xs tracking-[0.4em] mb-4" style={{ color: '#d4af37' }}>WEDDING</p>
       <div className="w-10 h-px mb-8" style={{ background: '#d4af37' }} />
-      <div className="w-[250px] h-[362px] overflow-hidden mb-10" style={{ border: '1px solid #d4af37', background: 'rgba(255,255,255,0.04)' }}>
+      <div className="relative w-[250px] h-[362px] overflow-hidden mb-10" style={{ border: '1px solid #d4af37', background: 'rgba(255,255,255,0.04)' }}>
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <Image src={mainImage.url} alt="메인" fill sizes="250px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-12 h-12" style={{ color: '#d4af37', opacity: 0.3 }} /></div>}
       </div>
       <CoupleNames info={info} color="#F5F5F0" accentColor="#d4af37" />
@@ -154,7 +154,7 @@ function HeroVintageForest({ info, mainImage }: { info: EditorState['weddingInfo
   return (
     <div className="relative w-full h-[460px] overflow-hidden">
       {mainImage
-        ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+        ? <Image src={mainImage.url} alt="메인" fill sizes="393px" className="object-cover" />
         : <div className="w-full h-full flex items-center justify-center" style={{ background: '#3D3830' }}><Heart className="w-12 h-12 text-white/20" /></div>}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15) 55%, transparent)' }} />
       <div className="absolute inset-x-0 bottom-0 pb-10 px-8 text-center">
@@ -294,13 +294,15 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
             {state.gallery.map((img, i) => (
               <div
                 key={img.id}
-                className={cn('aspect-square overflow-hidden', !zoomPrevention && 'cursor-pointer')}
+                className={cn('relative aspect-square overflow-hidden', !zoomPrevention && 'cursor-pointer')}
                 onClick={() => !zoomPrevention && onOpenLightbox(i)}
               >
-                <img
+                <Image
                   src={img.url}
                   alt=""
-                  className={cn('w-full h-full object-cover transition-transform duration-300', !zoomPrevention && 'hover:scale-105')}
+                  fill
+                  sizes="131px"
+                  className={cn('object-cover transition-transform duration-300', !zoomPrevention && 'hover:scale-105')}
                 />
               </div>
             ))}
