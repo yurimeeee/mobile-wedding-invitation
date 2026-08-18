@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Noto_Serif_KR } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
+import { AuthProvider } from '@/components/auth-provider'
 import './globals.css'
 
 const geist = Geist({ 
@@ -34,9 +35,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${geist.variable} ${geistMono.variable} ${notoSerifKR.variable} bg-background`}>
       <body className="font-sans antialiased min-h-screen">
-        {children}
-        <Toaster />
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <AuthProvider>
+          {children}
+          <Toaster />
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </AuthProvider>
       </body>
     </html>
   )

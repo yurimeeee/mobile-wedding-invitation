@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { ArrowRight, Check, Heart, MapPin, Music, Palette, Share2, Sparkles, Star, Lock, SearchX, BookOpen, Armchair } from 'lucide-react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -10,7 +8,7 @@ import { Logo } from '@/components/logo';
 import { motion } from 'framer-motion';
 import { TemplateThumbnail } from '@/components/editor/template-thumbnail';
 import { type TemplateType, templates } from '@/lib/types';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/hooks/use-auth';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -29,18 +27,11 @@ const stagger = {
 export default function LandingPage() {
   // 로그인된 상태로 마케팅 홈에 들어와도 "로그인/시작하기"가 다시 뜨면 로그아웃된 것처럼
   // 보인다 — 실제로는 세션이 살아있으니, 로그인 여부에 따라 CTA를 대시보드로 바꿔준다.
-  // onAuthStateChanged는 비동기라 첫 응답 전까지는 user가 무조건 null이라, authChecked로
-  // "아직 확인 안 됨"과 "확인했는데 로그아웃 상태"를 구분해 로그인 버튼이 잠깐 스쳐 보이는 걸 막는다.
-  const [user, setUser] = useState<User | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setAuthChecked(true);
-    });
-    return () => unsubscribe();
-  }, []);
-  const primaryHref = user ? '/dashboard' : '/signup';
+  const { user, loading: authLoading, profile } = useAuth();
+  // 세션 복원 전에도 캐시된 마지막 로그인 정보가 있으면 로그인 상태로 간주해 스켈레톤 없이 바로 보여준다.
+  const isLoggedIn = user ? true : authLoading ? profile !== null : false;
+  const authChecked = !authLoading || profile !== null;
+  const primaryHref = isLoggedIn ? '/dashboard' : '/signup';
 
   return (
     <div className="min-h-screen">
@@ -65,7 +56,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               {!authChecked ? (
                 <div className="h-9 w-[88px] rounded-md bg-muted animate-pulse" />
-              ) : user ? (
+              ) : isLoggedIn ? (
                 <Link href="/dashboard">
                   <Button size="sm">대시보드로 이동</Button>
                 </Link>
@@ -108,7 +99,7 @@ export default function LandingPage() {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href={primaryHref}>
               <Button size="lg" className="min-w-[180px]">
-                {user ? '대시보드로 이동' : '시작하기'}
+                {isLoggedIn ? '대시보드로 이동' : '시작하기'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -372,7 +363,7 @@ export default function LandingPage() {
 
             <Link href={primaryHref} className="block mb-6">
               <Button size="lg" className="w-full">
-                {user ? '대시보드로 이동' : '무료로 시작하기'}
+                {isLoggedIn ? '대시보드로 이동' : '무료로 시작하기'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -408,7 +399,7 @@ export default function LandingPage() {
           <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">우리만의 모바일 청첩장으로 특별한 날을 공유한 수천 커플과 함께하세요.</p>
           <Link href={primaryHref}>
             <Button size="lg" variant="secondary" className="min-w-[180px]">
-              {user ? '내 청첩장 관리하기' : '청첩장 만들러가기'}
+              {isLoggedIn ? '내 청첩장 관리하기' : '청첩장 만들러가기'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

@@ -26,7 +26,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 import { BackgroundPicker } from '@/components/editor/custom/background-picker';
@@ -48,9 +48,9 @@ import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
 import { defaultCustomLayout } from '@/lib/types';
-import { onAuthStateChanged } from 'firebase/auth';
 import { templateConfig } from '@/lib/preview-style';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/use-auth';
 import { useEditorState } from '@/hooks/use-editor-state';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -70,26 +70,25 @@ export default function EditorPage() {
   const rawId = params.id as string;
   const startCustom = searchParams.get('start') === 'custom';
 
+  const { user, loading: authLoading } = useAuth();
   const [invitationId, setInvitationId] = useState<string>(rawId === 'new' ? '' : rawId);
   const [isCreating, setIsCreating] = useState(rawId === 'new');
+  const hasCreatedRef = useRef(false);
 
-  // Create new invitation doc and redirect to its ID
+  // Create new invitation doc and redirect to its ID (딱 한 번만 생성되도록 ref로 막는다)
   useEffect(() => {
-    if (rawId !== 'new') return;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-      createNewInvitation(user.uid).then((newId) => {
-        setInvitationId(newId);
-        setIsCreating(false);
-        router.replace(`/editor/${newId}`);
-      });
-      unsubscribe();
+    if (rawId !== 'new' || authLoading || hasCreatedRef.current) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    hasCreatedRef.current = true;
+    createNewInvitation(user.uid).then((newId) => {
+      setInvitationId(newId);
+      setIsCreating(false);
+      router.replace(`/editor/${newId}`);
     });
-    return () => unsubscribe();
-  }, [rawId, router]);
+  }, [rawId, authLoading, user, router]);
 
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview' | 'templates'>('edit');

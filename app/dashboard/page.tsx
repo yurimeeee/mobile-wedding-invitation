@@ -25,8 +25,9 @@ import {
   ClipboardCheck,
   Eye,
 } from 'lucide-react';
-import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useAuth } from '@/hooks/use-auth';
 import { loadUserInvitations, deleteInvitation, duplicateInvitation, type DashboardInvitation } from '@/lib/invitation-service';
 import { type EditorMode } from '@/lib/types';
 import { toast } from 'sonner';
@@ -52,29 +53,26 @@ const templateColors: Record<string, string> = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, loading: authLoading, profile } = useAuth();
   const [invitations, setInvitations] = useState<DashboardInvitation[]>([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
   const [qrInvitation, setQrInvitation] = useState<DashboardInvitation | null>(null);
   const [messagesInvitation, setMessagesInvitation] = useState<DashboardInvitation | null>(null);
   const [rsvpInvitation, setRsvpInvitation] = useState<DashboardInvitation | null>(null);
   const [newDialogOpen, setNewDialogOpen] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/login');
-      } else {
-        setUser(currentUser);
-        setIsLoadingInvitations(true);
-        loadUserInvitations(currentUser.uid)
-          .then((data) => setInvitations(data))
-          .catch(() => toast.error('청첩장을 불러오는 데 실패했습니다'))
-          .finally(() => setIsLoadingInvitations(false));
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setIsLoadingInvitations(true);
+    loadUserInvitations(user.uid)
+      .then((data) => setInvitations(data))
+      .catch(() => toast.error('청첩장을 불러오는 데 실패했습니다'))
+      .finally(() => setIsLoadingInvitations(false));
+  }, [authLoading, user, router]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -152,24 +150,27 @@ export default function DashboardPage() {
             </Link>
 
             <div className="flex items-center gap-4">
+              {authLoading && !profile ? (
+                <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
+              ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.photoURL ?? undefined} />
-                      <AvatarFallback className="bg-accent/10 text-accent-foreground">{getInitials(user?.displayName ?? null)}</AvatarFallback>
+                      <AvatarImage src={profile?.photoURL ?? undefined} />
+                      <AvatarFallback className="bg-accent/10 text-accent-foreground">{getInitials(profile?.displayName ?? null)}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center gap-2 p-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.photoURL ?? undefined} />
-                      <AvatarFallback className="bg-accent/10 text-accent-foreground text-xs">{getInitials(user?.displayName ?? null)}</AvatarFallback>
+                      <AvatarImage src={profile?.photoURL ?? undefined} />
+                      <AvatarFallback className="bg-accent/10 text-accent-foreground text-xs">{getInitials(profile?.displayName ?? null)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
-                      <p className="text-sm font-medium truncate">{user?.displayName ?? '사용자'}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      <p className="text-sm font-medium truncate">{profile?.displayName ?? '사용자'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
@@ -184,6 +185,7 @@ export default function DashboardPage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              )}
             </div>
           </div>
         </div>
