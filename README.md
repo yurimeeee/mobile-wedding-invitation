@@ -73,6 +73,8 @@ FIREBASE_ADMIN_CLIENT_EMAIL=
 FIREBASE_ADMIN_PRIVATE_KEY=
 ```
 
+`NEXT_PUBLIC_KAKAO_MAP_API_KEY`는 카카오맵뿐 아니라 카카오 공유·카카오 로그인의 JavaScript 키로도 함께 쓰입니다. 카카오 로그인을 쓰려면 [Kakao Developers](https://developers.kakao.com) 콘솔에서 해당 앱의 **카카오 로그인**을 활성화하고, **플랫폼 > Web**에 서비스 도메인을 등록해야 합니다.
+
 ### 3. 개발 서버 실행
 
 ```bash

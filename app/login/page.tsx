@@ -2,7 +2,8 @@
 
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { auth, googleProvider } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithCustomToken, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { kakaoLogin, loadKakaoSdk } from '@/lib/kakao-sdk';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isKakaoLoading, setIsKakaoLoading] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,6 +67,29 @@ export default function LoginPage() {
       }
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleKakaoLogin = async () => {
+    setError('');
+    setIsKakaoLoading(true);
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY ?? '';
+      await loadKakaoSdk(apiKey);
+      const { access_token } = await kakaoLogin();
+      const res = await fetch('/api/auth/kakao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: access_token }),
+      });
+      if (!res.ok) throw new Error('kakao-auth-failed');
+      const { token } = await res.json();
+      await signInWithCustomToken(auth, token);
+      router.push('/dashboard');
+    } catch {
+      setError('카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsKakaoLoading(false);
     }
   };
 
@@ -136,7 +161,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading || isKakaoLoading}>
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path
@@ -151,11 +176,16 @@ export default function LoginPage() {
                 </svg>
                 {isGoogleLoading ? '...' : 'Google'}
               </Button>
-              <Button variant="outline" className="w-full" disabled>
+              <Button
+                type="button"
+                className="w-full bg-[#FEE500] text-[#191919] border-none hover:bg-[#FDD800]"
+                onClick={handleKakaoLogin}
+                disabled={isLoading || isGoogleLoading || isKakaoLoading}
+              >
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
+                  <path d="M12 3C6.48 3 2 6.58 2 11c0 2.89 1.94 5.43 4.85 6.85-.16.6-.6 2.22-.69 2.56-.11.42.15.42.32.3.13-.09 2.1-1.43 2.96-2.01.5.07 1.02.11 1.56.11 5.52 0 10-3.58 10-8 0-4.42-4.48-8-10-8z" />
                 </svg>
-                Kakao
+                {isKakaoLoading ? '...' : 'Kakao'}
               </Button>
             </div>
           </div>

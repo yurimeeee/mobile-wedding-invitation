@@ -5,32 +5,7 @@ import { Link, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { type ShareSettings, type WeddingInfo } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Kakao: any
-  }
-}
-
-let kakaoShareInitialized = false
-
-function loadKakaoShareSdk(apiKey: string) {
-  if (kakaoShareInitialized) return
-  const existing = document.querySelector('script[src*="developers.kakao.com/sdk"]')
-  if (existing) return
-
-  const script = document.createElement('script')
-  script.src = 'https://developers.kakao.com/sdk/js/kakao.js'
-  script.async = true
-  script.onload = () => {
-    if (window.Kakao && !window.Kakao.isInitialized()) {
-      window.Kakao.init(apiKey)
-      kakaoShareInitialized = true
-    }
-  }
-  document.head.appendChild(script)
-}
+import { loadKakaoSdk } from '@/lib/kakao-sdk'
 
 interface ShareSectionProps {
   shareSettings: ShareSettings
@@ -44,7 +19,7 @@ export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl
   const url = invitationUrl ?? (typeof window !== 'undefined' ? window.location.href : '')
 
   useEffect(() => {
-    if (apiKey) loadKakaoShareSdk(apiKey)
+    if (apiKey) loadKakaoSdk(apiKey).catch(() => {})
   }, [apiKey])
 
   const handleKakaoShare = () => {
