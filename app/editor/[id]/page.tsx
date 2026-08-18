@@ -7,6 +7,7 @@ import {
   Copy,
   Eye,
   FileText,
+  History,
   Image,
   Link as LinkIcon,
   ListOrdered,
@@ -24,7 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -43,6 +44,7 @@ import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
 import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
 import { TemplateSelector } from '@/components/editor/template-selector';
+import { VersionHistoryDialog } from '@/components/editor/version-history-dialog';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
@@ -98,6 +100,7 @@ export default function EditorPage() {
   const [introReplayKey, setIntroReplayKey] = useState(0);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
 
   const {
@@ -126,6 +129,7 @@ export default function EditorPage() {
     removeFreeElement,
     undo,
     redo,
+    restoreVersion,
     canUndo,
     canRedo,
   } = useEditorState(invitationId);
@@ -362,7 +366,7 @@ export default function EditorPage() {
                   invitationId={invitationId}
                   onSlugChange={updateSlug}
                 />
-                <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} />
+                <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} weddingDate={state.weddingInfo.weddingDate} />
               </motion.div>
             )}
             {mobileTab === 'preview' && (
@@ -430,10 +434,9 @@ export default function EditorPage() {
                   <Eye className="mr-2 h-4 w-4" />
                   전체 화면 미리보기
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Share2 className="mr-2 h-4 w-4" />
-                  임시저장 공유
+                <DropdownMenuItem onClick={() => setVersionsOpen(true)}>
+                  <History className="mr-2 h-4 w-4" />
+                  버전 기록
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -512,7 +515,7 @@ export default function EditorPage() {
                   />
                 </TabsContent>
                 <TabsContent value="privacy" className="mt-0">
-                  <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} />
+                  <PrivacySettingsForm privacySettings={state.privacySettings} onChange={updatePrivacySettings} weddingDate={state.weddingInfo.weddingDate} />
                 </TabsContent>
               </Tabs>
             </div>
@@ -569,6 +572,13 @@ export default function EditorPage() {
         onSlugChange={updateSlug}
         onDeleted={() => router.push('/dashboard')}
         onDuplicated={(newId) => router.push(`/editor/${newId}`)}
+      />
+
+      <VersionHistoryDialog
+        open={versionsOpen}
+        onOpenChange={setVersionsOpen}
+        invitationId={invitationId}
+        onRestore={restoreVersion}
       />
 
       {/* Fullscreen preview */}

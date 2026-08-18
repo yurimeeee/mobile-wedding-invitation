@@ -236,7 +236,11 @@ export interface PrivacySettings {
   lockEnabled: boolean
   lockPassword: string
   zoomPrevention: boolean
+  autoExpireEnabled: boolean
 }
+
+// 결혼식 날짜로부터 청첩장을 자동 비공개 처리하기까지의 유예 기간
+export const AUTO_EXPIRE_DAYS = 90
 
 export interface RSVPSettings {
   enabled: boolean
@@ -324,6 +328,7 @@ export const defaultPrivacySettings: PrivacySettings = {
   lockEnabled: false,
   lockPassword: '',
   zoomPrevention: false,
+  autoExpireEnabled: false,
 }
 
 export const defaultRSVPSettings: RSVPSettings = {

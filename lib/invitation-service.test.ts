@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { deleteInvitation, loadInvitation, loadUserInvitations } from './invitation-service'
+import { setDoc } from 'firebase/firestore'
+import { deleteInvitation, loadInvitation, loadUserInvitations, saveInvitation } from './invitation-service'
+import {
+  AUTO_EXPIRE_DAYS,
+  defaultCalendarSettings, defaultCustomLayout, defaultMusicSettings,
+  defaultPrivacySettings, defaultShareSettings, defaultWeddingInfo,
+  type EditorState,
+} from './types'
 
 vi.mock('@/lib/firebase', () => ({ db: {}, auth: {}, storage: {} }))
 vi.mock('firebase/storage', () => ({
@@ -14,6 +21,9 @@ const { store, FakeTimestamp } = vi.hoisted(() => {
     toDate() {
       return new Date(this.millis)
     }
+    static fromDate(date: Date) {
+      return new FakeTimestamp(date.getTime())
+    }
   }
   return { store: new Map<string, Record<string, unknown>>(), FakeTimestamp }
 })
@@ -24,8 +34,11 @@ vi.mock('firebase/firestore', () => ({
   doc: vi.fn((_db, ..._pathAndId: string[]) => ({ id: _pathAndId[_pathAndId.length - 1] })),
   query: vi.fn((c) => c),
   where: vi.fn(),
+  orderBy: vi.fn(),
+  limit: vi.fn(),
   serverTimestamp: vi.fn(() => new FakeTimestamp(Date.now())),
   setDoc: vi.fn(),
+  addDoc: vi.fn(async () => ({ id: 'version-1' })),
   getDoc: vi.fn(async (ref: { id: string }) => {
     const data = store.get(ref.id)
     return { exists: () => data !== undefined, data: () => data }
@@ -40,7 +53,24 @@ vi.mock('firebase/firestore', () => ({
 
 beforeEach(() => {
   store.clear()
+  vi.mocked(setDoc).mockClear()
 })
+
+function makeState(overrides: { weddingDate?: string; autoExpireEnabled?: boolean } = {}): EditorState {
+  return {
+    template: 'classic-elegant',
+    weddingInfo: { ...defaultWeddingInfo, weddingDate: overrides.weddingDate ?? '' },
+    musicSettings: defaultMusicSettings,
+    gallery: [],
+    calendarSettings: defaultCalendarSettings,
+    shareSettings: defaultShareSettings,
+    privacySettings: { ...defaultPrivacySettings, autoExpireEnabled: overrides.autoExpireEnabled ?? false },
+    slug: '',
+    mode: 'template',
+    customLayout: defaultCustomLayout,
+    introStyle: 'fade',
+  }
+}
 
 describe('loadInvitation', () => {
   it('returns null when the invitation does not exist', async () => {
@@ -82,6 +112,37 @@ describe('loadUserInvitations', () => {
     expect(list[1].thumbnail).toBe('https://example.com/a.jpg')
     expect(list[0].title).toBe('제목 없음')
     expect(list[0].status).toBe('draft')
+  })
+})
+
+describe('saveInvitation', () => {
+  it('sets expiresAt to weddingDate + AUTO_EXPIRE_DAYS when auto-expire is enabled', async () => {
+    const state = makeState({ weddingDate: '2026-01-01', autoExpireEnabled: true })
+    await saveInvitation('u1', 'inv-1', state, 'published')
+
+    const expected = new Date('2026-01-01')
+    expected.setDate(expected.getDate() + AUTO_EXPIRE_DAYS)
+
+    const [, payload] = vi.mocked(setDoc).mock.calls[0]
+    const expiresAt = (payload as { expiresAt: InstanceType<typeof FakeTimestamp> | null }).expiresAt
+    expect(expiresAt).toBeInstanceOf(FakeTimestamp)
+    expect(expiresAt!.toDate().getTime()).toBe(expected.getTime())
+  })
+
+  it('leaves expiresAt null when auto-expire is disabled', async () => {
+    const state = makeState({ weddingDate: '2026-01-01', autoExpireEnabled: false })
+    await saveInvitation('u1', 'inv-1', state, 'draft')
+
+    const [, payload] = vi.mocked(setDoc).mock.calls[0]
+    expect((payload as { expiresAt: unknown }).expiresAt).toBeNull()
+  })
+
+  it('leaves expiresAt null when enabled but no wedding date is set', async () => {
+    const state = makeState({ autoExpireEnabled: true })
+    await saveInvitation('u1', 'inv-1', state, 'draft')
+
+    const [, payload] = vi.mocked(setDoc).mock.calls[0]
+    expect((payload as { expiresAt: unknown }).expiresAt).toBeNull()
   })
 })
 

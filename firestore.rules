@@ -8,6 +8,12 @@ service cloud.firestore {
     function bootstrapUsed() {
       return exists(/databases/$(database)/documents/adminMeta/bootstrap);
     }
+    // 발행 상태이면서, 자동 만료(expiresAt)가 설정되지 않았거나 아직 지나지 않은 청첩장만
+    // 공개로 취급한다. 소유자 본인의 read/write에는 적용하지 않는다(꺼서 재공개할 수 있어야 함).
+    function isPublished(inv) {
+      return inv.status == 'published' &&
+        (inv.get('expiresAt', null) == null || request.time < inv.expiresAt);
+    }
 
     // 관리자 계정 (문서 ID = uid)
     match /adminUsers/{uid} {
@@ -53,9 +59,9 @@ service cloud.firestore {
     }
 
     match /invitations/{invitationId} {
-      // 발행된 청첩장은 누구나 읽기 가능 (공개 링크 공유용)
-      allow read: if resource.data.status == 'published';
-      // 본인의 청첩장은 임시저장 포함 읽기 가능
+      // 발행된 청첩장은 누구나 읽기 가능 (공개 링크 공유용, 자동 만료 전까지만)
+      allow read: if isPublished(resource.data);
+      // 본인의 청첩장은 임시저장 포함, 만료 여부와 무관하게 항상 읽기 가능
       allow read: if request.auth != null && request.auth.uid == resource.data.uid;
       // 본인만 쓰기 가능
       allow write: if request.auth != null && request.auth.uid == resource.data.uid;
@@ -80,9 +86,9 @@ service cloud.firestore {
             d.contents is string && d.contents.size() > 0 && d.contents.size() <= 500 &&
             d.createdAt == request.time;
         }
-        allow read: if invitation().status == 'published' || isOwner();
-        allow create: if (invitation().status == 'published' || isOwner()) && isValidMessage();
-        allow delete: if invitation().status == 'published' || isOwner();
+        allow read: if isPublished(invitation()) || isOwner();
+        allow create: if (isPublished(invitation()) || isOwner()) && isValidMessage();
+        allow delete: if isPublished(invitation()) || isOwner();
       }
 
       // 참석여부 응답: 발행된 청첩장에는 하객이 로그인 없이 남길 수 있지만,
@@ -107,8 +113,19 @@ service cloud.firestore {
             d.phone is string && d.phone.size() <= 30 &&
             d.createdAt == request.time;
         }
-        allow create: if (invitation().status == 'published' || isOwner()) && isValidRSVP();
+        allow create: if (isPublished(invitation()) || isOwner()) && isValidRSVP();
         allow read, delete: if isOwner();
+      }
+
+      // 저장/발행 시점마다 남는 버전 스냅샷 — 소유자만 접근 가능
+      match /versions/{versionId} {
+        function invitation() {
+          return get(/databases/$(database)/documents/invitations/$(invitationId)).data;
+        }
+        function isOwner() {
+          return request.auth != null && request.auth.uid == invitation().uid;
+        }
+        allow read, write: if isOwner();
       }
     }
   }

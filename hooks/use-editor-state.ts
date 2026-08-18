@@ -237,6 +237,13 @@ export function useEditorState(invitationId: string) {
     })
   }
 
+  // Restoring a version snapshot replaces the whole state and resets undo history —
+  // the restored layout isn't meaningfully continuous with whatever was being edited before.
+  const restoreVersion = (restored: EditorState) => {
+    setState(restored)
+    setHistory({ past: [], future: [] })
+  }
+
   // --- Manual save / publish ---
   const saveDraft = async () => {
     const user = auth.currentUser
@@ -297,6 +304,7 @@ export function useEditorState(invitationId: string) {
     removeFreeElement,
     undo,
     redo,
+    restoreVersion,
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     templates,

@@ -5,7 +5,16 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { auth, db, storage } from './firebase'
 import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
-import { defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout } from './types'
+import { AUTO_EXPIRE_DAYS, defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout } from './types'
+import { saveVersionSnapshot } from './version-service'
+
+function computeExpiresAt(state: EditorState): Timestamp | null {
+  if (!state.privacySettings.autoExpireEnabled || !state.weddingInfo.weddingDate) return null
+  const weddingDate = new Date(state.weddingInfo.weddingDate)
+  if (Number.isNaN(weddingDate.getTime())) return null
+  weddingDate.setDate(weddingDate.getDate() + AUTO_EXPIRE_DAYS)
+  return Timestamp.fromDate(weddingDate)
+}
 
 async function uploadNewImages(
   uid: string,
@@ -78,6 +87,7 @@ export async function saveInvitation(
 
   const docRef = doc(db, 'invitations', invitationId)
   const snap = await getDoc(docRef)
+  const savedState = { ...state, gallery, musicSettings, shareSettings }
 
   await setDoc(
     docRef,
@@ -96,11 +106,14 @@ export async function saveInvitation(
       introStyle: state.introStyle ?? 'fade',
       ...(state.customLayout && { customLayout: state.customLayout }),
       status,
+      expiresAt: computeExpiresAt(state),
       updatedAt: serverTimestamp(),
       ...(!snap.exists() && { createdAt: serverTimestamp() }),
     },
     { merge: true }
   )
+
+  await saveVersionSnapshot(invitationId, savedState, status).catch(() => {})
 
   return { gallery, musicSettings, shareSettings }
 }
@@ -116,7 +129,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
-    privacySettings: data.privacySettings ?? defaultPrivacySettings,
+    privacySettings: { ...defaultPrivacySettings, ...(data.privacySettings ?? {}) },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout ?? defaultCustomLayout,
@@ -155,6 +168,7 @@ export interface DashboardInvitation {
   slug: string
   thumbnail: string
   viewCount: number
+  expiresAt: Date | null
 }
 
 export async function loadUserInvitations(uid: string): Promise<DashboardInvitation[]> {
@@ -183,6 +197,7 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
         slug: d.slug ?? '',
         thumbnail: d.gallery?.[0]?.url ?? '',
         viewCount: d.viewCount ?? 0,
+        expiresAt: d.expiresAt instanceof Timestamp ? d.expiresAt.toDate() : null,
       }
     })
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
@@ -190,16 +205,6 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
 
 export async function deleteInvitation(invitationId: string): Promise<void> {
   await deleteDoc(doc(db, 'invitations', invitationId))
-}
-
-// slug만으로 거는 쿼리는 Firestore 보안 규칙(status/uid 기반)을 정적으로 통과할 수 없어
-// 클라이언트 SDK로 직접 조회할 수 없다. 서버 라우트(Admin SDK)를 통해 조회한다.
-export async function loadInvitationBySlug(slug: string): Promise<{ state: EditorState; id: string } | null> {
-  const res = await fetch(`/api/slug-lookup?slug=${encodeURIComponent(slug)}`)
-  if (!res.ok) throw new Error('청첩장 조회에 실패했습니다')
-  const data = await res.json()
-  if (!data.id) return null
-  return { id: data.id, state: data.state }
 }
 
 export async function recordInvitationView(invitationId: string): Promise<void> {

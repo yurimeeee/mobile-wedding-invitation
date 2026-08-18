@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Lock, ZoomIn, Eye, EyeOff } from 'lucide-react'
-import { type PrivacySettings } from '@/lib/types'
+import { Lock, ZoomIn, Eye, EyeOff, CalendarOff } from 'lucide-react'
+import { AUTO_EXPIRE_DAYS, type PrivacySettings } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -10,9 +10,10 @@ import { Switch } from '@/components/ui/switch'
 interface PrivacySettingsFormProps {
   privacySettings: PrivacySettings
   onChange: (updates: Partial<PrivacySettings>) => void
+  weddingDate?: string
 }
 
-export function PrivacySettingsForm({ privacySettings, onChange }: PrivacySettingsFormProps) {
+export function PrivacySettingsForm({ privacySettings, onChange, weddingDate }: PrivacySettingsFormProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
@@ -88,6 +89,34 @@ export function PrivacySettingsForm({ privacySettings, onChange }: PrivacySettin
           <ul className="text-xs text-muted-foreground space-y-1 pt-1">
             <li>· 핀치 줌 확대 방지</li>
             <li>· 청첩장 내 모든사진 확대 방지</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* 자동 만료 */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="font-medium mb-1">자동 만료</h3>
+          <p className="text-sm text-muted-foreground">결혼식 이후 자동으로 비공개 전환할 수 있어요.</p>
+        </div>
+        <div className="space-y-4 p-4 rounded-lg bg-muted/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarOff className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="auto-expire">자동 만료 활성화</Label>
+            </div>
+            <Switch
+              id="auto-expire"
+              checked={privacySettings.autoExpireEnabled}
+              onCheckedChange={(autoExpireEnabled) => onChange({ autoExpireEnabled })}
+            />
+          </div>
+          <ul className="text-xs text-muted-foreground space-y-1 pt-1">
+            {privacySettings.autoExpireEnabled && !weddingDate && (
+              <li>· 예식 정보 탭에서 결혼식 날짜를 입력해야 적용돼요</li>
+            )}
+            <li>· 결혼식 {AUTO_EXPIRE_DAYS}일 후 자동으로 비공개 전환돼요</li>
+            <li>· 언제든 이 설정을 꺼서 다시 공개할 수 있어요</li>
           </ul>
         </div>
       </div>

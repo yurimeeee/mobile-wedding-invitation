@@ -337,10 +337,13 @@ export default function DashboardPage() {
                         )}
 
                         {/* Status badge */}
-                        <div className="absolute top-2 left-2">
+                        <div className="absolute top-2 left-2 flex gap-1">
                           <Badge variant={invitation.status === 'published' ? 'default' : 'secondary'} className="text-xs">
                             {invitation.status === 'published' ? '게시됨' : '임시저장'}
                           </Badge>
+                          {invitation.expiresAt && invitation.expiresAt < new Date() && (
+                            <Badge variant="outline" className="text-xs bg-background/80">만료됨</Badge>
+                          )}
                         </div>
 
                         {/* Hover overlay */}
