@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { createHash } from 'crypto'
 import { FieldValue } from 'firebase-admin/firestore'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
@@ -28,6 +29,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await docRef.update({ viewCount: FieldValue.increment(1) })
-  return NextResponse.json({ ok: true })
+  // 같은 방문자가 새로고침을 반복해도 조회수가 무제한으로 오르지 않도록,
+  // IP를 해시한 방문 기록을 하루 단위로 남기고 이미 기록이 있으면 집계에서 제외한다.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const today = new Date().toISOString().slice(0, 10)
+  const visitorHash = createHash('sha256').update(`${ip}:${id}:${today}`).digest('hex')
+  const viewLogRef = docRef.collection('viewLogs').doc(visitorHash)
+
+  const counted = await adminDb.runTransaction(async (tx) => {
+    const logSnap = await tx.get(viewLogRef)
+    if (logSnap.exists) return false
+    tx.set(viewLogRef, { createdAt: FieldValue.serverTimestamp() })
+    tx.update(docRef, { viewCount: FieldValue.increment(1) })
+    return true
+  })
+
+  return NextResponse.json({ ok: counted })
 }

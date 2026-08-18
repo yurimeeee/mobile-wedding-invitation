@@ -71,7 +71,17 @@ service cloud.firestore {
         function isOwner() {
           return request.auth != null && request.auth.uid == invitation().uid;
         }
-        allow read, create: if invitation().status == 'published' || isOwner();
+        function isValidMessage() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['name', 'passwordHash', 'salt', 'contents', 'createdAt']) &&
+            d.keys().hasAll(['name', 'passwordHash', 'contents', 'createdAt']) &&
+            d.name is string && d.name.size() > 0 && d.name.size() <= 50 &&
+            d.passwordHash is string && d.passwordHash.size() <= 128 &&
+            d.contents is string && d.contents.size() > 0 && d.contents.size() <= 500 &&
+            d.createdAt == request.time;
+        }
+        allow read: if invitation().status == 'published' || isOwner();
+        allow create: if (invitation().status == 'published' || isOwner()) && isValidMessage();
         allow delete: if invitation().status == 'published' || isOwner();
       }
 
@@ -84,7 +94,20 @@ service cloud.firestore {
         function isOwner() {
           return request.auth != null && request.auth.uid == invitation().uid;
         }
-        allow create: if invitation().status == 'published' || isOwner();
+        function isValidRSVP() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['name', 'side', 'attending', 'guestCount', 'mealAttending', 'companions', 'phone', 'createdAt']) &&
+            d.keys().hasAll(['name', 'side', 'attending', 'guestCount', 'mealAttending', 'companions', 'phone', 'createdAt']) &&
+            d.name is string && d.name.size() > 0 && d.name.size() <= 50 &&
+            d.side in ['groom', 'bride'] &&
+            d.attending is bool &&
+            d.guestCount is int && d.guestCount >= 0 && d.guestCount <= 50 &&
+            d.mealAttending is bool &&
+            d.companions is string && d.companions.size() <= 200 &&
+            d.phone is string && d.phone.size() <= 30 &&
+            d.createdAt == request.time;
+        }
+        allow create: if (invitation().status == 'published' || isOwner()) && isValidRSVP();
         allow read, delete: if isOwner();
       }
     }

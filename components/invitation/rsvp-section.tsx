@@ -66,7 +66,7 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
         name: name.trim(),
         side,
         attending,
-        guestCount: attending ? Math.max(1, Number(guestCount) || 1) : 0,
+        guestCount: attending ? Math.max(1, Math.round(Number(guestCount) || 1)) : 0,
         mealAttending: attending ? mealAttending ?? false : false,
         companions: attending ? companions.trim() : '',
         phone: phone.trim(),

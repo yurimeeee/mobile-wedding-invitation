@@ -11,12 +11,26 @@ export interface GuestMessage {
   createdAt: Date
 }
 
-async function hashPassword(password: string): Promise<string> {
-  const data = new TextEncoder().encode(password)
+function randomSalt(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input)
   const digest = await crypto.subtle.digest('SHA-256', data)
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
+}
+
+function hashPassword(password: string, salt: string): Promise<string> {
+  return sha256Hex(`${salt}:${password}`)
+}
+
+// salt 도입 이전에 저장된 문서는 salt 없이 SHA256(password)로만 해시되어 있었다
+function hashPasswordLegacy(password: string): Promise<string> {
+  return sha256Hex(password)
 }
 
 function messagesCollection(invitationId: string) {
@@ -29,10 +43,12 @@ export async function addGuestMessage(
   password: string,
   contents: string
 ): Promise<GuestMessage> {
-  const passwordHash = await hashPassword(password)
+  const salt = randomSalt()
+  const passwordHash = await hashPassword(password, salt)
   const docRef = await addDoc(messagesCollection(invitationId), {
     name,
     passwordHash,
+    salt,
     contents,
     createdAt: serverTimestamp(),
   })
@@ -62,8 +78,11 @@ export async function deleteGuestMessageWithPassword(
   const snap = await getDoc(msgRef)
   if (!snap.exists()) return false
 
-  const passwordHash = await hashPassword(password)
-  if (snap.data().passwordHash !== passwordHash) return false
+  const stored = snap.data()
+  const passwordHash = stored.salt
+    ? await hashPassword(password, stored.salt)
+    : await hashPasswordLegacy(password)
+  if (stored.passwordHash !== passwordHash) return false
 
   await deleteDoc(msgRef)
   return true
