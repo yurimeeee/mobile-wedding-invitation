@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       const title = typeof data.title === 'string' ? data.title.replace(/\s*웨딩$/, '') : ''
       return {
         id: `inv-${d.id}`,
-        text: `새로운 청첩장이 제작되었습니다: ${title || '이름 미입력'}`,
+        text: `${title || '이름 미입력'} 청첩장이 새로 등록되었습니다.`,
         createdAt: createdAt.toISOString(),
         target: { type: 'invitation', query: title || d.id },
       }
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     .slice(0, 5)
     .map((u) => ({
       id: `user-${u.uid}`,
-      text: `신규 사용자가 가입했습니다: ${u.displayName || u.email || '알 수 없음'}`,
+      text: `${u.displayName || u.email || '알 수 없음'}님이 신규 가입했습니다.`,
       createdAt: new Date(u.metadata.creationTime).toISOString(),
       target: { type: 'user', query: u.email ?? '' },
     }))

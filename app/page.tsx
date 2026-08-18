@@ -404,7 +404,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">지금 바로 청첩장을 만들어보세요</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold mb-4">지금 바로 시작해보세요</h2>
           <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">우리만의 모바일 청첩장으로 특별한 날을 공유한 수천 커플과 함께하세요.</p>
           <Link href={primaryHref}>
             <Button size="lg" variant="secondary" className="min-w-[180px]">

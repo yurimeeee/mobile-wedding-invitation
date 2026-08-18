@@ -27,9 +27,9 @@ export default function ForgotPasswordPage() {
       // 비밀번호 재설정은 항상 Firebase 호스팅 페이지(.../__/auth/action)를 먼저 거치고,
       // 이 url은 그 페이지에서 재설정을 마친 뒤 보여주는 "계속하기" 링크로만 쓰인다.
       // 이 시점엔 oobCode가 이미 소모된 뒤라 /reset-password로 보내면 "만료된 링크"로
-      // 오인되므로 사이트 루트로 보낸다.
+      // 오인되므로 로그인 페이지로 보낸다.
       const actionCodeSettings: ActionCodeSettings = {
-        url: window.location.origin,
+        url: `${window.location.origin}/login`,
       };
       await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setSent(true);
@@ -39,9 +39,7 @@ export default function ForgotPasswordPage() {
       if (code === 'auth/user-not-found') {
         setSent(true);
       } else {
-        setError(
-          getFirebaseErrorMessage(code, '재설정 링크 발송 중 오류가 발생했습니다. 다시 시도해주세요.')
-        );
+        setError(getFirebaseErrorMessage(code, '재설정 링크 발송 중 오류가 발생했습니다. 다시 시도해주세요.'));
       }
     } finally {
       setIsLoading(false);
@@ -50,12 +48,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <motion.div
-        className="w-full max-w-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div className="w-full max-w-md" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-8">
             <Logo width={160} height={28} />
@@ -63,16 +56,12 @@ export default function ForgotPasswordPage() {
           {sent ? (
             <>
               <h1 className="font-serif text-2xl font-semibold mb-2">이메일을 확인해주세요</h1>
-              <p className="text-muted-foreground">
-                입력하신 이메일 주소로 비밀번호 재설정 링크를 보냈습니다.
-              </p>
+              <p className="text-muted-foreground">입력하신 이메일 주소로 비밀번호 재설정 링크를 보냈습니다.</p>
             </>
           ) : (
             <>
               <h1 className="font-serif text-2xl font-semibold mb-2">비밀번호를 잊으셨나요?</h1>
-              <p className="text-muted-foreground">
-                가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.
-              </p>
+              <p className="text-muted-foreground">가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.</p>
             </>
           )}
         </div>
@@ -96,15 +85,7 @@ export default function ForgotPasswordPage() {
               <Label htmlFor="email">이메일</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Input id="email" type="email" placeholder="you@example.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
             </div>
 

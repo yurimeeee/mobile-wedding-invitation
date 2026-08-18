@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { Link, MessageCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import { type ShareSettings, type WeddingInfo } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 
@@ -48,7 +49,7 @@ export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl
 
   const handleKakaoShare = () => {
     if (!window.Kakao?.isInitialized()) {
-      alert('카카오 SDK가 아직 로드되지 않았습니다.')
+      toast.error('카카오톡 공유를 아직 불러오지 못했어요')
       return
     }
 

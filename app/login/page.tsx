@@ -78,7 +78,7 @@ export default function LoginPage() {
               <Logo width={160} height={28} />
             </Link>
             <h1 className="font-serif text-2xl font-semibold mb-2">로그인</h1>
-            <p className="text-muted-foreground">아름다운 청첩장 제작을 계속하려면 로그인하세요</p>
+            <p className="text-muted-foreground">나만의 청첩장 제작을 계속하려면 로그인하세요</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -192,7 +192,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h2 className="font-serif text-2xl font-semibold mb-4">소중한 추억을 만들어</h2>
-          <p className="text-muted-foreground">특별한 날을 세련되게 공유하세요.</p>
+          <p className="text-muted-foreground">특별한 날을 공유하세요.</p>
         </motion.div>
       </div>
     </div>
