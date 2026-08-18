@@ -46,7 +46,10 @@ function ElementNode({
   onDragSettle: () => void;
   registerRef: (node: Konva.Node | null) => void;
 }) {
-  const [image] = useImage(element.src ?? '', 'anonymous');
+  // crossOrigin 없이 로드한다 — 캔버스를 이미지로 내보내는 기능이 없어 tainted canvas
+  // 제약이 문제 되지 않는 반면, 'anonymous'로 로드하면 Storage 버킷에 CORS 헤더가 없을 때
+  // (Firebase Storage 기본값) 브라우저가 렌더링 자체를 거부해 요소가 아예 안 보이게 된다.
+  const [image] = useImage(element.src ?? '');
   const px = (element.x / 100) * canvasWidth;
   const py = (element.y / 100) * canvasHeight;
   const pw = (element.width / 100) * canvasWidth;
