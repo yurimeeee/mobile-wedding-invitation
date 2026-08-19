@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
+import { CalendarPlus, ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { type EditorState, type GalleryImage, formatParentName } from '@/lib/types';
@@ -10,6 +10,7 @@ import type { PreviewStyleConfig } from '@/lib/preview-style';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { copyText } from '@/lib/clipboard';
+import { downloadWeddingIcs } from '@/lib/calendar-export';
 import { openNaverMapDirections, openTmapDirections } from '@/lib/navigation-links';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
@@ -282,6 +283,19 @@ export function GreetingBlock({ state, style }: FullViewSectionProps) {
 
 export function CalendarBlock({ state, style }: FullViewSectionProps) {
   const { info, mutedStyle, dividerStyle, groomParentsLine, brideParentsLine } = getDerived(state, style);
+
+  const handleAddToCalendar = () => {
+    const groomName = `${info.groomLastNameKr}${info.groomFirstNameKr}`;
+    const brideName = `${info.brideLastNameKr}${info.brideFirstNameKr}`;
+    const names = info.brideFirst ? `${brideName} · ${groomName}` : `${groomName} · ${brideName}`;
+    downloadWeddingIcs({
+      title: `${names} 결혼식`,
+      date: info.weddingDate,
+      time: info.weddingTime,
+      location: [info.ceremonyHall, info.venue, info.address].filter(Boolean).join(' '),
+    });
+  };
+
   return (
     <div className="px-8">
       <div className="h-px mb-10" style={dividerStyle} />
@@ -292,6 +306,15 @@ export function CalendarBlock({ state, style }: FullViewSectionProps) {
           settings={state.calendarSettings}
           isDark={style.isDark}
         />
+        {info.weddingDate && (
+          <Button
+            variant="outline" size="sm" className="w-full mt-4"
+            style={style.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: style.text } : {}}
+            onClick={handleAddToCalendar}
+          >
+            <CalendarPlus className="h-3.5 w-3.5 mr-1.5" />캘린더에 저장
+          </Button>
+        )}
       </div>
       <div className="text-center mb-10 space-y-2">
         {(info.brideFirst ? [brideParentsLine, groomParentsLine] : [groomParentsLine, brideParentsLine]).map((line, i) => (
