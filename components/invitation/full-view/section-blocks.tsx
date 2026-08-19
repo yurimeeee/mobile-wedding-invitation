@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { ChevronDown, Heart, MapPin, Phone } from 'lucide-react';
+import { ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { type EditorState, type GalleryImage, formatParentName } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { copyText } from '@/lib/clipboard';
+import { openNaverMapDirections, openTmapDirections } from '@/lib/navigation-links';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
@@ -199,6 +202,12 @@ function AccountAccordion({ info, style }: { info: EditorState['weddingInfo']; s
   const textStyle = { color: style.text };
   const mutedStyle = { color: style.text, opacity: 0.55 };
 
+  const handleCopy = async (label: string, bank: string, account: string) => {
+    const ok = await copyText(`${bank} ${account}`);
+    if (ok) toast.success(`${label} 계좌번호가 복사되었습니다`);
+    else toast.error('복사에 실패했습니다');
+  };
+
   return (
     <div className="rounded-lg px-4 py-3" style={{ background: style.sectionBg }}>
       <button className="flex items-center justify-between w-full" onClick={() => setOpen((v) => !v)}>
@@ -217,9 +226,20 @@ function AccountAccordion({ info, style }: { info: EditorState['weddingInfo']; s
                 { label: '신부', name: `${info.brideLastNameKr}${info.brideFirstNameKr}`, bank: info.brideBankName, account: info.brideBankAccount },
               ]
           ).map((p) => p.bank && (
-            <div key={p.label} className="flex justify-between items-center text-sm">
-              <span style={mutedStyle}>{p.label} {p.name}</span>
-              <span style={textStyle}>{p.bank} {p.account}</span>
+            <div key={p.label} className="flex justify-between items-center text-sm gap-2">
+              <span className="shrink-0" style={mutedStyle}>{p.label} {p.name}</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="truncate" style={textStyle}>{p.bank} {p.account}</span>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(p.label, p.bank, p.account)}
+                  className="p-1 rounded shrink-0 hover:opacity-70 transition-opacity"
+                  style={mutedStyle}
+                  aria-label={`${p.label} 계좌번호 복사`}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -315,6 +335,10 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
 
 export function LocationBlock({ state, style }: FullViewSectionProps) {
   const { info, textStyle, mutedStyle } = getDerived(state, style);
+  const hasCoords = !!(info.latitude && info.longitude);
+  const destinationName = info.ceremonyHall || info.venue || info.address;
+  const navButtonStyle = style.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: style.text } : {};
+
   return (
     <div className="px-8">
       <div className="mb-6 px-4 py-4 rounded-lg" style={{ background: style.sectionBg }}>
@@ -336,6 +360,22 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
           venueName={info.ceremonyHall}
           isDark={style.isDark}
         />
+        {hasCoords && (
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="outline" size="sm" className="flex-1" style={navButtonStyle}
+              onClick={() => openNaverMapDirections(destinationName, info.latitude, info.longitude)}
+            >
+              <Navigation className="h-3 w-3 mr-1" />네이버지도
+            </Button>
+            <Button
+              variant="outline" size="sm" className="flex-1" style={navButtonStyle}
+              onClick={() => openTmapDirections(destinationName, info.latitude, info.longitude)}
+            >
+              <Navigation className="h-3 w-3 mr-1" />티맵
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
