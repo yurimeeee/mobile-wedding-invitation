@@ -458,11 +458,15 @@ export default function EditorPage() {
         <div className="w-[420px] border-r border-border flex flex-col">
           <div className="border-b border-border">
             <Tabs value={activeSection} onValueChange={setActiveSection}>
-              <TabsList className="w-full flex-wrap justify-start h-auto p-1 bg-transparent gap-1">
+              <TabsList className="w-full h-auto p-1 bg-transparent grid grid-cols-4 gap-1">
                 {sections.map((section) => (
-                  <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-1.5 data-[state=active]:bg-muted">
+                  <TabsTrigger
+                    key={section.id}
+                    value={section.id}
+                    className="gap-1.5 rounded-md data-[state=active]:bg-muted"
+                  >
                     <section.icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{section.label}</span>
+                    <span>{section.label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>

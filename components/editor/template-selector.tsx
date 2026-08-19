@@ -25,8 +25,8 @@ export function TemplateSelector({ selected, onSelect }: TemplateSelectorProps) 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-medium mb-1">디자인 템플릿</h3>
-        <p className="text-sm text-muted-foreground">마음에 드는 템플릿을 선택해 보세요.</p>
+        <h3 className="text-base font-semibold mb-1">디자인 템플릿</h3>
+        <p className="text-xs text-muted-foreground">마음에 드는 템플릿을 선택해 보세요.</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

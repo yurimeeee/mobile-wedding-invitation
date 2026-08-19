@@ -21,8 +21,8 @@ export function PrivacySettingsForm({ privacySettings, onChange, weddingDate }: 
       {/* 청첩장 잠금 설정 */}
       <div className="space-y-3">
         <div>
-          <h3 className="font-medium mb-1">청첩장 잠금</h3>
-          <p className="text-sm text-muted-foreground">원하는 시점에 청첩장을 비공개할 수 있어요.</p>
+          <h3 className="text-base font-semibold mb-1">청첩장 잠금</h3>
+          <p className="text-xs text-muted-foreground">원하는 시점에 청첩장을 비공개할 수 있어요.</p>
         </div>
         <div className="space-y-4 p-4 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between">
@@ -71,8 +71,8 @@ export function PrivacySettingsForm({ privacySettings, onChange, weddingDate }: 
       {/* 확대방지 */}
       <div className="space-y-3">
         <div>
-          <h3 className="font-medium mb-1">확대방지</h3>
-          <p className="text-sm text-muted-foreground">사진을 확대할 수 없도록 설정 가능해요.</p>
+          <h3 className="text-base font-semibold mb-1">확대방지</h3>
+          <p className="text-xs text-muted-foreground">사진을 확대할 수 없도록 설정 가능해요.</p>
         </div>
         <div className="space-y-4 p-4 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between">
@@ -96,8 +96,8 @@ export function PrivacySettingsForm({ privacySettings, onChange, weddingDate }: 
       {/* 자동 만료 */}
       <div className="space-y-3">
         <div>
-          <h3 className="font-medium mb-1">자동 만료</h3>
-          <p className="text-sm text-muted-foreground">결혼식 이후 자동으로 비공개 전환할 수 있어요.</p>
+          <h3 className="text-base font-semibold mb-1">자동 만료</h3>
+          <p className="text-xs text-muted-foreground">결혼식 이후 자동으로 비공개 전환할 수 있어요.</p>
         </div>
         <div className="space-y-4 p-4 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between">

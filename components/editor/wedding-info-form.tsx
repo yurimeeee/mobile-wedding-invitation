@@ -22,8 +22,8 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-medium mb-1">예식 정보</h3>
-        <p className="text-sm text-muted-foreground">일시, 장소 등 세부 내용을 입력해 주세요.</p>
+        <h3 className="text-base font-semibold mb-1">예식 정보</h3>
+        <p className="text-xs text-muted-foreground">일시, 장소 등 세부 내용을 입력해 주세요.</p>
       </div>
 
       <Accordion type="multiple" defaultValue={['couple', 'wedding', 'venue']} className="space-y-2">
