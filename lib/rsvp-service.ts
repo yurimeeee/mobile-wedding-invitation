@@ -1,6 +1,6 @@
 import {
-  addDoc, collection, deleteDoc, doc, getDocs,
-  orderBy, query, serverTimestamp, Timestamp,
+  collection, deleteDoc, doc, getDocs,
+  orderBy, query, Timestamp,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -22,6 +22,8 @@ function rsvpsCollection(invitationId: string) {
   return collection(db, 'invitations', invitationId, 'rsvps')
 }
 
+// 스팸 방지를 위해 IP별 요청 빈도를 제한하는 /api/rsvp 라우트를 통해 저장한다
+// (직접 Firestore에 쓰지 않음 — firestore.rules 참고).
 export async function submitRSVP(
   invitationId: string,
   data: {
@@ -34,10 +36,15 @@ export async function submitRSVP(
     phone: string
   }
 ): Promise<void> {
-  await addDoc(rsvpsCollection(invitationId), {
-    ...data,
-    createdAt: serverTimestamp(),
+  const res = await fetch('/api/rsvp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ invitationId, ...data }),
   })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error || 'RSVP 저장에 실패했습니다.')
+  }
 }
 
 export async function loadRSVPs(invitationId: string): Promise<RSVPResponse[]> {

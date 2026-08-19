@@ -91,7 +91,9 @@ service cloud.firestore {
         allow delete: if isPublished(invitation()) || isOwner();
       }
 
-      // 참석여부 응답: 발행된 청첩장에는 하객이 로그인 없이 남길 수 있지만,
+      // 참석여부 응답: 하객의 공개 제출은 요청 빈도를 제한할 수 있는 /api/rsvp 라우트를
+      // 통해서만(Admin SDK로 우회) 저장한다 — 규칙은 문서 하나의 유효성만 볼 수 있어 봇이
+      // 반복 제출하는 것을 막을 수 없기 때문. 그래서 클라이언트 직접 create는 소유자만 허용한다.
       // 다른 하객의 응답 내용은 볼 수 없고 소유자만 확인/삭제 가능
       match /rsvps/{rsvpId} {
         function invitation() {
@@ -113,8 +115,14 @@ service cloud.firestore {
             d.phone is string && d.phone.size() <= 30 &&
             d.createdAt == request.time;
         }
-        allow create: if (isPublished(invitation()) || isOwner()) && isValidRSVP();
+        allow create: if isOwner() && isValidRSVP();
         allow read, delete: if isOwner();
+      }
+
+      // /api/rsvp 라우트가 IP별 제출 빈도를 세는 용도 — 소유자를 포함해 클라이언트에서는
+      // 직접 읽거나 쓸 수 없고 Admin SDK로만 접근한다.
+      match /rsvpRateLimits/{ipHash} {
+        allow read, write: if false;
       }
 
       // 저장/발행 시점마다 남는 버전 스냅샷 — 소유자만 접근 가능

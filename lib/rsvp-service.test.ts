@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deleteRSVP, loadRSVPs, submitRSVP } from './rsvp-service'
 
 vi.mock('@/lib/firebase', () => ({ db: {} }))
@@ -13,20 +13,12 @@ const { store, FakeTimestamp } = vi.hoisted(() => {
   return { store: new Map<string, Record<string, unknown>>(), FakeTimestamp }
 })
 
-let idCounter = 0
-
 vi.mock('firebase/firestore', () => ({
   Timestamp: FakeTimestamp,
   collection: vi.fn(() => ({})),
   doc: vi.fn((_db, ..._pathAndId: string[]) => ({ id: _pathAndId[_pathAndId.length - 1] })),
   query: vi.fn((c) => c),
   orderBy: vi.fn(),
-  serverTimestamp: vi.fn(() => new FakeTimestamp(Date.now())),
-  addDoc: vi.fn(async (_col, data: Record<string, unknown>) => {
-    const id = `rsvp-${idCounter++}`
-    store.set(id, data)
-    return { id }
-  }),
   getDocs: vi.fn(async () => ({
     docs: [...store.entries()].map(([id, data]) => ({ id, data: () => data })),
   })),
@@ -37,11 +29,17 @@ vi.mock('firebase/firestore', () => ({
 
 beforeEach(() => {
   store.clear()
-  idCounter = 0
 })
 
 describe('submitRSVP', () => {
-  it('stores exactly the fields it was given plus a server timestamp', async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('posts the payload to the /api/rsvp route', async () => {
+    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => ({ ok: true, json: async () => ({ ok: true }) }))
+    vi.stubGlobal('fetch', fetchMock)
+
     await submitRSVP('inv-1', {
       name: '홍길동',
       side: 'groom',
@@ -52,14 +50,21 @@ describe('submitRSVP', () => {
       phone: '010-1234-5678',
     })
 
-    const [saved] = [...store.values()]
-    expect(saved).toMatchObject({
-      name: '홍길동',
-      side: 'groom',
-      attending: true,
-      guestCount: 2,
-    })
-    expect(saved.createdAt).toBeInstanceOf(FakeTimestamp)
+    expect(fetchMock).toHaveBeenCalledWith('/api/rsvp', expect.objectContaining({ method: 'POST' }))
+    const [, init] = fetchMock.mock.calls[0]
+    const body = JSON.parse(init.body as string)
+    expect(body).toMatchObject({ invitationId: 'inv-1', name: '홍길동', side: 'groom', guestCount: 2 })
+  })
+
+  it('throws with the server error message when the request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, json: async () => ({ error: '너무 많은 요청입니다.' }) })))
+
+    await expect(
+      submitRSVP('inv-1', {
+        name: '홍길동', side: 'groom', attending: true, guestCount: 1,
+        mealAttending: false, companions: '', phone: '',
+      })
+    ).rejects.toThrow('너무 많은 요청입니다.')
   })
 })
 

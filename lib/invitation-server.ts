@@ -29,7 +29,7 @@ function toEditorState(data: FirebaseFirestore.DocumentData): EditorState {
   }
 }
 
-function isExpired(data: FirebaseFirestore.DocumentData): boolean {
+export function isExpired(data: FirebaseFirestore.DocumentData): boolean {
   return data.expiresAt instanceof Timestamp && data.expiresAt.toDate() < new Date()
 }
 
