@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { User, Calendar, MapPin, Phone, CreditCard, Users } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { User, Calendar, MapPin, Phone, CreditCard, Users, Flower } from 'lucide-react';
 import { AddressSearch } from '@/components/editor/kakao-map';
 import { DatePicker, TimePicker } from '@/components/editor/date-time-picker';
 
@@ -190,7 +191,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                       checked={info.groomFatherDeceased}
                       onCheckedChange={(v) => onChange({ groomFatherDeceased: v === true })}
                     />
-                    故
+                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -203,7 +204,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                       checked={info.groomMotherDeceased}
                       onCheckedChange={(v) => onChange({ groomMotherDeceased: v === true })}
                     />
-                    故
+                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -220,7 +221,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                       checked={info.brideFatherDeceased}
                       onCheckedChange={(v) => onChange({ brideFatherDeceased: v === true })}
                     />
-                    故
+                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -233,7 +234,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                       checked={info.brideMotherDeceased}
                       onCheckedChange={(v) => onChange({ brideMotherDeceased: v === true })}
                     />
-                    故
+                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -242,11 +243,21 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="h-px bg-border" />
 
             <div className="flex items-center justify-between">
-              <Label className="font-normal">{'故人 표기'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">국화 꽃으로 표기</span></Label>
-              <Switch
-                checked={info.showDeceasedMark}
-                onCheckedChange={(v) => onChange({ showDeceasedMark: v })}
-              />
+              <Label className="font-normal">{'고인 표시 방식'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">부모님 성함 옆에 표시할 기호</span></Label>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                size="sm"
+                value={info.showDeceasedMark ? 'flower' : 'hanja'}
+                onValueChange={(v) => {
+                  if (v) onChange({ showDeceasedMark: v === 'flower' });
+                }}
+              >
+                <ToggleGroupItem value="hanja" aria-label="한자로 표기" className="px-3">故</ToggleGroupItem>
+                <ToggleGroupItem value="flower" aria-label="국화 아이콘으로 표기" className="px-3">
+                  <Flower className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
             <div className="flex items-center justify-between">
               <Label className="font-normal">{'항목 순서'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">신부측 먼저 표시</span></Label>

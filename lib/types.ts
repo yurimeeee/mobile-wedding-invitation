@@ -197,11 +197,6 @@ export interface WeddingInfo {
 }
 
 // 고인이신 부모님 성함 표시: showDeceasedMark가 켜져 있으면 국화 아이콘, 아니면 "故" 텍스트
-export function formatParentName(name: string, deceased: boolean, showDeceasedMark: boolean): string {
-  if (!name || !deceased) return name
-  return showDeceasedMark ? `🌼 ${name}` : `故 ${name}`
-}
-
 export interface GalleryImage {
   id: string
   url: string
