@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
 import { Button } from '@/components/ui/button';
-import { ParentName } from '@/components/invitation/parent-name';
+import { ParentsNames } from '@/components/invitation/parent-name';
 import { cn } from '@/lib/utils';
 import { copyText } from '@/lib/clipboard';
 import { downloadWeddingIcs } from '@/lib/calendar-export';
@@ -35,14 +35,12 @@ function getDerived(state: EditorState, style: PreviewStyleConfig) {
   const dividerStyle: CSSProperties = { background: style.divider };
   const groomParentsLine = (
     <>
-      <ParentName name={info.groomFatherName} deceased={info.groomFatherDeceased} showDeceasedMark={info.showDeceasedMark} /> ·{' '}
-      <ParentName name={info.groomMotherName} deceased={info.groomMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
+      <ParentsNames fatherName={info.groomFatherName} fatherDeceased={info.groomFatherDeceased} motherName={info.groomMotherName} motherDeceased={info.groomMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
     </>
   );
   const brideParentsLine = (
     <>
-      <ParentName name={info.brideFatherName} deceased={info.brideFatherDeceased} showDeceasedMark={info.showDeceasedMark} /> ·{' '}
-      <ParentName name={info.brideMotherName} deceased={info.brideMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
+      <ParentsNames fatherName={info.brideFatherName} fatherDeceased={info.brideFatherDeceased} motherName={info.brideMotherName} motherDeceased={info.brideMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
     </>
   );
   return { info, mainImage, textStyle, mutedStyle, dividerStyle, groomParentsLine, brideParentsLine };

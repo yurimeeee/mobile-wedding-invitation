@@ -40,21 +40,21 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'신랑 성 (영문)'}</Label>
-                <Input value={info.groomLastName} onChange={(e) => onChange({ groomLastName: e.target.value })} placeholder="Kim" />
+                <Input value={info.groomLastName} onChange={(e) => onChange({ groomLastName: e.target.value })} placeholder="Last name" />
               </div>
               <div className="space-y-2">
                 <Label>{'신랑 이름 (영문)'}</Label>
-                <Input value={info.groomFirstName} onChange={(e) => onChange({ groomFirstName: e.target.value })} placeholder="Minho" />
+                <Input value={info.groomFirstName} onChange={(e) => onChange({ groomFirstName: e.target.value })} placeholder="First name" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'신랑 성'}</Label>
-                <Input value={info.groomLastNameKr} onChange={(e) => onChange({ groomLastNameKr: e.target.value })} placeholder="김" />
+                <Input value={info.groomLastNameKr} onChange={(e) => onChange({ groomLastNameKr: e.target.value })} placeholder="성" />
               </div>
               <div className="space-y-2">
                 <Label>{'신랑 이름'}</Label>
-                <Input value={info.groomFirstNameKr} onChange={(e) => onChange({ groomFirstNameKr: e.target.value })} placeholder="민호" />
+                <Input value={info.groomFirstNameKr} onChange={(e) => onChange({ groomFirstNameKr: e.target.value })} placeholder="이름" />
               </div>
             </div>
 
@@ -63,21 +63,21 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'신부 성 (영문)'}</Label>
-                <Input value={info.brideLastName} onChange={(e) => onChange({ brideLastName: e.target.value })} placeholder="Lee" />
+                <Input value={info.brideLastName} onChange={(e) => onChange({ brideLastName: e.target.value })} placeholder="Last name" />
               </div>
               <div className="space-y-2">
                 <Label>{'신부 이름 (영문)'}</Label>
-                <Input value={info.brideFirstName} onChange={(e) => onChange({ brideFirstName: e.target.value })} placeholder="Yuna" />
+                <Input value={info.brideFirstName} onChange={(e) => onChange({ brideFirstName: e.target.value })} placeholder="First name" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{'신부 성'}</Label>
-                <Input value={info.brideLastNameKr} onChange={(e) => onChange({ brideLastNameKr: e.target.value })} placeholder="이" />
+                <Input value={info.brideLastNameKr} onChange={(e) => onChange({ brideLastNameKr: e.target.value })} placeholder="성" />
               </div>
               <div className="space-y-2">
                 <Label>{'신부 이름'}</Label>
-                <Input value={info.brideFirstNameKr} onChange={(e) => onChange({ brideFirstNameKr: e.target.value })} placeholder="유나" />
+                <Input value={info.brideFirstNameKr} onChange={(e) => onChange({ brideFirstNameKr: e.target.value })} placeholder="이름" />
               </div>
             </div>
           </AccordionContent>
@@ -185,26 +185,26 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
               <div className="space-y-2">
                 <Label>{'아버지 성함'}</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={info.groomFatherName} onChange={(e) => onChange({ groomFatherName: e.target.value })} placeholder="김철수" />
+                  <Input value={info.groomFatherName} onChange={(e) => onChange({ groomFatherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
                     <Checkbox
                       checked={info.groomFatherDeceased}
                       onCheckedChange={(v) => onChange({ groomFatherDeceased: v === true })}
                     />
-                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
+                    {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>{'어머니 성함'}</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={info.groomMotherName} onChange={(e) => onChange({ groomMotherName: e.target.value })} placeholder="박영희" />
+                  <Input value={info.groomMotherName} onChange={(e) => onChange({ groomMotherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
                     <Checkbox
                       checked={info.groomMotherDeceased}
                       onCheckedChange={(v) => onChange({ groomMotherDeceased: v === true })}
                     />
-                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
+                    {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -215,26 +215,26 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
               <div className="space-y-2">
                 <Label>{'아버지 성함'}</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={info.brideFatherName} onChange={(e) => onChange({ brideFatherName: e.target.value })} placeholder="이정호" />
+                  <Input value={info.brideFatherName} onChange={(e) => onChange({ brideFatherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
                     <Checkbox
                       checked={info.brideFatherDeceased}
                       onCheckedChange={(v) => onChange({ brideFatherDeceased: v === true })}
                     />
-                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
+                    {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>{'어머니 성함'}</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={info.brideMotherName} onChange={(e) => onChange({ brideMotherName: e.target.value })} placeholder="최미선" />
+                  <Input value={info.brideMotherName} onChange={(e) => onChange({ brideMotherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
                     <Checkbox
                       checked={info.brideMotherDeceased}
                       onCheckedChange={(v) => onChange({ brideMotherDeceased: v === true })}
                     />
-                    {info.showDeceasedMark ? <Flower className="h-3.5 w-3.5" /> : '故'}
+                    {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
               >
                 <ToggleGroupItem value="hanja" aria-label="한자로 표기" className="px-3">故</ToggleGroupItem>
                 <ToggleGroupItem value="flower" aria-label="국화 아이콘으로 표기" className="px-3">
-                  <Flower className="h-3.5 w-3.5" />
+                  <Flower className="h-4 w-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>

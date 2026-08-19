@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
 import { Button } from '@/components/ui/button';
-import { ParentName } from '@/components/invitation/parent-name';
+import { ParentsNames } from '@/components/invitation/parent-name';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
@@ -28,14 +28,12 @@ function getDerived(state: EditorState, style: PreviewStyleConfig) {
   const sectionStyle: CSSProperties = { background: style.sectionBg };
   const groomParentsLine = (
     <>
-      <ParentName name={info.groomFatherName} deceased={info.groomFatherDeceased} showDeceasedMark={info.showDeceasedMark} /> ·{' '}
-      <ParentName name={info.groomMotherName} deceased={info.groomMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
+      <ParentsNames fatherName={info.groomFatherName} fatherDeceased={info.groomFatherDeceased} motherName={info.groomMotherName} motherDeceased={info.groomMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 아들 {info.groomLastNameKr}{info.groomFirstNameKr}
     </>
   );
   const brideParentsLine = (
     <>
-      <ParentName name={info.brideFatherName} deceased={info.brideFatherDeceased} showDeceasedMark={info.showDeceasedMark} /> ·{' '}
-      <ParentName name={info.brideMotherName} deceased={info.brideMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
+      <ParentsNames fatherName={info.brideFatherName} fatherDeceased={info.brideFatherDeceased} motherName={info.brideMotherName} motherDeceased={info.brideMotherDeceased} showDeceasedMark={info.showDeceasedMark} />의 딸 {info.brideLastNameKr}{info.brideFirstNameKr}
     </>
   );
   return { info, mainImage, textStyle, mutedStyle, dividerStyle, sectionStyle, groomParentsLine, brideParentsLine };
