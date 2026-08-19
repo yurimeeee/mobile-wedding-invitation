@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { Music, Volume2, Upload, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Music, Volume2, Upload, X, Play, Pause } from 'lucide-react'
 import { toast } from 'sonner'
 import { type MusicSettings, musicTracks } from '@/lib/types'
 import { Switch } from '@/components/ui/switch'
@@ -25,7 +25,32 @@ const CUSTOM_TRACK_ID = 'custom'
 
 export function MusicControls({ settings, onChange }: MusicControlsProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false)
   const isCustom = settings.track === CUSTOM_TRACK_ID
+  const previewUrl = isCustom ? settings.customUrl : musicTracks.find((t) => t.id === settings.track)?.url
+
+  // 트랙이 바뀌면 재생 중이던 미리듣기를 멈춘다
+  useEffect(() => {
+    audioRef.current?.pause()
+    setIsPreviewPlaying(false)
+  }, [previewUrl])
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = settings.volume / 100
+  }, [settings.volume])
+
+  const togglePreview = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (isPreviewPlaying) {
+      audio.pause()
+      setIsPreviewPlaying(false)
+    } else {
+      audio.currentTime = 0
+      audio.play().then(() => setIsPreviewPlaying(true)).catch(() => toast.error('음악을 재생할 수 없어요'))
+    }
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -49,8 +74,8 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-medium mb-1">배경 음악</h3>
-        <p className="text-sm text-muted-foreground">분위기를 더해줄 음악을 설정해 보세요.</p>
+        <h3 className="text-base font-semibold mb-1">배경 음악</h3>
+        <p className="text-xs text-muted-foreground">분위기를 더해줄 음악을 설정해 보세요.</p>
       </div>
 
       <div className="space-y-4 p-4 rounded-lg bg-muted/50">
@@ -76,20 +101,22 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
                 value={settings.track}
                 onValueChange={(track) => onChange({ ...settings, track, ...(track !== CUSTOM_TRACK_ID && { customUrl: undefined }) })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="트랙을 선택하세요" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="트랙을 선택하세요">
+                    {isCustom ? '직접 업로드' : musicTracks.find((t) => t.id === settings.track)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {musicTracks.map((track) => (
                     <SelectItem key={track.id} value={track.id}>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col py-0.5">
                         <span>{track.name}</span>
                         <span className="text-xs text-muted-foreground">{track.nameKr}</span>
                       </div>
                     </SelectItem>
                   ))}
                   <SelectItem value={CUSTOM_TRACK_ID}>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col py-0.5">
                       <span>직접 업로드</span>
                       <span className="text-xs text-muted-foreground">내 파일에서 음악 선택</span>
                     </div>
@@ -157,9 +184,19 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
             {/* Music player preview */}
             <div className="p-3 rounded-lg bg-background border border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Music className="h-5 w-5 text-accent" />
-                </div>
+                <button
+                  type="button"
+                  onClick={togglePreview}
+                  disabled={!previewUrl}
+                  className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 disabled:opacity-40 hover:bg-accent/20 transition-colors"
+                  aria-label={isPreviewPlaying ? '미리듣기 정지' : '미리듣기 재생'}
+                >
+                  {isPreviewPlaying ? (
+                    <Pause className="h-5 w-5 text-accent" />
+                  ) : (
+                    <Play className="h-5 w-5 text-accent" />
+                  )}
+                </button>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {isCustom ? '직접 업로드' : musicTracks.find(t => t.id === settings.track)?.name || '트랙을 선택하세요'}
@@ -172,15 +209,16 @@ export function MusicControls({ settings, onChange }: MusicControlsProps) {
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="w-1 bg-accent rounded-full animate-pulse"
+                      className={`w-1 rounded-full ${isPreviewPlaying ? 'bg-accent animate-pulse' : 'bg-accent/30'}`}
                       style={{
                         height: `${8 + Math.random() * 12}px`,
-                        animationDelay: `${i * 0.1}s`
+                        animationDelay: `${i * 0.1}s`,
                       }}
                     />
                   ))}
                 </div>
               </div>
+              {previewUrl && <audio ref={audioRef} src={previewUrl} onEnded={() => setIsPreviewPlaying(false)} preload="none" />}
             </div>
           </>
         )}

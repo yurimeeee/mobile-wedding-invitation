@@ -352,4 +352,8 @@ export const musicTracks = [
   { id: 'string-quartet', name: 'String Quartet', nameKr: '현악 4중주', url: '/assets/music/string-quartet.mp3' },
   { id: 'acoustic-guitar', name: 'Acoustic Guitar', nameKr: '어쿠스틱 기타', url: '/assets/music/acoustic-guitar.mp3' },
   { id: 'classical-waltz', name: 'Classical Waltz', nameKr: '클래식 왈츠', url: '/assets/music/classical-waltz.mp3' },
+  { id: 'chopin-nocturne', name: 'Chopin Nocturne', nameKr: '쇼팽 녹턴', url: '/assets/music/chopin-nocturne.mp3' },
+  { id: 'wedding-march', name: 'Wedding March', nameKr: '웨딩 마치', url: '/assets/music/wedding-march.mp3' },
+  { id: 'mozart-serenade', name: 'Mozart Serenade', nameKr: '모차르트 세레나데', url: '/assets/music/mozart-serenade.mp3' },
+  { id: 'orchestral-nocturne', name: 'Orchestral Nocturne', nameKr: '오케스트라 녹턴', url: '/assets/music/orchestral-nocturne.mp3' },
 ]
