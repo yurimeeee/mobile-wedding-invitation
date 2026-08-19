@@ -3,6 +3,9 @@ import { Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase-admin'
 import { getSiteUrl } from '@/lib/site-url'
 
+// sitemap도 매 크롤 요청마다 전체 invitations 컬렉션을 훑을 필요는 없다 — 1시간 캐싱.
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
 

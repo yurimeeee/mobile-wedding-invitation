@@ -5,6 +5,9 @@ import { Upload, X, GripVertical, Image as ImageIcon } from 'lucide-react'
 import { type GalleryImage } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { resizeImageToDataUrl } from '@/lib/image-resize'
+
+const GALLERY_IMAGE_MAX_DIMENSION = 1600
 
 interface GalleryUploaderProps {
   images: GalleryImage[]
@@ -17,41 +20,28 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    const files = Array.from(e.dataTransfer.files)
-    files.forEach((file) => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = () => {
-          onAdd({
-            id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            url: reader.result as string,
-            order: images.length,
-          })
-        }
-        reader.readAsDataURL(file)
-      }
+  const addFiles = useCallback((files: File[]) => {
+    files.forEach((file, i) => {
+      if (!file.type.startsWith('image/')) return
+      resizeImageToDataUrl(file, GALLERY_IMAGE_MAX_DIMENSION).then((url) => {
+        onAdd({
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          url,
+          order: images.length + i,
+        })
+      })
     })
   }, [images.length, onAdd])
 
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    addFiles(Array.from(e.dataTransfer.files))
+  }, [addFiles])
+
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    files.forEach((file) => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = () => {
-          onAdd({
-            id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            url: reader.result as string,
-            order: images.length,
-          })
-        }
-        reader.readAsDataURL(file)
-      }
-    })
+    addFiles(Array.from(e.target.files || []))
     e.target.value = ''
-  }, [images.length, onAdd])
+  }, [addFiles])
 
   const resetDrag = () => {
     setDraggedIndex(null)

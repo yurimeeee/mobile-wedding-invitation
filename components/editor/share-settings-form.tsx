@@ -13,6 +13,10 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { SlugInput } from '@/components/editor/slug-input'
+import { resizeImageToDataUrl } from '@/lib/image-resize'
+
+// 카카오/OG 공유 카드 권장 크기(1200×630 근방)를 넉넉히 커버하는 정사각형 상한.
+const SHARE_IMAGE_MAX_DIMENSION = 1200
 
 interface ShareSettingsFormProps {
   shareSettings: ShareSettings
@@ -35,11 +39,9 @@ function ImageUploadBox({
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => onImageSelect(reader.result as string)
-    reader.readAsDataURL(file)
     e.target.value = ''
+    if (!file) return
+    resizeImageToDataUrl(file, SHARE_IMAGE_MAX_DIMENSION).then(onImageSelect)
   }
 
   return (
