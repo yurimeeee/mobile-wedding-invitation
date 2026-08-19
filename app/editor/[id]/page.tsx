@@ -389,7 +389,7 @@ export default function EditorPage() {
 
   // Desktop layout
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       <header className="sticky top-0 z-50 glass border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-4">
@@ -454,8 +454,8 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className="flex-1 flex">
-        <div className="w-[420px] border-r border-border flex flex-col">
+      <div className="flex-1 flex min-h-0">
+        <div className="w-[420px] border-r border-border flex flex-col min-h-0">
           <div className="border-b border-border">
             <Tabs value={activeSection} onValueChange={setActiveSection}>
               <TabsList className="w-full h-auto p-1 bg-transparent grid grid-cols-4 gap-1">
