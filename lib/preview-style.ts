@@ -59,12 +59,12 @@ export const templateConfig: Record<TemplateType, PreviewStyleConfig> = {
     accent: '#8B6F47',
   },
   'lovely-blush': {
-    bg: '#FFF8F4',
-    text: '#5B4A4E',
-    divider: '#F3D9E4',
-    sectionBg: 'rgba(246,198,208,0.22)',
+    bg: '#FBF7F3',
+    text: '#4A3F3F',
+    divider: '#F0E0E1',
+    sectionBg: 'rgba(234,203,206,0.22)',
     isDark: false,
-    accent: '#C9707F',
+    accent: '#B98088',
   },
 }
 

@@ -39,7 +39,7 @@ function ToggleButton({
       className={cn(
         'flex-1 border py-2 text-sm font-medium transition-colors',
         lovely ? 'rounded-full' : 'rounded-md',
-        active ? 'border-transparent text-white' : lovely ? 'border-[#EBD8DC]' : 'border-border'
+        active ? 'border-transparent text-white' : lovely ? 'border-[#E4CDD1]' : 'border-border'
       )}
       style={active ? { background: accentColor } : textStyle}
     >
@@ -86,9 +86,9 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
   }
 
   const cardStyle = lovely
-    ? { background: '#FFFFFF', borderRadius: 24, boxShadow: '0 10px 24px rgba(91,74,78,0.08)' }
+    ? { background: '#FFFFFF', borderRadius: 24, boxShadow: '0 10px 24px rgba(74,63,63,0.08)' }
     : { background: sectionBg }
-  const fieldClass = lovely ? 'rounded-full border-0 bg-[#FDF1F3]' : undefined
+  const fieldClass = lovely ? 'rounded-full border-0 bg-[#F5E9EA]' : undefined
 
   if (submitted) {
     return (

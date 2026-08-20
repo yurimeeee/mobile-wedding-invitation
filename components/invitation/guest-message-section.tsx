@@ -21,7 +21,7 @@ interface GuestMessageSectionProps {
 }
 
 // 스티키노트 방명록 카드에 번갈아 쓰이는 파스텔 톤 + 살짝 기울어진 각도
-const STICKY_COLORS = ['#FBDCE3', '#FBE3D3', '#E3DCF0']
+const STICKY_COLORS = ['#F5E3E4', '#EACBCE', '#DDB0B5']
 const STICKY_ROTATIONS = [-1.5, 1.2, -0.8]
 
 export function GuestMessageSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor, lovely }: GuestMessageSectionProps) {
@@ -85,21 +85,21 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
       {/* Write form */}
       <div
         className="rounded-lg p-4 mb-4 space-y-2"
-        style={lovely ? { background: '#FFFFFF', borderRadius: 22, boxShadow: '0 10px 22px rgba(91,74,78,0.08)' } : { background: sectionBg }}
+        style={lovely ? { background: '#FFFFFF', borderRadius: 22, boxShadow: '0 10px 22px rgba(74,63,63,0.08)' } : { background: sectionBg }}
       >
         <div className="flex gap-2">
           <Input
             placeholder="성함"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#FDF1F3]')}
+            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#F5E9EA]')}
           />
           <Input
             type="password"
             placeholder="비밀번호"
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#FDF1F3]')}
+            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#F5E9EA]')}
           />
         </div>
         <Textarea
@@ -107,7 +107,7 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
           value={form.contents}
           onChange={(e) => setForm((f) => ({ ...f, contents: e.target.value }))}
           rows={3}
-          className={cn(lovely && 'rounded-2xl border-0 bg-[#FDF1F3]')}
+          className={cn(lovely && 'rounded-2xl border-0 bg-[#F5E9EA]')}
         />
         <Button
           onClick={handleSubmit}
@@ -132,21 +132,21 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
               ? {
                   background: STICKY_COLORS[i % STICKY_COLORS.length],
                   borderRadius: 16,
-                  boxShadow: '0 10px 18px rgba(91,74,78,0.1)',
+                  boxShadow: '0 10px 18px rgba(74,63,63,0.1)',
                   transform: `rotate(${STICKY_ROTATIONS[i % STICKY_ROTATIONS.length]}deg)`,
                 }
               : { background: sectionBg }}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-medium" style={lovely ? { color: '#5B4A4E' } : textStyle}>{msg.name}</p>
+                <p className="text-sm font-medium" style={lovely ? { color: '#4A3F3F' } : textStyle}>{msg.name}</p>
                 <p className="text-sm mt-1 whitespace-pre-line break-words" style={lovely ? { color: '#6B5A5E' } : mutedStyle}>{msg.contents}</p>
               </div>
               <button
                 onClick={() => setDeletingId(deletingId === msg.id ? null : msg.id)}
                 className="shrink-0 opacity-40 hover:opacity-100 transition-opacity"
               >
-                <Trash2 className="h-3.5 w-3.5" style={lovely ? { color: '#5B4A4E' } : textStyle} />
+                <Trash2 className="h-3.5 w-3.5" style={lovely ? { color: '#4A3F3F' } : textStyle} />
               </button>
             </div>
             {deletingId === msg.id && (

@@ -66,7 +66,7 @@ export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl
 
   if (lovely) {
     return (
-      <div className="flex items-center gap-2 bg-white rounded-full p-1.5 shadow-[0_16px_34px_rgba(91,74,78,0.18)]">
+      <div className="flex items-center gap-2 bg-white rounded-full p-1.5 shadow-[0_16px_34px_rgba(74,63,63,0.18)]">
         <button
           onClick={handleKakaoShare}
           className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-3 rounded-full"
@@ -78,7 +78,7 @@ export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl
         <button
           onClick={handleCopyLink}
           className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-3 rounded-full"
-          style={{ border: '1px solid #F0D7DD', color: '#B65C6C' }}
+          style={{ border: '1px solid #E4CDD1', color: '#8C5158' }}
         >
           <Link className="h-3.5 w-3.5" />
           링크 복사

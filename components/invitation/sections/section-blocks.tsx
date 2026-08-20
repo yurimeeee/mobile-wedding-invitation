@@ -222,39 +222,39 @@ function HeroLovely({ info, mainImage }: { info: EditorState['weddingInfo']; mai
   const dateLabel = formatWeddingDateLabel(info.weddingDate);
 
   return (
-    <div className="pt-8 pb-6 px-6" style={{ background: 'linear-gradient(180deg, #FBDCE3 0%, #FCEFE8 55%, #FFF8F4 100%)' }}>
+    <div className="pt-8 pb-6 px-6" style={{ background: 'linear-gradient(180deg, #F5E3E4 0%, #F7EDE9 55%, #FBF7F3 100%)' }}>
       <div className="relative flex justify-center mb-6">
         <svg width="70" height="70" viewBox="0 0 90 90" className="absolute -top-2 -left-2 pointer-events-none select-none" fill="none">
           <g opacity="0.85">
-            <ellipse cx="28" cy="30" rx="14" ry="11" fill="#F6C6D0" />
-            <ellipse cx="44" cy="23" rx="11" ry="9" fill="#FBE0D9" />
-            <ellipse cx="18" cy="42" rx="10" ry="8" fill="#F3D9E4" />
+            <ellipse cx="28" cy="30" rx="14" ry="11" fill="#EACBCE" />
+            <ellipse cx="44" cy="23" rx="11" ry="9" fill="#EFD9D6" />
+            <ellipse cx="18" cy="42" rx="10" ry="8" fill="#F0E0E1" />
           </g>
         </svg>
         <svg width="70" height="70" viewBox="0 0 90 90" className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ transform: 'scaleX(-1)' }} fill="none">
           <g opacity="0.8">
-            <ellipse cx="28" cy="30" rx="12" ry="9" fill="#F6C6D0" />
-            <ellipse cx="44" cy="23" rx="9" ry="7" fill="#FBE0D9" />
+            <ellipse cx="28" cy="30" rx="12" ry="9" fill="#EACBCE" />
+            <ellipse cx="44" cy="23" rx="9" ry="7" fill="#EFD9D6" />
           </g>
         </svg>
-        <div className="relative w-[200px] h-[268px] rounded-[24px] overflow-hidden" style={{ border: '5px solid #FFFFFF', boxShadow: '0 12px 24px rgba(182,92,108,0.18)' }}>
+        <div className="relative w-[200px] h-[268px] rounded-[24px] overflow-hidden" style={{ border: '5px solid #FFFFFF', boxShadow: '0 12px 24px rgba(140,81,88,0.18)' }}>
           {mainImage
             ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-9 h-9" style={{ color: '#C9707F', opacity: 0.25 }} /></div>}
+            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-9 h-9" style={{ color: '#B98088', opacity: 0.25 }} /></div>}
         </div>
       </div>
 
       <div className="text-center">
-        <p className="text-[10px] tracking-[0.3em] mb-2" style={{ color: '#C9707F' }}>WE ARE GETTING MARRIED</p>
-        <h1 style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 34, color: '#B65C6C', lineHeight: 1.1 }}>
-          {firstEn} <span style={{ fontSize: 22, color: '#E8A0AE' }}>&amp;</span> {secondEn}
+        <p className="text-[10px] tracking-[0.3em] mb-2" style={{ color: '#B98088' }}>WE ARE GETTING MARRIED</p>
+        <h1 style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 34, color: '#8C5158', lineHeight: 1.1 }}>
+          {firstEn} <span style={{ fontSize: 22, color: '#C99BA0' }}>&amp;</span> {secondEn}
         </h1>
-        <p className="font-serif text-[13px] mt-1.5 tracking-widest" style={{ color: '#5B4A4E' }}>{firstKr} · {secondKr}</p>
+        <p className="font-serif text-[13px] mt-1.5 tracking-widest" style={{ color: '#4A3F3F' }}>{firstKr} · {secondKr}</p>
         {dateLabel && (
           <div className="flex items-center justify-center gap-2 mt-4">
-            <span className="w-4 h-px" style={{ background: '#E8A0AE' }} />
-            <span className="text-[11px]" style={{ color: '#9C8B90' }}>{dateLabel}</span>
-            <span className="w-4 h-px" style={{ background: '#E8A0AE' }} />
+            <span className="w-4 h-px" style={{ background: '#C99BA0' }} />
+            <span className="text-[11px]" style={{ color: '#8A7B7B' }}>{dateLabel}</span>
+            <span className="w-4 h-px" style={{ background: '#C99BA0' }} />
           </div>
         )}
       </div>
@@ -362,11 +362,11 @@ export function GreetingBlock({ state, style }: SectionBlockProps) {
         <div className="flex justify-center mb-3">
           <svg width="48" height="36" viewBox="0 0 60 46" fill="none">
             <g opacity="0.9">
-              <ellipse cx="22" cy="18" rx="10" ry="8" fill="#F6C6D0" />
-              <ellipse cx="34" cy="14" rx="8" ry="6.5" fill="#FBE0D9" />
-              <ellipse cx="38" cy="24" rx="7" ry="6" fill="#F3D9E4" />
+              <ellipse cx="22" cy="18" rx="10" ry="8" fill="#EACBCE" />
+              <ellipse cx="34" cy="14" rx="8" ry="6.5" fill="#EFD9D6" />
+              <ellipse cx="38" cy="24" rx="7" ry="6" fill="#F0E0E1" />
             </g>
-            <g fill="#B8CDB0" opacity="0.8">
+            <g fill="#B7C2A9" opacity="0.8">
               <path d="M27 30 Q19 28 17 20 Q27 22 27 30Z" />
               <path d="M33 33 Q41 31 43 24 Q34 25 33 33Z" />
             </g>
@@ -374,13 +374,13 @@ export function GreetingBlock({ state, style }: SectionBlockProps) {
         </div>
         {info.mainPhrase && (
           <div className="text-center px-8 mb-6">
-            <p className="font-serif whitespace-pre-line leading-loose text-sm" style={{ color: '#5B4A4E' }}>{info.mainPhrase}</p>
+            <p className="font-serif whitespace-pre-line leading-loose text-sm" style={{ color: '#4A3F3F' }}>{info.mainPhrase}</p>
           </div>
         )}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <span className="w-6 h-px" style={{ background: '#E8A0AE' }} />
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="#E8A0AE"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C7.8 17.4 3 13.6 3 9.3 3 6.4 5.3 4 8.2 4c1.7 0 3.2.8 4.1 2.1C13.2 4.8 14.7 4 16.4 4 19.3 4 21.6 6.4 21.6 9.3c0 4.3-4.8 8.1-8.2 10.9-.2.2-.5.3-.8.3Z" /></svg>
-          <span className="w-6 h-px" style={{ background: '#E8A0AE' }} />
+          <span className="w-6 h-px" style={{ background: '#C99BA0' }} />
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#C99BA0"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C7.8 17.4 3 13.6 3 9.3 3 6.4 5.3 4 8.2 4c1.7 0 3.2.8 4.1 2.1C13.2 4.8 14.7 4 16.4 4 19.3 4 21.6 6.4 21.6 9.3c0 4.3-4.8 8.1-8.2 10.9-.2.2-.5.3-.8.3Z" /></svg>
+          <span className="w-6 h-px" style={{ background: '#C99BA0' }} />
         </div>
       </>
     );
@@ -406,7 +406,7 @@ export function CalendarBlock({ state, style }: SectionBlockProps) {
       <div className="h-px mx-8 mb-8" style={dividerStyle} />
       <div
         className="mx-4 mb-8 px-4 py-5 rounded-lg"
-        style={lovely ? { background: '#FFFFFF', borderRadius: 26, boxShadow: '0 12px 28px rgba(91,74,78,0.09)' } : sectionStyle}
+        style={lovely ? { background: '#FFFFFF', borderRadius: 26, boxShadow: '0 12px 28px rgba(74,63,63,0.09)' } : sectionStyle}
       >
         <WeddingCalendar
           weddingDate={info.weddingDate}
@@ -440,7 +440,7 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
             {state.gallery.slice(0, 4).map((img, i) => (
               <div
                 key={img.id}
-                className="bg-white rounded-lg p-1.5 pb-3 shadow-[0_8px_16px_rgba(91,74,78,0.14)]"
+                className="bg-white rounded-lg p-1.5 pb-3 shadow-[0_8px_16px_rgba(74,63,63,0.14)]"
                 style={{ transform: `rotate(${SCRAPBOOK_ROTATIONS[i % SCRAPBOOK_ROTATIONS.length]}deg)` }}
               >
                 <div className="aspect-square rounded overflow-hidden">
@@ -502,11 +502,11 @@ export function AccountBlock({ state, style }: SectionBlockProps) {
     <>
       <div
         className="mx-4 mb-6 px-4 py-3 rounded-lg"
-        style={lovely ? { background: 'linear-gradient(160deg, #FBE3D3, #FBDCE3)', borderRadius: 22 } : sectionStyle}
+        style={lovely ? { background: 'linear-gradient(160deg, #EACBCE, #F5E3E4)', borderRadius: 22 } : sectionStyle}
       >
         <button className="flex items-center justify-between w-full">
-          <span className="text-sm font-medium" style={lovely ? { color: '#5B4A4E' } : textStyle}>축하의 마음을 전하세요</span>
-          <ChevronDown className="h-4 w-4" style={lovely ? { color: '#B65C6C' } : mutedStyle} />
+          <span className="text-sm font-medium" style={lovely ? { color: '#4A3F3F' } : textStyle}>축하의 마음을 전하세요</span>
+          <ChevronDown className="h-4 w-4" style={lovely ? { color: '#8C5158' } : mutedStyle} />
         </button>
       </div>
 

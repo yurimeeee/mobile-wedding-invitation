@@ -93,7 +93,7 @@ function CalendarGrid({ wedding, isDark, lovely }: { wedding: Date; isDark?: boo
                 isTarget ? (
                   <div className="relative w-7 h-7 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: '#F3D5D9' }}>
                     <span className="text-[12px] font-bold" style={{ color: '#7a3d44' }}>{day}</span>
-                    {lovely && <HeartIcon className="absolute -top-1 -right-1 w-2.5 h-2.5" style={{ color: '#B65C6C' }} />}
+                    {lovely && <HeartIcon className="absolute -top-1 -right-1 w-2.5 h-2.5" style={{ color: '#8C5158' }} />}
                   </div>
                 ) : (
                   <span className={`text-[12px] w-7 h-7 flex items-center justify-center ${textColor}`}>
@@ -174,15 +174,15 @@ function Countdown({ target, isDark, lovely }: { target: Date; isDark?: boolean;
       <div className="flex items-center justify-center gap-1.5 w-full">
         {items.map(([label, val], i) => (
           <Fragment key={label}>
-            {i > 0 && <HeartIcon className="w-2 h-2 shrink-0" style={{ color: '#E8A0AE' }} />}
+            {i > 0 && <HeartIcon className="w-2 h-2 shrink-0" style={{ color: '#C99BA0' }} />}
             <div
               className="flex-1 flex flex-col items-center justify-center py-3 rounded-2xl"
-              style={{ background: 'linear-gradient(160deg, #FBDCE3, #F6C6D0)', boxShadow: '0 8px 18px rgba(246,198,208,0.55)' }}
+              style={{ background: 'linear-gradient(160deg, #F5E3E4, #EACBCE)', boxShadow: '0 8px 18px rgba(234,203,206,0.55)' }}
             >
-              <span className="font-serif text-lg font-bold tabular-nums" style={{ color: '#B65C6C' }}>
+              <span className="font-serif text-lg font-bold tabular-nums" style={{ color: '#8C5158' }}>
                 <RollingNumber value={val} />
               </span>
-              <span className="text-[10px] mt-0.5 tracking-widest" style={{ color: '#96434F' }}>{labelKr[label]}</span>
+              <span className="text-[10px] mt-0.5 tracking-widest" style={{ color: '#74424A' }}>{labelKr[label]}</span>
             </div>
           </Fragment>
         ))}
@@ -222,7 +222,7 @@ function DDay({ target, isDark, lovely }: { target: Date; isDark?: boolean; love
       <div className="flex justify-center">
         <span
           className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 rounded-full"
-          style={{ background: '#B65C6C', color: '#FFF8F4' }}
+          style={{ background: '#8C5158', color: '#FBF7F3' }}
         >
           <HeartIcon className="w-2.5 h-2.5" />
           {label}
@@ -260,11 +260,11 @@ export function WeddingCalendar({ weddingDate, weddingTime, settings, isDark, lo
     <div className="flex flex-col items-center gap-4 w-full">
       {/* Date & time headline */}
       <div className="text-center space-y-0.5">
-        <p className={`text-sm font-medium ${textCls}`} style={lovely ? { color: '#B65C6C' } : undefined}>
+        <p className={`text-sm font-medium ${textCls}`} style={lovely ? { color: '#8C5158' } : undefined}>
           {format(wedding, 'yyyy년 M월 d일 EEEE', { locale: ko })}
         </p>
         {weddingTime && (
-          <p className={`text-xs ${subTextCls}`} style={lovely ? { color: '#9C8B90' } : undefined}>{formatKoreanTime(weddingTime)}</p>
+          <p className={`text-xs ${subTextCls}`} style={lovely ? { color: '#8A7B7B' } : undefined}>{formatKoreanTime(weddingTime)}</p>
         )}
       </div>
 

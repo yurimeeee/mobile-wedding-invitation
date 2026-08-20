@@ -347,7 +347,7 @@ export const templates: { id: TemplateType; name: string; nameKr: string; colors
   { id: 'dark-luxury', name: 'Dark Luxury', nameKr: '다크 럭셔리', colors: ['#1a1a1a', '#d4af37', '#f5f5f5'] },
   { id: 'korean-traditional', name: 'Korean Traditional', nameKr: '한국 전통', colors: ['#f8f4e8', '#8b4513', '#2d2d2d'] },
   { id: 'vintage-forest', name: 'Vintage Forest', nameKr: '빈티지 포레스트', colors: ['#f7f3ec', '#8b6f47', '#2e2a24'] },
-  { id: 'lovely-blush', name: 'Lovely Blush', nameKr: '러블리 블러쉬', colors: ['#fff8f4', '#f6c6d0', '#b65c6c'] },
+  { id: 'lovely-blush', name: 'Lovely Blush', nameKr: '러블리 블러쉬', colors: ['#fbf7f3', '#eacbce', '#8c5158'] },
 ]
 
 // 출처: Wikimedia Commons (Musopen 녹음 포함) — 전부 퍼블릭 도메인/CC0, 저작권 표시 불필요

@@ -199,42 +199,42 @@ function HeroLovely({ info, mainImage }: { info: EditorState['weddingInfo']; mai
   const dateLabel = formatWeddingDateLabel(info.weddingDate);
 
   return (
-    <div className="pt-10 pb-8 px-8" style={{ background: 'linear-gradient(180deg, #FBDCE3 0%, #FCEFE8 55%, #FFF8F4 100%)' }}>
+    <div className="pt-10 pb-8 px-8" style={{ background: 'linear-gradient(180deg, #F5E3E4 0%, #F7EDE9 55%, #FBF7F3 100%)' }}>
       <div className="relative flex justify-center mb-8">
         <svg width="90" height="90" viewBox="0 0 90 90" className="absolute -top-3 -left-3 pointer-events-none select-none" fill="none">
           <g opacity="0.85">
-            <ellipse cx="28" cy="30" rx="14" ry="11" fill="#F6C6D0" />
-            <ellipse cx="44" cy="23" rx="11" ry="9" fill="#FBE0D9" />
-            <ellipse cx="18" cy="42" rx="10" ry="8" fill="#F3D9E4" />
+            <ellipse cx="28" cy="30" rx="14" ry="11" fill="#EACBCE" />
+            <ellipse cx="44" cy="23" rx="11" ry="9" fill="#EFD9D6" />
+            <ellipse cx="18" cy="42" rx="10" ry="8" fill="#F0E0E1" />
           </g>
-          <g stroke="#C08A94" strokeWidth="1.2" strokeLinecap="round" opacity="0.55">
+          <g stroke="#A97F84" strokeWidth="1.2" strokeLinecap="round" opacity="0.55">
             <path d="M27 36 Q18 52 10 62" />
           </g>
         </svg>
         <svg width="90" height="90" viewBox="0 0 90 90" className="absolute -top-3 -right-3 pointer-events-none select-none" style={{ transform: 'scaleX(-1)' }} fill="none">
           <g opacity="0.8">
-            <ellipse cx="28" cy="30" rx="12" ry="9" fill="#F6C6D0" />
-            <ellipse cx="44" cy="23" rx="9" ry="7" fill="#FBE0D9" />
+            <ellipse cx="28" cy="30" rx="12" ry="9" fill="#EACBCE" />
+            <ellipse cx="44" cy="23" rx="9" ry="7" fill="#EFD9D6" />
           </g>
         </svg>
-        <div className="relative w-[240px] h-[320px] rounded-[28px] overflow-hidden" style={{ border: '6px solid #FFFFFF', boxShadow: '0 14px 28px rgba(182,92,108,0.18)' }}>
+        <div className="relative w-[240px] h-[320px] rounded-[28px] overflow-hidden" style={{ border: '6px solid #FFFFFF', boxShadow: '0 14px 28px rgba(140,81,88,0.18)' }}>
           {mainImage
             ? <Image src={mainImage.url} alt="메인" fill sizes="240px" className="object-cover" />
-            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-10 h-10" style={{ color: '#C9707F', opacity: 0.25 }} /></div>}
+            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-10 h-10" style={{ color: '#B98088', opacity: 0.25 }} /></div>}
         </div>
       </div>
 
       <div className="text-center">
-        <p className="text-[11px] tracking-[0.3em] mb-3" style={{ color: '#C9707F' }}>WE ARE GETTING MARRIED</p>
-        <h1 style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 40, color: '#B65C6C', lineHeight: 1.1 }}>
-          {firstEn} <span style={{ fontSize: 26, color: '#E8A0AE' }}>&amp;</span> {secondEn}
+        <p className="text-[11px] tracking-[0.3em] mb-3" style={{ color: '#B98088' }}>WE ARE GETTING MARRIED</p>
+        <h1 style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 40, color: '#8C5158', lineHeight: 1.1 }}>
+          {firstEn} <span style={{ fontSize: 26, color: '#C99BA0' }}>&amp;</span> {secondEn}
         </h1>
-        <p className="font-serif text-[15px] mt-2 tracking-widest" style={{ color: '#5B4A4E' }}>{firstKr} · {secondKr}</p>
+        <p className="font-serif text-[15px] mt-2 tracking-widest" style={{ color: '#4A3F3F' }}>{firstKr} · {secondKr}</p>
         {dateLabel && (
           <div className="flex items-center justify-center gap-2.5 mt-5">
-            <span className="w-5 h-px" style={{ background: '#E8A0AE' }} />
-            <span className="text-xs" style={{ color: '#9C8B90' }}>{dateLabel}</span>
-            <span className="w-5 h-px" style={{ background: '#E8A0AE' }} />
+            <span className="w-5 h-px" style={{ background: '#C99BA0' }} />
+            <span className="text-xs" style={{ color: '#8A7B7B' }}>{dateLabel}</span>
+            <span className="w-5 h-px" style={{ background: '#C99BA0' }} />
           </div>
         )}
       </div>
@@ -338,27 +338,27 @@ function AccountAccordion({ info, style, lovely }: { info: EditorState['weddingI
 
   if (lovely) {
     return (
-      <div className="rounded-[22px] px-5 py-4" style={{ background: 'linear-gradient(160deg, #FBE3D3, #FBDCE3)' }}>
+      <div className="rounded-[22px] px-5 py-4" style={{ background: 'linear-gradient(160deg, #EACBCE, #F5E3E4)' }}>
         <button className="flex items-center justify-between w-full" onClick={() => setOpen((v) => !v)}>
-          <span className="flex items-center gap-2 text-sm font-bold" style={{ color: '#5B4A4E' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B65C6C" strokeWidth="2"><circle cx="12" cy="12" r="8" /></svg>
+          <span className="flex items-center gap-2 text-sm font-bold" style={{ color: '#4A3F3F' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8C5158" strokeWidth="2"><circle cx="12" cy="12" r="8" /></svg>
             축하의 마음을 전하세요
           </span>
-          <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} style={{ color: '#B65C6C' }} />
+          <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} style={{ color: '#8C5158' }} />
         </button>
         {open && (
-          <div className="mt-3 pt-3 space-y-0.5" style={{ borderTop: '1px solid rgba(182,92,108,0.15)' }}>
+          <div className="mt-3 pt-3 space-y-0.5" style={{ borderTop: '1px solid rgba(140,81,88,0.15)' }}>
             {parties.map((p) => p.bank && (
-              <div key={p.label} className="flex justify-between items-center gap-2 py-2.5" style={{ borderBottom: '1px solid rgba(182,92,108,0.12)' }}>
+              <div key={p.label} className="flex justify-between items-center gap-2 py-2.5" style={{ borderBottom: '1px solid rgba(140,81,88,0.12)' }}>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold" style={{ color: '#5B4A4E' }}>{p.name} ({p.label})</p>
-                  <p className="text-[11px] truncate mt-0.5" style={{ color: '#9C8B90' }}>{p.bank} {p.account}</p>
+                  <p className="text-xs font-bold" style={{ color: '#4A3F3F' }}>{p.name} ({p.label})</p>
+                  <p className="text-[11px] truncate mt-0.5" style={{ color: '#8A7B7B' }}>{p.bank} {p.account}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleCopy(p.label, p.bank, p.account)}
                   className="shrink-0 text-[11px] px-3 py-1.5 rounded-full"
-                  style={{ color: '#B65C6C', border: '1px solid #E8A0AE' }}
+                  style={{ color: '#8C5158', border: '1px solid #C99BA0' }}
                   aria-label={`${p.label} 계좌번호 복사`}
                 >
                   복사
@@ -426,12 +426,12 @@ function FloralSprig({ className }: { className?: string }) {
   return (
     <svg width="60" height="46" viewBox="0 0 60 46" fill="none" className={className}>
       <g opacity="0.9">
-        <ellipse cx="22" cy="18" rx="10" ry="8" fill="#F6C6D0" />
-        <ellipse cx="34" cy="14" rx="8" ry="6.5" fill="#FBE0D9" />
-        <ellipse cx="38" cy="24" rx="7" ry="6" fill="#F3D9E4" />
+        <ellipse cx="22" cy="18" rx="10" ry="8" fill="#EACBCE" />
+        <ellipse cx="34" cy="14" rx="8" ry="6.5" fill="#EFD9D6" />
+        <ellipse cx="38" cy="24" rx="7" ry="6" fill="#F0E0E1" />
       </g>
-      <path d="M30 22 Q30 34 26 42" stroke="#C08A94" strokeWidth="1.1" strokeLinecap="round" opacity="0.6" fill="none" />
-      <g fill="#B8CDB0" opacity="0.8">
+      <path d="M30 22 Q30 34 26 42" stroke="#A97F84" strokeWidth="1.1" strokeLinecap="round" opacity="0.6" fill="none" />
+      <g fill="#B7C2A9" opacity="0.8">
         <path d="M27 30 Q19 28 17 20 Q27 22 27 30Z" />
         <path d="M33 33 Q41 31 43 24 Q34 25 33 33Z" />
       </g>
@@ -442,11 +442,11 @@ function FloralSprig({ className }: { className?: string }) {
 function HeartDivider() {
   return (
     <div className="flex items-center justify-center gap-2.5 mb-10">
-      <span className="w-8 h-px" style={{ background: '#E8A0AE' }} />
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="#E8A0AE">
+      <span className="w-8 h-px" style={{ background: '#C99BA0' }} />
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#C99BA0">
         <path d="M12 20.5c-.3 0-.6-.1-.8-.3C7.8 17.4 3 13.6 3 9.3 3 6.4 5.3 4 8.2 4c1.7 0 3.2.8 4.1 2.1C13.2 4.8 14.7 4 16.4 4 19.3 4 21.6 6.4 21.6 9.3c0 4.3-4.8 8.1-8.2 10.9-.2.2-.5.3-.8.3Z" />
       </svg>
-      <span className="w-8 h-px" style={{ background: '#E8A0AE' }} />
+      <span className="w-8 h-px" style={{ background: '#C99BA0' }} />
     </div>
   );
 }
@@ -461,7 +461,7 @@ export function GreetingBlock({ state, style }: FullViewSectionProps) {
         <div className="flex justify-center mb-4"><FloralSprig /></div>
         {info.mainPhrase && (
           <div className="text-center mb-8">
-            <p className="font-serif whitespace-pre-line leading-loose" style={{ color: '#5B4A4E' }}>{info.mainPhrase}</p>
+            <p className="font-serif whitespace-pre-line leading-loose" style={{ color: '#4A3F3F' }}>{info.mainPhrase}</p>
           </div>
         )}
         <HeartDivider />
@@ -503,7 +503,7 @@ export function CalendarBlock({ state, style }: FullViewSectionProps) {
       <div
         className="mb-10 px-4 py-6 rounded-lg"
         style={lovely
-          ? { background: '#FFFFFF', borderRadius: 26, boxShadow: '0 12px 28px rgba(91,74,78,0.09)' }
+          ? { background: '#FFFFFF', borderRadius: 26, boxShadow: '0 12px 28px rgba(74,63,63,0.09)' }
           : { background: style.sectionBg }}
       >
         <WeddingCalendar
@@ -517,7 +517,7 @@ export function CalendarBlock({ state, style }: FullViewSectionProps) {
           <Button
             variant="outline" size="sm" className="w-full mt-4"
             style={
-              lovely ? { borderColor: '#E8A0AE', color: '#B65C6C', borderRadius: 999 }
+              lovely ? { borderColor: '#C99BA0', color: '#8C5158', borderRadius: 999 }
               : style.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: style.text } : {}
             }
             onClick={handleAddToCalendar}
@@ -552,7 +552,7 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
             {state.gallery.map((img, i) => (
               <div
                 key={img.id}
-                className="bg-white rounded-xl p-2 pb-4 shadow-[0_10px_20px_rgba(91,74,78,0.14)]"
+                className="bg-white rounded-xl p-2 pb-4 shadow-[0_10px_20px_rgba(74,63,63,0.14)]"
                 style={{ transform: `rotate(${SCRAPBOOK_ROTATIONS[i % SCRAPBOOK_ROTATIONS.length]}deg)` }}
               >
                 <div
@@ -562,7 +562,7 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
                   <Image src={img.url} alt="" fill sizes="160px" className="object-cover" />
                 </div>
                 {img.caption && (
-                  <p className="text-center text-[10px] mt-2" style={{ color: '#9C8B90' }}>{img.caption}</p>
+                  <p className="text-center text-[10px] mt-2" style={{ color: '#8A7B7B' }}>{img.caption}</p>
                 )}
               </div>
             ))}
@@ -611,7 +611,7 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
     <div className="px-8">
       <div
         className="mb-6 px-4 py-4 rounded-lg"
-        style={lovely ? { background: '#FFFFFF', borderRadius: 22, boxShadow: '0 10px 24px rgba(91,74,78,0.08)' } : { background: style.sectionBg }}
+        style={lovely ? { background: '#FFFFFF', borderRadius: 22, boxShadow: '0 10px 24px rgba(74,63,63,0.08)' } : { background: style.sectionBg }}
       >
         <div className="flex items-start gap-2 mb-3">
           <MapPin className="h-4 w-4 mt-0.5 shrink-0" style={{ color: style.accent }} />
