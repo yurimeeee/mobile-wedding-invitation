@@ -5,6 +5,7 @@ import { resolvePreviewStyle } from '@/lib/preview-style'
 import { fullViewSectionRegistry } from '@/components/invitation/full-view/section-registry'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { Music, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -193,14 +194,21 @@ function SectionStage({ state, invitationId, invitationUrl, onOpenLightbox }: {
       {sections.map((section) => {
         const Block = fullViewSectionRegistry[section.kind]
         return (
-          <Block
+          <motion.div
             key={section.id}
-            state={state}
-            style={style}
-            invitationId={invitationId}
-            invitationUrl={invitationUrl}
-            onOpenLightbox={onOpenLightbox}
-          />
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          >
+            <Block
+              state={state}
+              style={style}
+              invitationId={invitationId}
+              invitationUrl={invitationUrl}
+              onOpenLightbox={onOpenLightbox}
+            />
+          </motion.div>
         )
       })}
 
