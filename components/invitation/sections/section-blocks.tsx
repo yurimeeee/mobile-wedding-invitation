@@ -210,6 +210,58 @@ function HeroVintageForest({ info, mainImage }: { info: EditorState['weddingInfo
   );
 }
 
+function HeroLovely({ info, mainImage }: { info: EditorState['weddingInfo']; mainImage: GalleryImage | null }) {
+  const groomEn = info.groomFirstName || `${info.groomLastNameKr}${info.groomFirstNameKr}`;
+  const brideEn = info.brideFirstName || `${info.brideLastNameKr}${info.brideFirstNameKr}`;
+  const firstEn = info.brideFirst ? brideEn : groomEn;
+  const secondEn = info.brideFirst ? groomEn : brideEn;
+  const groomKr = `${info.groomLastNameKr}${info.groomFirstNameKr}`;
+  const brideKr = `${info.brideLastNameKr}${info.brideFirstNameKr}`;
+  const firstKr = info.brideFirst ? brideKr : groomKr;
+  const secondKr = info.brideFirst ? groomKr : brideKr;
+  const dateLabel = formatWeddingDateLabel(info.weddingDate);
+
+  return (
+    <div className="pt-8 pb-6 px-6" style={{ background: 'linear-gradient(180deg, #FBDCE3 0%, #FCEFE8 55%, #FFF8F4 100%)' }}>
+      <div className="relative flex justify-center mb-6">
+        <svg width="70" height="70" viewBox="0 0 90 90" className="absolute -top-2 -left-2 pointer-events-none select-none" fill="none">
+          <g opacity="0.85">
+            <ellipse cx="28" cy="30" rx="14" ry="11" fill="#F6C6D0" />
+            <ellipse cx="44" cy="23" rx="11" ry="9" fill="#FBE0D9" />
+            <ellipse cx="18" cy="42" rx="10" ry="8" fill="#F3D9E4" />
+          </g>
+        </svg>
+        <svg width="70" height="70" viewBox="0 0 90 90" className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ transform: 'scaleX(-1)' }} fill="none">
+          <g opacity="0.8">
+            <ellipse cx="28" cy="30" rx="12" ry="9" fill="#F6C6D0" />
+            <ellipse cx="44" cy="23" rx="9" ry="7" fill="#FBE0D9" />
+          </g>
+        </svg>
+        <div className="relative w-[200px] h-[268px] rounded-[24px] overflow-hidden" style={{ border: '5px solid #FFFFFF', boxShadow: '0 12px 24px rgba(182,92,108,0.18)' }}>
+          {mainImage
+            ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-9 h-9" style={{ color: '#C9707F', opacity: 0.25 }} /></div>}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-[10px] tracking-[0.3em] mb-2" style={{ color: '#C9707F' }}>WE ARE GETTING MARRIED</p>
+        <h1 style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 34, color: '#B65C6C', lineHeight: 1.1 }}>
+          {firstEn} <span style={{ fontSize: 22, color: '#E8A0AE' }}>&amp;</span> {secondEn}
+        </h1>
+        <p className="font-serif text-[13px] mt-1.5 tracking-widest" style={{ color: '#5B4A4E' }}>{firstKr} · {secondKr}</p>
+        {dateLabel && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="w-4 h-px" style={{ background: '#E8A0AE' }} />
+            <span className="text-[11px]" style={{ color: '#9C8B90' }}>{dateLabel}</span>
+            <span className="w-4 h-px" style={{ background: '#E8A0AE' }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
 function CoupleNames({ info, textStyle, accentColor }: {
@@ -223,15 +275,59 @@ function CoupleNames({ info, textStyle, accentColor }: {
   const second = info.brideFirst ? groomKr : brideKr;
   const firstEn = info.brideFirst ? info.brideFirstName : info.groomFirstName;
   const secondEn = info.brideFirst ? info.groomFirstName : info.brideFirstName;
+  const accent = accentColor || '#c47a85';
+  const mutedStyle: CSSProperties = { color: textStyle.color, opacity: 0.5 };
+  const style = info.nameDisplayStyle || 'dot';
+
+  if (style === 'ampersand') {
+    return (
+      <div className="text-center space-y-1">
+        <h1 className="font-serif text-2xl" style={textStyle}>
+          {first}
+          <span className="mx-2 font-light" style={{ color: accent }}>&amp;</span>
+          {second}
+        </h1>
+        <p className="text-xs tracking-widest" style={mutedStyle}>{firstEn} & {secondEn}</p>
+      </div>
+    );
+  }
+
+  if (style === 'stacked') {
+    return (
+      <div className="text-center space-y-1.5">
+        <h1 className="font-serif text-xl leading-relaxed" style={textStyle}>
+          {first}
+          <br />
+          <span className="text-xs font-light tracking-widest" style={{ color: accent }}>and</span>
+          <br />
+          {second}
+        </h1>
+        <p className="text-xs tracking-widest" style={mutedStyle}>{firstEn} & {secondEn}</p>
+      </div>
+    );
+  }
+
+  if (style === 'english-lead') {
+    return (
+      <div className="text-center space-y-1">
+        <h1 className="font-serif italic text-2xl" style={textStyle}>
+          {firstEn}
+          <span className="mx-2 font-light not-italic" style={{ color: accent }}>&amp;</span>
+          {secondEn}
+        </h1>
+        <p className="text-xs tracking-widest" style={mutedStyle}>{first} · {second}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="text-center space-y-1">
       <h1 className="font-serif text-xl" style={textStyle}>
         {first}
-        <span className="mx-2 font-light" style={{ color: accentColor || '#c47a85' }}>·</span>
+        <span className="mx-2 font-light" style={{ color: accent }}>·</span>
         {second}
       </h1>
-      <p className="text-xs tracking-widest" style={{ color: textStyle.color, opacity: 0.5 }}>
+      <p className="text-xs tracking-widest" style={mutedStyle}>
         {firstEn} & {secondEn}
       </p>
     </div>
@@ -251,12 +347,45 @@ export function CoverBlock({ state, style }: SectionBlockProps) {
       {template === 'floral-romantic'    && <HeroFloralRomantic    info={info} mainImage={mainImage} textStyle={textStyle} />}
       {template === 'dark-luxury'        && <HeroDarkLuxury        info={info} mainImage={mainImage} textStyle={textStyle} />}
       {template === 'vintage-forest'     && <HeroVintageForest     info={info} mainImage={mainImage} />}
+      {template === 'lovely-blush'       && <HeroLovely            info={info} mainImage={mainImage} />}
     </>
   );
 }
 
 export function GreetingBlock({ state, style }: SectionBlockProps) {
   const { info, textStyle, dividerStyle } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
+
+  if (lovely) {
+    return (
+      <>
+        <div className="flex justify-center mb-3">
+          <svg width="48" height="36" viewBox="0 0 60 46" fill="none">
+            <g opacity="0.9">
+              <ellipse cx="22" cy="18" rx="10" ry="8" fill="#F6C6D0" />
+              <ellipse cx="34" cy="14" rx="8" ry="6.5" fill="#FBE0D9" />
+              <ellipse cx="38" cy="24" rx="7" ry="6" fill="#F3D9E4" />
+            </g>
+            <g fill="#B8CDB0" opacity="0.8">
+              <path d="M27 30 Q19 28 17 20 Q27 22 27 30Z" />
+              <path d="M33 33 Q41 31 43 24 Q34 25 33 33Z" />
+            </g>
+          </svg>
+        </div>
+        {info.mainPhrase && (
+          <div className="text-center px-8 mb-6">
+            <p className="font-serif whitespace-pre-line leading-loose text-sm" style={{ color: '#5B4A4E' }}>{info.mainPhrase}</p>
+          </div>
+        )}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <span className="w-6 h-px" style={{ background: '#E8A0AE' }} />
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#E8A0AE"><path d="M12 20.5c-.3 0-.6-.1-.8-.3C7.8 17.4 3 13.6 3 9.3 3 6.4 5.3 4 8.2 4c1.7 0 3.2.8 4.1 2.1C13.2 4.8 14.7 4 16.4 4 19.3 4 21.6 6.4 21.6 9.3c0 4.3-4.8 8.1-8.2 10.9-.2.2-.5.3-.8.3Z" /></svg>
+          <span className="w-6 h-px" style={{ background: '#E8A0AE' }} />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="h-px mx-8 mb-8" style={dividerStyle} />
@@ -271,15 +400,20 @@ export function GreetingBlock({ state, style }: SectionBlockProps) {
 
 export function CalendarBlock({ state, style }: SectionBlockProps) {
   const { info, mutedStyle, dividerStyle, sectionStyle, groomParentsLine, brideParentsLine } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
   return (
     <>
       <div className="h-px mx-8 mb-8" style={dividerStyle} />
-      <div className="mx-4 mb-8 px-4 py-5 rounded-lg" style={sectionStyle}>
+      <div
+        className="mx-4 mb-8 px-4 py-5 rounded-lg"
+        style={lovely ? { background: '#FFFFFF', borderRadius: 26, boxShadow: '0 12px 28px rgba(91,74,78,0.09)' } : sectionStyle}
+      >
         <WeddingCalendar
           weddingDate={info.weddingDate}
           weddingTime={info.weddingTime}
           settings={state.calendarSettings}
           isDark={style.isDark}
+          lovely={lovely}
         />
       </div>
       <div className="text-center px-6 mb-8 space-y-1.5">
@@ -291,8 +425,35 @@ export function CalendarBlock({ state, style }: SectionBlockProps) {
   );
 }
 
+const SCRAPBOOK_ROTATIONS = [-1.5, 1.5, -2, 1];
+
 export function GalleryBlock({ state, style }: SectionBlockProps) {
   const { dividerStyle } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
+
+  if (lovely) {
+    return (
+      <>
+        <div className="h-px mx-8 mb-8" style={dividerStyle} />
+        {state.gallery.length > 1 && (
+          <div className="mx-4 mb-8 grid grid-cols-2 gap-3">
+            {state.gallery.slice(0, 4).map((img, i) => (
+              <div
+                key={img.id}
+                className="bg-white rounded-lg p-1.5 pb-3 shadow-[0_8px_16px_rgba(91,74,78,0.14)]"
+                style={{ transform: `rotate(${SCRAPBOOK_ROTATIONS[i % SCRAPBOOK_ROTATIONS.length]}deg)` }}
+              >
+                <div className="aspect-square rounded overflow-hidden">
+                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <div className="h-px mx-8 mb-8" style={dividerStyle} />
@@ -336,12 +497,16 @@ export function LocationBlock({ state, style }: SectionBlockProps) {
 
 export function AccountBlock({ state, style }: SectionBlockProps) {
   const { info, textStyle, mutedStyle, sectionStyle } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
   return (
     <>
-      <div className="mx-4 mb-6 px-4 py-3 rounded-lg" style={sectionStyle}>
+      <div
+        className="mx-4 mb-6 px-4 py-3 rounded-lg"
+        style={lovely ? { background: 'linear-gradient(160deg, #FBE3D3, #FBDCE3)', borderRadius: 22 } : sectionStyle}
+      >
         <button className="flex items-center justify-between w-full">
-          <span className="text-sm font-medium" style={textStyle}>축하의 마음을 전하세요</span>
-          <ChevronDown className="h-4 w-4" style={mutedStyle} />
+          <span className="text-sm font-medium" style={lovely ? { color: '#5B4A4E' } : textStyle}>축하의 마음을 전하세요</span>
+          <ChevronDown className="h-4 w-4" style={lovely ? { color: '#B65C6C' } : mutedStyle} />
         </button>
       </div>
 
@@ -376,6 +541,7 @@ export function RsvpBlock({ state, style, invitationId }: SectionBlockProps) {
         mutedStyle={mutedStyle}
         sectionBg={style.sectionBg}
         accentColor={style.accent}
+        lovely={state.template === 'lovely-blush'}
       />
     </div>
   );
@@ -392,6 +558,7 @@ export function GuestbookBlock({ state, style, invitationId }: SectionBlockProps
         mutedStyle={mutedStyle}
         sectionBg={style.sectionBg}
         accentColor={style.accent}
+        lovely={state.template === 'lovely-blush'}
       />
     </div>
   );
@@ -401,7 +568,12 @@ export function ShareBlock({ state, style }: SectionBlockProps) {
   const { info } = getDerived(state, style);
   return (
     <div className="mx-4 mb-8">
-      <ShareSection shareSettings={state.shareSettings} weddingInfo={info} isDark={style.isDark} />
+      <ShareSection
+        shareSettings={state.shareSettings}
+        weddingInfo={info}
+        isDark={style.isDark}
+        lovely={state.template === 'lovely-blush'}
+      />
     </div>
   );
 }

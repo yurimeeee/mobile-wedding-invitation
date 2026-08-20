@@ -1,6 +1,6 @@
 'use client';
 
-import { type WeddingInfo, type CalendarSettings } from '@/lib/types';
+import { type WeddingInfo, type CalendarSettings, type NameDisplayStyle, nameDisplayStyles } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,6 +80,13 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 <Input value={info.brideFirstNameKr} onChange={(e) => onChange({ brideFirstNameKr: e.target.value })} placeholder="이름" />
               </div>
             </div>
+
+            <div className="h-px bg-border" />
+
+            <div className="space-y-2">
+              <Label>{'이름 표시 스타일'}</Label>
+              <NameDisplayStylePicker info={info} value={info.nameDisplayStyle} onChange={(v) => onChange({ nameDisplayStyle: v })} />
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -111,24 +118,15 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
               <Label className="text-muted-foreground text-xs">날짜 섹션 표시 설정</Label>
               <div className="flex items-center justify-between">
                 <Label className="font-normal">달력 표시</Label>
-                <Switch
-                  checked={calendarSettings.calendarDisplay}
-                  onCheckedChange={(v) => onCalendarChange({ calendarDisplay: v })}
-                />
+                <Switch checked={calendarSettings.calendarDisplay} onCheckedChange={(v) => onCalendarChange({ calendarDisplay: v })} />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="font-normal">카운트다운 표시</Label>
-                <Switch
-                  checked={calendarSettings.countdownDisplay}
-                  onCheckedChange={(v) => onCalendarChange({ countdownDisplay: v })}
-                />
+                <Switch checked={calendarSettings.countdownDisplay} onCheckedChange={(v) => onCalendarChange({ countdownDisplay: v })} />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="font-normal">D-Day 표시</Label>
-                <Switch
-                  checked={calendarSettings.dDayDisplay}
-                  onCheckedChange={(v) => onCalendarChange({ dDayDisplay: v })}
-                />
+                <Switch checked={calendarSettings.dDayDisplay} onCheckedChange={(v) => onCalendarChange({ dDayDisplay: v })} />
               </div>
             </div>
           </AccordionContent>
@@ -187,10 +185,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 <div className="flex items-center gap-2">
                   <Input value={info.groomFatherName} onChange={(e) => onChange({ groomFatherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
-                    <Checkbox
-                      checked={info.groomFatherDeceased}
-                      onCheckedChange={(v) => onChange({ groomFatherDeceased: v === true })}
-                    />
+                    <Checkbox checked={info.groomFatherDeceased} onCheckedChange={(v) => onChange({ groomFatherDeceased: v === true })} />
                     {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
@@ -200,10 +195,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 <div className="flex items-center gap-2">
                   <Input value={info.groomMotherName} onChange={(e) => onChange({ groomMotherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
-                    <Checkbox
-                      checked={info.groomMotherDeceased}
-                      onCheckedChange={(v) => onChange({ groomMotherDeceased: v === true })}
-                    />
+                    <Checkbox checked={info.groomMotherDeceased} onCheckedChange={(v) => onChange({ groomMotherDeceased: v === true })} />
                     {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
@@ -217,10 +209,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 <div className="flex items-center gap-2">
                   <Input value={info.brideFatherName} onChange={(e) => onChange({ brideFatherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
-                    <Checkbox
-                      checked={info.brideFatherDeceased}
-                      onCheckedChange={(v) => onChange({ brideFatherDeceased: v === true })}
-                    />
+                    <Checkbox checked={info.brideFatherDeceased} onCheckedChange={(v) => onChange({ brideFatherDeceased: v === true })} />
                     {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
@@ -230,10 +219,7 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 <div className="flex items-center gap-2">
                   <Input value={info.brideMotherName} onChange={(e) => onChange({ brideMotherName: e.target.value })} placeholder="성함" />
                   <label className="flex items-center gap-1.5 shrink-0 text-sm text-muted-foreground cursor-pointer">
-                    <Checkbox
-                      checked={info.brideMotherDeceased}
-                      onCheckedChange={(v) => onChange({ brideMotherDeceased: v === true })}
-                    />
+                    <Checkbox checked={info.brideMotherDeceased} onCheckedChange={(v) => onChange({ brideMotherDeceased: v === true })} />
                     {info.showDeceasedMark ? <Flower className="h-4 w-4" /> : '故'}
                   </label>
                 </div>
@@ -243,7 +229,10 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
             <div className="h-px bg-border" />
 
             <div className="flex items-center justify-between">
-              <Label className="font-normal">{'고인 표시 방식'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">부모님 성함 옆에 표시할 기호</span></Label>
+              <Label className="font-normal">
+                {'고인 표시 방식'}
+                <span className="block text-xs text-muted-foreground font-normal mt-0.5">부모님 성함 옆에 표시할 기호</span>
+              </Label>
               <ToggleGroup
                 type="single"
                 variant="outline"
@@ -253,18 +242,20 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                   if (v) onChange({ showDeceasedMark: v === 'flower' });
                 }}
               >
-                <ToggleGroupItem value="hanja" aria-label="한자로 표기" className="px-3">故</ToggleGroupItem>
+                <ToggleGroupItem value="hanja" aria-label="한자로 표기" className="px-3">
+                  故
+                </ToggleGroupItem>
                 <ToggleGroupItem value="flower" aria-label="국화 아이콘으로 표기" className="px-3">
                   <Flower className="h-4 w-4" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
             <div className="flex items-center justify-between">
-              <Label className="font-normal">{'항목 순서'}<span className="block text-xs text-muted-foreground font-normal mt-0.5">신부측 먼저 표시</span></Label>
-              <Switch
-                checked={info.brideFirst}
-                onCheckedChange={(v) => onChange({ brideFirst: v })}
-              />
+              <Label className="font-normal">
+                {'항목 순서'}
+                <span className="block text-xs text-muted-foreground font-normal mt-0.5">신부측 먼저 표시</span>
+              </Label>
+              <Switch checked={info.brideFirst} onCheckedChange={(v) => onChange({ brideFirst: v })} />
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -336,6 +327,80 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    </div>
+  );
+}
+
+function NameDisplayStylePicker({ info, value, onChange }: { info: WeddingInfo; value: NameDisplayStyle; onChange: (v: NameDisplayStyle) => void }) {
+  const groomKr = `${info.groomLastNameKr}${info.groomFirstNameKr}` || '최우식';
+  const brideKr = `${info.brideLastNameKr}${info.brideFirstNameKr}` || '김유림';
+  const groomEn = info.groomFirstName || 'Woosik';
+  const brideEn = info.brideFirstName || 'Yurim';
+  const first = info.brideFirst ? brideKr : groomKr;
+  const second = info.brideFirst ? groomKr : brideKr;
+  const firstEn = info.brideFirst ? brideEn : groomEn;
+  const secondEn = info.brideFirst ? groomEn : brideEn;
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {nameDisplayStyles.map((style) => (
+        <button
+          key={style}
+          type="button"
+          onClick={() => onChange(style)}
+          className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-3 text-center transition-colors ${
+            value === style ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+          }`}
+        >
+          <NameDisplayPreview style={style} first={first} second={second} firstEn={firstEn} secondEn={secondEn} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function NameDisplayPreview({ style, first, second, firstEn, secondEn }: { style: NameDisplayStyle; first: string; second: string; firstEn: string; secondEn: string }) {
+  if (style === 'ampersand') {
+    return (
+      <div className="text-center">
+        <p className="font-serif text-sm">
+          {first} <span className="text-muted-foreground">&amp;</span> {second}
+        </p>
+        <p className="text-[10px] tracking-widest text-muted-foreground">
+          {firstEn} & {secondEn}
+        </p>
+      </div>
+    );
+  }
+  if (style === 'stacked') {
+    return (
+      <div className="text-center leading-tight">
+        <p className="font-serif text-sm">{first}</p>
+        <p className="text-[10px] text-muted-foreground">and</p>
+        <p className="font-serif text-sm">{second}</p>
+      </div>
+    );
+  }
+  if (style === 'english-lead') {
+    return (
+      <div className="text-center">
+        <p className="font-serif italic text-sm">
+          {firstEn} <span className="text-muted-foreground not-italic">&amp;</span> {secondEn}
+        </p>
+        <p className="text-[10px] tracking-widest text-muted-foreground">
+          {first} · {second}
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="text-center">
+      <p className="font-serif text-sm">
+        {first} <span className="text-muted-foreground">·</span> {second}
+      </p>
+      <p className="text-[10px] tracking-widest text-muted-foreground">
+        {firstEn} & {secondEn}
+      </p>
     </div>
   );
 }

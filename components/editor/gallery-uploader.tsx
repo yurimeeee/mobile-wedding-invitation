@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { Upload, X, GripVertical, Image as ImageIcon } from 'lucide-react'
+import { Upload, X, GripVertical } from 'lucide-react'
 import { type GalleryImage } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,7 @@ interface GalleryUploaderProps {
 export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryUploaderProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [isFileDragOver, setIsFileDragOver] = useState(false)
 
   const addFiles = useCallback((files: File[]) => {
     files.forEach((file, i) => {
@@ -35,6 +36,7 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
+    setIsFileDragOver(false)
     addFiles(Array.from(e.dataTransfer.files))
   }, [addFiles])
 
@@ -73,49 +75,76 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
     resetDrag()
   }
 
+  const fileInput = (
+    <input
+      type="file"
+      accept="image/*"
+      multiple
+      onChange={handleFileSelect}
+      className="hidden"
+      id="gallery-upload"
+    />
+  )
+
   return (
-    <div className="space-y-4">
+    <div
+      className={cn(
+        'space-y-4 rounded-lg outline-2 outline-offset-4 outline-dashed transition-colors',
+        isFileDragOver ? 'outline-accent bg-accent/5' : 'outline-transparent'
+      )}
+      onDrop={handleDrop}
+      onDragOver={(e) => {
+        e.preventDefault()
+        if (e.dataTransfer.types.includes('Files')) setIsFileDragOver(true)
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsFileDragOver(false)
+      }}
+    >
       <div>
         <h3 className="text-base font-semibold mb-1">포토 갤러리</h3>
-        <p className="text-xs text-muted-foreground">소중한 순간이 담긴 사진을 채워보세요.</p>
+        <p className="text-xs text-muted-foreground">
+          {images.length > 0 ? '첫 번째 사진이 대표 이미지로 사용돼요. 드래그해서 순서를 바꿀 수 있어요.' : '소중한 순간이 담긴 사진을 채워보세요.'}
+        </p>
       </div>
 
-      {/* Upload area */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
-        className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-          "hover:border-accent hover:bg-accent/5"
-        )}
-      >
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-            <Upload className="h-6 w-6 text-muted-foreground" />
+      {/* Upload area (empty state) */}
+      {images.length === 0 && (
+        <div
+          className={cn(
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            "hover:border-accent hover:bg-accent/5"
+          )}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+              <Upload className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium">이미지를 여기에 드롭하세요</p>
+              <p className="text-sm text-muted-foreground">또는 클릭하여 찾아보기</p>
+            </div>
+            {fileInput}
+            <Button variant="outline" size="sm" asChild>
+              <label htmlFor="gallery-upload" className="cursor-pointer">
+                파일 선택
+              </label>
+            </Button>
           </div>
-          <div>
-            <p className="font-medium">이미지를 여기에 드롭하세요</p>
-            <p className="text-sm text-muted-foreground">또는 클릭하여 찾아보기</p>
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            id="gallery-upload"
-          />
-          <Button variant="outline" size="sm" asChild>
-            <label htmlFor="gallery-upload" className="cursor-pointer">
-              파일 선택
-            </label>
-          </Button>
         </div>
-      </div>
+      )}
 
       {/* Image grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
+          <label
+            htmlFor="gallery-upload"
+            className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:border-accent hover:bg-accent/5 hover:text-accent cursor-pointer"
+          >
+            {fileInput}
+            <Upload className="h-4 w-4" />
+            <span className="text-xs">추가</span>
+          </label>
           {images.map((image, index) => (
             <div
               key={image.id}
@@ -135,6 +164,11 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
                 alt=""
                 className="w-full h-full object-cover pointer-events-none"
               />
+              {index === 0 && (
+                <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-medium leading-none">
+                  대표
+                </span>
+              )}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors cursor-grab active:cursor-grabbing">
                   <GripVertical className="h-4 w-4 text-white" />
@@ -148,14 +182,6 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {images.length === 0 && (
-        <div className="flex flex-col items-center gap-2 py-4 text-center">
-          <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">아직 업로드된 사진이 없어요</p>
         </div>
       )}
     </div>

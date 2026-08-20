@@ -14,6 +14,7 @@ interface RSVPSectionProps {
   mutedStyle: React.CSSProperties
   sectionBg: string
   accentColor: string
+  lovely?: boolean
 }
 
 function ToggleButton({
@@ -21,12 +22,14 @@ function ToggleButton({
   onClick,
   accentColor,
   textStyle,
+  lovely,
   children,
 }: {
   active: boolean
   onClick: () => void
   accentColor: string
   textStyle: React.CSSProperties
+  lovely?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -34,8 +37,9 @@ function ToggleButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
-        active ? 'border-transparent text-white' : 'border-border'
+        'flex-1 border py-2 text-sm font-medium transition-colors',
+        lovely ? 'rounded-full' : 'rounded-md',
+        active ? 'border-transparent text-white' : lovely ? 'border-[#EBD8DC]' : 'border-border'
       )}
       style={active ? { background: accentColor } : textStyle}
     >
@@ -44,7 +48,7 @@ function ToggleButton({
   )
 }
 
-export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor }: RSVPSectionProps) {
+export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor, lovely }: RSVPSectionProps) {
   const [name, setName] = useState('')
   const [side, setSide] = useState<RSVPSide | null>(null)
   const [attending, setAttending] = useState<boolean | null>(null)
@@ -81,10 +85,15 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
     }
   }
 
+  const cardStyle = lovely
+    ? { background: '#FFFFFF', borderRadius: 24, boxShadow: '0 10px 24px rgba(91,74,78,0.08)' }
+    : { background: sectionBg }
+  const fieldClass = lovely ? 'rounded-full border-0 bg-[#FDF1F3]' : undefined
+
   if (submitted) {
     return (
       <div className="mb-10">
-        <div className="rounded-lg p-6 flex flex-col items-center gap-2 text-center" style={{ background: sectionBg }}>
+        <div className="rounded-lg p-6 flex flex-col items-center gap-2 text-center" style={cardStyle}>
           <CheckCircle2 className="h-6 w-6" style={{ color: accentColor }} />
           <p className="text-sm font-medium" style={textStyle}>참석여부가 전달되었습니다</p>
           <p className="text-xs" style={mutedStyle}>소중한 걸음, 미리 알려주셔서 감사합니다</p>
@@ -100,27 +109,28 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
         <h2 className="text-sm font-medium" style={textStyle}>참석여부 전달</h2>
       </div>
 
-      <div className="rounded-lg p-4 space-y-3" style={{ background: sectionBg }}>
+      <div className="rounded-lg p-4 space-y-3" style={cardStyle}>
         <Input
           placeholder="성함"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className={fieldClass}
         />
 
         <div className="flex gap-2">
-          <ToggleButton active={side === 'groom'} onClick={() => setSide('groom')} accentColor={accentColor} textStyle={textStyle}>
+          <ToggleButton active={side === 'groom'} onClick={() => setSide('groom')} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
             신랑측
           </ToggleButton>
-          <ToggleButton active={side === 'bride'} onClick={() => setSide('bride')} accentColor={accentColor} textStyle={textStyle}>
+          <ToggleButton active={side === 'bride'} onClick={() => setSide('bride')} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
             신부측
           </ToggleButton>
         </div>
 
         <div className="flex gap-2">
-          <ToggleButton active={attending === true} onClick={() => setAttending(true)} accentColor={accentColor} textStyle={textStyle}>
+          <ToggleButton active={attending === true} onClick={() => setAttending(true)} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
             참석
           </ToggleButton>
-          <ToggleButton active={attending === false} onClick={() => setAttending(false)} accentColor={accentColor} textStyle={textStyle}>
+          <ToggleButton active={attending === false} onClick={() => setAttending(false)} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
             불참
           </ToggleButton>
         </div>
@@ -134,7 +144,7 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
                 min={1}
                 value={guestCount}
                 onChange={(e) => setGuestCount(e.target.value)}
-                className="w-20"
+                className={cn('w-20', fieldClass)}
               />
               <span className="text-sm" style={mutedStyle}>명</span>
             </div>
@@ -142,10 +152,10 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
             <div className="space-y-1.5">
               <label className="text-sm" style={mutedStyle}>예식 식사 참석 여부</label>
               <div className="flex gap-2">
-                <ToggleButton active={mealAttending === true} onClick={() => setMealAttending(true)} accentColor={accentColor} textStyle={textStyle}>
+                <ToggleButton active={mealAttending === true} onClick={() => setMealAttending(true)} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
                   식사 참석
                 </ToggleButton>
-                <ToggleButton active={mealAttending === false} onClick={() => setMealAttending(false)} accentColor={accentColor} textStyle={textStyle}>
+                <ToggleButton active={mealAttending === false} onClick={() => setMealAttending(false)} accentColor={accentColor} textStyle={textStyle} lovely={lovely}>
                   식사 안함
                 </ToggleButton>
               </div>
@@ -155,6 +165,7 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
               placeholder="동반인 성함 (있는 경우, 쉼표로 구분)"
               value={companions}
               onChange={(e) => setCompanions(e.target.value)}
+              className={fieldClass}
             />
           </>
         )}
@@ -164,9 +175,10 @@ export function RSVPSection({ invitationId, textStyle, mutedStyle, sectionBg, ac
           placeholder="연락처 (선택)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          className={fieldClass}
         />
 
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full" style={{ background: accentColor }}>
+        <Button onClick={handleSubmit} disabled={isSubmitting} className={cn('w-full', lovely && 'rounded-full')} style={{ background: accentColor }}>
           참석여부 전달하기
         </Button>
       </div>

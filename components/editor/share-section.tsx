@@ -12,9 +12,10 @@ interface ShareSectionProps {
   weddingInfo: WeddingInfo
   isDark?: boolean
   invitationUrl?: string
+  lovely?: boolean
 }
 
-export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl }: ShareSectionProps) {
+export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl, lovely }: ShareSectionProps) {
   const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY ?? ''
   const url = invitationUrl ?? (typeof window !== 'undefined' ? window.location.href : '')
 
@@ -61,6 +62,29 @@ export function ShareSection({ shareSettings, weddingInfo, isDark, invitationUrl
       catch { alert('복사에 실패했습니다.') }
       document.body.removeChild(el)
     }
+  }
+
+  if (lovely) {
+    return (
+      <div className="flex items-center gap-2 bg-white rounded-full p-1.5 shadow-[0_16px_34px_rgba(91,74,78,0.18)]">
+        <button
+          onClick={handleKakaoShare}
+          className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-3 rounded-full"
+          style={{ background: '#FEE500', color: '#3C1E1E' }}
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          카카오톡 공유
+        </button>
+        <button
+          onClick={handleCopyLink}
+          className="flex-1 flex items-center justify-center gap-1.5 text-sm font-bold py-3 rounded-full"
+          style={{ border: '1px solid #F0D7DD', color: '#B65C6C' }}
+        >
+          <Link className="h-3.5 w-3.5" />
+          링크 복사
+        </button>
+      </div>
+    )
   }
 
   return (

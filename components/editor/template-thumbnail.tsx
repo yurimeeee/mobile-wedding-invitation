@@ -72,6 +72,18 @@ export function TemplateThumbnail({ id }: { id: TemplateType }) {
       </div>
     )
   }
+  if (id === 'lovely-blush') {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-start pt-4" style={{ background: 'linear-gradient(180deg,#FBDCE3,#FFF8F4)' }}>
+        <div className="relative w-20 h-24 rounded-2xl overflow-hidden mb-3" style={{ background: '#F6C6D0', border: '3px solid white', boxShadow: '0 4px 10px rgba(182,92,108,0.2)' }}>
+          <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full opacity-70" style={{ background: '#F3D9E4' }} />
+          <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full opacity-70" style={{ background: '#FBE0D9' }} />
+        </div>
+        <div className="w-16 h-2 rounded mb-1.5" style={{ background: '#B65C6C', opacity: 0.6 }} />
+        <div className="w-12 h-1.5 rounded" style={{ background: '#5B4A4E', opacity: 0.3 }} />
+      </div>
+    )
+  }
   if (id === 'vintage-forest') {
     return (
       <div className="w-full h-full relative overflow-hidden" style={{ background: '#3D3830' }}>

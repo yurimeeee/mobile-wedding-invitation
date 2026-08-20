@@ -193,13 +193,15 @@ function SectionStage({ state, invitationId, invitationUrl, onOpenLightbox }: {
     <div ref={containerRef} className="relative">
       {sections.map((section) => {
         const Block = fullViewSectionRegistry[section.kind]
+        const isCover = section.kind === 'cover'
         return (
           <motion.div
             key={section.id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            initial={isCover ? { opacity: 0, scale: 0.96 } : { opacity: 0, y: 24 }}
+            {...(isCover
+              ? { animate: { opacity: 1, scale: 1 } }
+              : { whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.2 } })}
+            transition={isCover ? { duration: 0.7, delay: 0.15, ease: 'easeOut' } : { duration: 0.4, ease: 'easeOut' }}
           >
             <Block
               state={state}

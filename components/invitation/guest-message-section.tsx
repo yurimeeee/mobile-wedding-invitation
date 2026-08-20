@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import {
   addGuestMessage, deleteGuestMessageWithPassword, loadGuestMessages, type GuestMessage,
 } from '@/lib/message-service'
@@ -16,9 +17,14 @@ interface GuestMessageSectionProps {
   mutedStyle: React.CSSProperties
   sectionBg: string
   accentColor: string
+  lovely?: boolean
 }
 
-export function GuestMessageSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor }: GuestMessageSectionProps) {
+// 스티키노트 방명록 카드에 번갈아 쓰이는 파스텔 톤 + 살짝 기울어진 각도
+const STICKY_COLORS = ['#FBDCE3', '#FBE3D3', '#E3DCF0']
+const STICKY_ROTATIONS = [-1.5, 1.2, -0.8]
+
+export function GuestMessageSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor, lovely }: GuestMessageSectionProps) {
   const [messages, setMessages] = useState<GuestMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [form, setForm] = useState({ name: '', password: '', contents: '' })
@@ -77,20 +83,23 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
       </div>
 
       {/* Write form */}
-      <div className="rounded-lg p-4 mb-4 space-y-2" style={{ background: sectionBg }}>
+      <div
+        className="rounded-lg p-4 mb-4 space-y-2"
+        style={lovely ? { background: '#FFFFFF', borderRadius: 22, boxShadow: '0 10px 22px rgba(91,74,78,0.08)' } : { background: sectionBg }}
+      >
         <div className="flex gap-2">
           <Input
             placeholder="성함"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="flex-1"
+            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#FDF1F3]')}
           />
           <Input
             type="password"
             placeholder="비밀번호"
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className="flex-1"
+            className={cn('flex-1', lovely && 'rounded-full border-0 bg-[#FDF1F3]')}
           />
         </div>
         <Textarea
@@ -98,8 +107,14 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
           value={form.contents}
           onChange={(e) => setForm((f) => ({ ...f, contents: e.target.value }))}
           rows={3}
+          className={cn(lovely && 'rounded-2xl border-0 bg-[#FDF1F3]')}
         />
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full" style={{ background: accentColor }}>
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className={cn('w-full', lovely && 'rounded-full')}
+          style={{ background: accentColor }}
+        >
           메시지 남기기
         </Button>
       </div>
@@ -108,19 +123,30 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
       {!isLoading && messages.length === 0 && (
         <p className="text-center text-sm py-4" style={mutedStyle}>아직 남겨진 메시지가 없어요</p>
       )}
-      <div className="space-y-2">
-        {messages.map((msg) => (
-          <div key={msg.id} className="rounded-lg p-3" style={{ background: sectionBg }}>
+      <div className={cn(lovely ? 'space-y-3' : 'space-y-2')}>
+        {messages.map((msg, i) => (
+          <div
+            key={msg.id}
+            className="rounded-lg p-3"
+            style={lovely
+              ? {
+                  background: STICKY_COLORS[i % STICKY_COLORS.length],
+                  borderRadius: 16,
+                  boxShadow: '0 10px 18px rgba(91,74,78,0.1)',
+                  transform: `rotate(${STICKY_ROTATIONS[i % STICKY_ROTATIONS.length]}deg)`,
+                }
+              : { background: sectionBg }}
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-medium" style={textStyle}>{msg.name}</p>
-                <p className="text-sm mt-1 whitespace-pre-line break-words" style={mutedStyle}>{msg.contents}</p>
+                <p className="text-sm font-medium" style={lovely ? { color: '#5B4A4E' } : textStyle}>{msg.name}</p>
+                <p className="text-sm mt-1 whitespace-pre-line break-words" style={lovely ? { color: '#6B5A5E' } : mutedStyle}>{msg.contents}</p>
               </div>
               <button
                 onClick={() => setDeletingId(deletingId === msg.id ? null : msg.id)}
                 className="shrink-0 opacity-40 hover:opacity-100 transition-opacity"
               >
-                <Trash2 className="h-3.5 w-3.5" style={textStyle} />
+                <Trash2 className="h-3.5 w-3.5" style={lovely ? { color: '#5B4A4E' } : textStyle} />
               </button>
             </div>
             {deletingId === msg.id && (

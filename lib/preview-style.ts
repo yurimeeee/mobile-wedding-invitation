@@ -58,6 +58,14 @@ export const templateConfig: Record<TemplateType, PreviewStyleConfig> = {
     isDark: false,
     accent: '#8B6F47',
   },
+  'lovely-blush': {
+    bg: '#FFF8F4',
+    text: '#5B4A4E',
+    divider: '#F3D9E4',
+    sectionBg: 'rgba(246,198,208,0.22)',
+    isDark: false,
+    accent: '#C9707F',
+  },
 }
 
 // customLayout.background는 template의 나머지 팔레트(텍스트/구분선/섹션 배경)는 그대로 두고

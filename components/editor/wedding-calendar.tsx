@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { AnimatePresence, motion } from 'framer-motion'
 import { type CalendarSettings } from '@/lib/types'
 
 interface WeddingCalendarProps {
@@ -10,6 +11,16 @@ interface WeddingCalendarProps {
   weddingTime: string  // 'HH:mm'
   settings: CalendarSettings
   isDark?: boolean
+  // '러블리 블러쉬' 템플릿에서 그라데이션 필 카운트다운 · 하트 포인트 등 로맨틱한 스타일로 전환
+  lovely?: boolean
+}
+
+function HeartIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
+      <path d="M12 20.5c-.3 0-.6-.1-.8-.3C7.8 17.4 3 13.6 3 9.3 3 6.4 5.3 4 8.2 4c1.7 0 3.2.8 4.1 2.1C13.2 4.8 14.7 4 16.4 4 19.3 4 21.6 6.4 21.6 9.3c0 4.3-4.8 8.1-8.2 10.9-.2.2-.5.3-.8.3Z" />
+    </svg>
+  )
 }
 
 function formatKoreanTime(timeStr: string) {
@@ -21,7 +32,7 @@ function formatKoreanTime(timeStr: string) {
 }
 
 // ─── Custom Calendar Grid ────────────────────────────────────────────────────
-function CalendarGrid({ wedding, isDark }: { wedding: Date; isDark?: boolean }) {
+function CalendarGrid({ wedding, isDark, lovely }: { wedding: Date; isDark?: boolean; lovely?: boolean }) {
   const year = wedding.getFullYear()
   const month = wedding.getMonth()
   const targetDay = wedding.getDate()
@@ -80,8 +91,9 @@ function CalendarGrid({ wedding, isDark }: { wedding: Date; isDark?: boolean }) 
             <div key={i} className="flex items-center justify-center py-0.5">
               {day ? (
                 isTarget ? (
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: '#F3D5D9' }}>
+                  <div className="relative w-7 h-7 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: '#F3D5D9' }}>
                     <span className="text-[12px] font-bold" style={{ color: '#7a3d44' }}>{day}</span>
+                    {lovely && <HeartIcon className="absolute -top-1 -right-1 w-2.5 h-2.5" style={{ color: '#B65C6C' }} />}
                   </div>
                 ) : (
                   <span className={`text-[12px] w-7 h-7 flex items-center justify-center ${textColor}`}>
@@ -97,8 +109,39 @@ function CalendarGrid({ wedding, isDark }: { wedding: Date; isDark?: boolean }) 
   )
 }
 
+// ─── Rolling Digit ───────────────────────────────────────────────────────────
+function RollingDigit({ digit, className }: { digit: string; className?: string }) {
+  return (
+    <span className="relative inline-block h-[1.2em] w-[1ch] overflow-hidden align-bottom">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={digit}
+          initial={{ y: '100%' }}
+          animate={{ y: '0%' }}
+          exit={{ y: '-100%' }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className={`absolute inset-0 flex items-center justify-center ${className ?? ''}`}
+        >
+          {digit}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  )
+}
+
+function RollingNumber({ value, className }: { value: number; className?: string }) {
+  const digits = String(value).padStart(2, '0').split('')
+  return (
+    <span className="inline-flex">
+      {digits.map((d, i) => (
+        <RollingDigit key={i} digit={d} className={className} />
+      ))}
+    </span>
+  )
+}
+
 // ─── Countdown ───────────────────────────────────────────────────────────────
-function Countdown({ target, isDark }: { target: Date; isDark?: boolean }) {
+function Countdown({ target, isDark, lovely }: { target: Date; isDark?: boolean; lovely?: boolean }) {
   const calc = () => {
     const diff = target.getTime() - Date.now()
     if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
@@ -124,6 +167,29 @@ function Countdown({ target, isDark }: { target: Date; isDark?: boolean }) {
     ['seconds', time.seconds],
   ]
 
+  const labelKr: Record<string, string> = { days: '일', hours: '시', minutes: '분', seconds: '초' }
+
+  if (lovely) {
+    return (
+      <div className="flex items-center justify-center gap-1.5 w-full">
+        {items.map(([label, val], i) => (
+          <Fragment key={label}>
+            {i > 0 && <HeartIcon className="w-2 h-2 shrink-0" style={{ color: '#E8A0AE' }} />}
+            <div
+              className="flex-1 flex flex-col items-center justify-center py-3 rounded-2xl"
+              style={{ background: 'linear-gradient(160deg, #FBDCE3, #F6C6D0)', boxShadow: '0 8px 18px rgba(246,198,208,0.55)' }}
+            >
+              <span className="font-serif text-lg font-bold tabular-nums" style={{ color: '#B65C6C' }}>
+                <RollingNumber value={val} />
+              </span>
+              <span className="text-[10px] mt-0.5 tracking-widest" style={{ color: '#96434F' }}>{labelKr[label]}</span>
+            </div>
+          </Fragment>
+        ))}
+      </div>
+    )
+  }
+
   const borderCls = isDark ? 'border-white/15' : 'border-gray-200'
   const numCls = isDark ? 'text-white' : 'text-gray-800'
   const labelCls = isDark ? 'text-gray-500' : 'text-gray-400'
@@ -137,7 +203,7 @@ function Countdown({ target, isDark }: { target: Date; isDark?: boolean }) {
             <span className={`absolute left-0 top-1/2 -translate-y-1/2 text-xs ${dividerCls}`}>·</span>
           )}
           <span className={`text-lg font-light tabular-nums tracking-tight ${numCls}`}>
-            {String(val).padStart(2, '0')}
+            <RollingNumber value={val} />
           </span>
           <span className={`text-[10px] mt-0.5 tracking-widest uppercase ${labelCls}`}>{label}</span>
         </div>
@@ -147,8 +213,24 @@ function Countdown({ target, isDark }: { target: Date; isDark?: boolean }) {
 }
 
 // ─── D-Day ───────────────────────────────────────────────────────────────────
-function DDay({ target, isDark }: { target: Date; isDark?: boolean }) {
+function DDay({ target, isDark, lovely }: { target: Date; isDark?: boolean; lovely?: boolean }) {
   const diff = Math.ceil((target.getTime() - Date.now()) / 86400000)
+  const label = diff > 0 ? `D-${diff}` : diff === 0 ? 'D-DAY' : `D+${Math.abs(diff)}`
+
+  if (lovely) {
+    return (
+      <div className="flex justify-center">
+        <span
+          className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 rounded-full"
+          style={{ background: '#B65C6C', color: '#FFF8F4' }}
+        >
+          <HeartIcon className="w-2.5 h-2.5" />
+          {label}
+        </span>
+      </div>
+    )
+  }
+
   const accentCls = isDark ? 'text-pink-300' : 'text-[#c47a85]'
   const textCls = isDark ? 'text-gray-300' : 'text-gray-600'
 
@@ -166,32 +248,32 @@ function DDay({ target, isDark }: { target: Date; isDark?: boolean }) {
 }
 
 // ─── Main Export ─────────────────────────────────────────────────────────────
-export function WeddingCalendar({ weddingDate, weddingTime, settings, isDark }: WeddingCalendarProps) {
+export function WeddingCalendar({ weddingDate, weddingTime, settings, isDark, lovely }: WeddingCalendarProps) {
   const wedding = weddingDate && !isNaN(new Date(weddingDate).getTime())
     ? new Date(weddingDate)
     : new Date()
 
-  const textCls = isDark ? 'text-gray-300' : 'text-gray-600'
-  const subTextCls = isDark ? 'text-gray-500' : 'text-gray-400'
+  const textCls = lovely ? '' : isDark ? 'text-gray-300' : 'text-gray-600'
+  const subTextCls = lovely ? '' : isDark ? 'text-gray-500' : 'text-gray-400'
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
       {/* Date & time headline */}
       <div className="text-center space-y-0.5">
-        <p className={`text-sm font-medium ${textCls}`}>
+        <p className={`text-sm font-medium ${textCls}`} style={lovely ? { color: '#B65C6C' } : undefined}>
           {format(wedding, 'yyyy년 M월 d일 EEEE', { locale: ko })}
         </p>
         {weddingTime && (
-          <p className={`text-xs ${subTextCls}`}>{formatKoreanTime(weddingTime)}</p>
+          <p className={`text-xs ${subTextCls}`} style={lovely ? { color: '#9C8B90' } : undefined}>{formatKoreanTime(weddingTime)}</p>
         )}
       </div>
 
       {settings.calendarDisplay && (
-        <CalendarGrid wedding={wedding} isDark={isDark} />
+        <CalendarGrid wedding={wedding} isDark={isDark} lovely={lovely} />
       )}
 
-      {settings.countdownDisplay && <Countdown target={wedding} isDark={isDark} />}
-      {settings.dDayDisplay && <DDay target={wedding} isDark={isDark} />}
+      {settings.countdownDisplay && <Countdown target={wedding} isDark={isDark} lovely={lovely} />}
+      {settings.dDayDisplay && <DDay target={wedding} isDark={isDark} lovely={lovely} />}
     </div>
   )
 }

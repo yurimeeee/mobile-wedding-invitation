@@ -16,3 +16,4 @@ node_modules
 firebase-debug.log
 .vercel
 .env*
+.gstack/

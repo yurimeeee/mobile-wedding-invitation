@@ -49,6 +49,7 @@ const templateColors: Record<string, string> = {
   'dark-luxury': 'from-gray-800 to-gray-900',
   'korean-traditional': 'from-orange-50 to-orange-100',
   'vintage-forest': 'from-stone-100 to-stone-200',
+  'lovely-blush': 'from-pink-50 to-rose-100',
 };
 
 export default function DashboardPage() {
