@@ -21,6 +21,8 @@ const FreeElementCanvas = dynamic(
 interface InvitationFullViewProps {
   state: EditorState
   invitationId: string
+  // 관리자 미리보기 등 이미 접근 권한이 확인된 컨텍스트에서 잠금 화면을 건너뛴다.
+  bypassLock?: boolean
 }
 
 // ─── Gallery Lightbox ─────────────────────────────────────────────────────────
@@ -128,16 +130,35 @@ function GalleryLightbox({ images, initialIndex, onClose }: {
 }
 
 // ─── Lock screen ──────────────────────────────────────────────────────────────
-function LockScreen({ onUnlock, correctPassword }: { onUnlock: () => void; correctPassword: string }) {
+// 비밀번호는 서버(/api/invitation-lock)에서만 대조한다 — 클라이언트에 정답을 내려주면
+// 페이지 소스나 Firestore 클라이언트 SDK로 그대로 읽힐 수 있기 때문이다.
+function LockScreen({ invitationId, onUnlock }: { invitationId: string; onUnlock: () => void }) {
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password === correctPassword) {
-      onUnlock()
-    } else {
-      setError(true)
+    setChecking(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/invitation-lock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: invitationId, password }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.ok) {
+        onUnlock()
+      } else if (res.status === 429) {
+        setError(data.error || '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.')
+      } else {
+        setError('비밀번호가 올바르지 않습니다.')
+      }
+    } catch {
+      setError('확인 중 오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      setChecking(false)
     }
   }
 
@@ -152,12 +173,12 @@ function LockScreen({ onUnlock, correctPassword }: { onUnlock: () => void; corre
         <Input
           type="password"
           value={password}
-          onChange={(e) => { setPassword(e.target.value); setError(false) }}
+          onChange={(e) => { setPassword(e.target.value); setError(null) }}
           placeholder="비밀번호"
           autoFocus
         />
-        {error && <p className="text-xs text-destructive text-center">비밀번호가 올바르지 않습니다.</p>}
-        <Button type="submit" className="w-full">확인</Button>
+        {error && <p className="text-xs text-destructive text-center">{error}</p>}
+        <Button type="submit" className="w-full" disabled={checking}>{checking ? '확인 중...' : '확인'}</Button>
       </form>
     </div>
   )
@@ -237,7 +258,7 @@ function SectionStage({ state, invitationId, invitationUrl, onOpenLightbox }: {
 }
 
 // ─── Main full view ───────────────────────────────────────────────────────────
-export function InvitationFullView({ state, invitationId }: InvitationFullViewProps) {
+export function InvitationFullView({ state, invitationId, bypassLock }: InvitationFullViewProps) {
   const { musicSettings, privacySettings } = state
   const style = resolvePreviewStyle(state)
   const invitationUrl = typeof window !== 'undefined'
@@ -245,7 +266,7 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
     : ''
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [unlocked, setUnlocked] = useState(false)
-  const isLocked = privacySettings.lockEnabled && !unlocked
+  const isLocked = privacySettings.lockEnabled && !unlocked && !bypassLock
 
   // 확대방지: 핀치 줌과 뷰포트 확대를 막는다
   useEffect(() => {
@@ -299,7 +320,7 @@ export function InvitationFullView({ state, invitationId }: InvitationFullViewPr
   }
 
   if (isLocked) {
-    return <LockScreen correctPassword={privacySettings.lockPassword} onUnlock={() => setUnlocked(true)} />
+    return <LockScreen invitationId={invitationId} onUnlock={() => setUnlocked(true)} />
   }
 
   return (

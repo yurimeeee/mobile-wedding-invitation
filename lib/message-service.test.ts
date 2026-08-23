@@ -46,6 +46,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('addGuestMessage', () => {
@@ -59,35 +60,38 @@ describe('addGuestMessage', () => {
   })
 })
 
+// 비밀번호 대조는 이제 /api/guest-message 라우트(Admin SDK)에서 이루어진다 — 공개 delete가
+// Firestore 규칙에서 막혀 있어서 클라이언트가 직접 지울 수 없다. 그래서 여기서는 이 함수가
+// 그 라우트를 올바르게 호출하고 응답을 해석하는지만 검증한다.
 describe('deleteGuestMessageWithPassword', () => {
-  it('deletes when the correct password is given', async () => {
-    const created = await addGuestMessage('inv-1', '홍길동', 'correct-horse', '축하합니다')
-    const ok = await deleteGuestMessageWithPassword('inv-1', created.id, 'correct-horse')
+  const fetchMock = vi.fn()
+
+  beforeEach(() => {
+    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockReset()
+  })
+
+  it('calls the server route with the invitation, message id, and password', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) })
+
+    const ok = await deleteGuestMessageWithPassword('inv-1', 'msg-1', 'correct-horse')
+
     expect(ok).toBe(true)
-    expect(store.has(created.id)).toBe(false)
+    expect(fetchMock).toHaveBeenCalledWith('/api/guest-message', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ invitationId: 'inv-1', messageId: 'msg-1', password: 'correct-horse' }),
+    })
   })
 
-  it('refuses deletion and keeps the message when the password is wrong', async () => {
-    const created = await addGuestMessage('inv-1', '홍길동', 'correct-horse', '축하합니다')
-    const ok = await deleteGuestMessageWithPassword('inv-1', created.id, 'wrong-password')
-    expect(ok).toBe(false)
-    expect(store.has(created.id)).toBe(true)
+  it('returns false when the server reports the password was wrong', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: false }) })
+    expect(await deleteGuestMessageWithPassword('inv-1', 'msg-1', 'wrong')).toBe(false)
   })
 
-  it('still verifies legacy unsalted documents written before salting was added', async () => {
-    // salt 도입 이전 문서 형태를 그대로 재현: SHA256(password)만 저장되어 있고 salt 필드가 없음
-    const legacyHash = await crypto.subtle
-      .digest('SHA-256', new TextEncoder().encode('legacy-pass'))
-      .then((buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join(''))
-    store.set('legacy-1', { name: '레거시', contents: '오래된 메시지', passwordHash: legacyHash })
-
-    const ok = await deleteGuestMessageWithPassword('inv-1', 'legacy-1', 'legacy-pass')
-    expect(ok).toBe(true)
-  })
-
-  it('returns false for a message that does not exist', async () => {
-    const ok = await deleteGuestMessageWithPassword('inv-1', 'does-not-exist', 'whatever')
-    expect(ok).toBe(false)
+  it('returns false when the request fails (e.g. rate limited)', async () => {
+    fetchMock.mockResolvedValue({ ok: false, json: async () => ({ error: '너무 많은 시도' }) })
+    expect(await deleteGuestMessageWithPassword('inv-1', 'msg-1', 'whatever')).toBe(false)
   })
 })
 

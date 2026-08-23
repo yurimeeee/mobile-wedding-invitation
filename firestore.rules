@@ -88,7 +88,15 @@ service cloud.firestore {
         }
         allow read: if isPublished(invitation()) || isOwner();
         allow create: if (isPublished(invitation()) || isOwner()) && isValidMessage();
-        allow delete: if isPublished(invitation()) || isOwner();
+        // 하객의 삭제는 비밀번호를 대조해야 하는데 규칙에서는 passwordHash를 직접 비교할
+        // 방법이 없다(해시 함수 없음). 그래서 공개 delete는 막고 /api/guest-message
+        // 라우트에서 Admin SDK로 비밀번호를 확인한 뒤 대신 삭제한다.
+        allow delete: if isOwner();
+      }
+
+      // /api/guest-message 라우트가 IP별 삭제 시도 빈도를 세는 용도 — Admin SDK로만 접근.
+      match /messageDeleteAttempts/{ipHash} {
+        allow read, write: if false;
       }
 
       // 참석여부 응답: 하객의 공개 제출은 요청 빈도를 제한할 수 있는 /api/rsvp 라우트를
@@ -122,6 +130,25 @@ service cloud.firestore {
       // /api/rsvp 라우트가 IP별 제출 빈도를 세는 용도 — 소유자를 포함해 클라이언트에서는
       // 직접 읽거나 쓸 수 없고 Admin SDK로만 접근한다.
       match /rsvpRateLimits/{ipHash} {
+        allow read, write: if false;
+      }
+
+      // 청첩장 잠금 비밀번호. invitations/{id} 문서는 발행 시 누구나 읽을 수 있으므로,
+      // 비밀번호를 그 문서에 두면 하객이 devtools로 Firestore를 직접 읽어 평문 비밀번호를
+      // 볼 수 있다. 그래서 별도 서브문서로 분리해 소유자만 읽고 쓸 수 있게 하고, 하객의
+      // 잠금 해제 확인은 /api/invitation-lock 라우트에서 Admin SDK로만 처리한다.
+      match /private/{docId} {
+        function invitation() {
+          return get(/databases/$(database)/documents/invitations/$(invitationId)).data;
+        }
+        function isOwner() {
+          return request.auth != null && request.auth.uid == invitation().uid;
+        }
+        allow read, write: if isOwner();
+      }
+
+      // /api/invitation-lock 라우트가 IP별 비밀번호 시도 빈도를 세는 용도 — Admin SDK로만 접근.
+      match /lockAttempts/{ipHash} {
         allow read, write: if false;
       }
 

@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, deleteDoc, doc, getDoc, getDocs,
+  addDoc, collection, deleteDoc, doc, getDocs,
   orderBy, query, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { db } from './firebase'
@@ -26,11 +26,6 @@ async function sha256Hex(input: string): Promise<string> {
 
 function hashPassword(password: string, salt: string): Promise<string> {
   return sha256Hex(`${salt}:${password}`)
-}
-
-// salt 도입 이전에 저장된 문서는 salt 없이 SHA256(password)로만 해시되어 있었다
-function hashPasswordLegacy(password: string): Promise<string> {
-  return sha256Hex(password)
 }
 
 function messagesCollection(invitationId: string) {
@@ -69,23 +64,21 @@ export async function loadGuestMessages(invitationId: string): Promise<GuestMess
   })
 }
 
+// 비밀번호 대조와 삭제는 서버(/api/guest-message)에서만 이루어진다 — Firestore 규칙은
+// 공개 delete를 막아뒀다(누구나 devtools로 Firestore를 직접 호출해 비밀번호 없이 삭제하는
+// 것을 막기 위해). 여기서는 결과만 돌려받는다.
 export async function deleteGuestMessageWithPassword(
   invitationId: string,
   messageId: string,
   password: string
 ): Promise<boolean> {
-  const msgRef = doc(db, 'invitations', invitationId, 'messages', messageId)
-  const snap = await getDoc(msgRef)
-  if (!snap.exists()) return false
-
-  const stored = snap.data()
-  const passwordHash = stored.salt
-    ? await hashPassword(password, stored.salt)
-    : await hashPasswordLegacy(password)
-  if (stored.passwordHash !== passwordHash) return false
-
-  await deleteDoc(msgRef)
-  return true
+  const res = await fetch('/api/guest-message', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ invitationId, messageId, password }),
+  })
+  const data = await res.json().catch(() => ({}))
+  return res.ok && data.ok === true
 }
 
 export async function deleteGuestMessage(invitationId: string, messageId: string): Promise<void> {

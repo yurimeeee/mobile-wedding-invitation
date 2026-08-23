@@ -67,7 +67,7 @@ export default function AdminInvitationPreviewPage() {
       </div>
       <div className="pt-9">
         {state ? (
-          <InvitationFullView state={state} invitationId={id} />
+          <InvitationFullView state={state} invitationId={id} bypassLock />
         ) : (
           <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
             불러오는 중...

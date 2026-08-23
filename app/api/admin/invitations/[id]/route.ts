@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
-    privacySettings: data.privacySettings ?? defaultPrivacySettings,
+    privacySettings: { ...defaultPrivacySettings, ...(data.privacySettings ?? {}) },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout ?? defaultCustomLayout,

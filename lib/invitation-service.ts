@@ -89,6 +89,11 @@ export async function saveInvitation(
   const snap = await getDoc(docRef)
   const savedState = { ...state, gallery, musicSettings, shareSettings }
 
+  // 잠금 비밀번호는 invitations/{id} 문서에 두지 않는다 — 그 문서는 발행되면 누구나 읽을 수
+  // 있어서(firestore.rules) 평문 비밀번호가 그대로 노출된다. 소유자만 읽고 쓸 수 있는
+  // private/lock 서브문서에 따로 저장한다.
+  const { lockPassword, ...publicPrivacySettings } = state.privacySettings
+
   await setDoc(
     docRef,
     {
@@ -100,7 +105,7 @@ export async function saveInvitation(
       gallery,
       calendarSettings: state.calendarSettings,
       shareSettings,
-      privacySettings: state.privacySettings,
+      privacySettings: publicPrivacySettings,
       slug: state.slug || '',
       mode: state.mode ?? 'template',
       introStyle: state.introStyle ?? 'fade',
@@ -113,13 +118,18 @@ export async function saveInvitation(
     { merge: true }
   )
 
+  await setDoc(doc(db, 'invitations', invitationId, 'private', 'lock'), { password: lockPassword })
+
   await saveVersionSnapshot(invitationId, savedState, status).catch(() => {})
 
   return { gallery, musicSettings, shareSettings }
 }
 
 export async function loadInvitation(invitationId: string): Promise<EditorState | null> {
-  const snap = await getDoc(doc(db, 'invitations', invitationId))
+  const [snap, lockSnap] = await Promise.all([
+    getDoc(doc(db, 'invitations', invitationId)),
+    getDoc(doc(db, 'invitations', invitationId, 'private', 'lock')),
+  ])
   if (!snap.exists()) return null
   const data = snap.data()
   return {
@@ -129,7 +139,11 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     gallery: data.gallery ?? [],
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
-    privacySettings: { ...defaultPrivacySettings, ...(data.privacySettings ?? {}) },
+    privacySettings: {
+      ...defaultPrivacySettings,
+      ...(data.privacySettings ?? {}),
+      lockPassword: lockSnap.data()?.password ?? '',
+    },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout ?? defaultCustomLayout,
@@ -226,7 +240,10 @@ export async function checkSlugAvailable(slug: string, excludeId: string): Promi
 }
 
 export async function duplicateInvitation(uid: string, invitationId: string): Promise<string> {
-  const snap = await getDoc(doc(db, 'invitations', invitationId))
+  const [snap, lockSnap] = await Promise.all([
+    getDoc(doc(db, 'invitations', invitationId)),
+    getDoc(doc(db, 'invitations', invitationId, 'private', 'lock')),
+  ])
   if (!snap.exists()) throw new Error('원본 청첩장을 찾을 수 없습니다')
 
   const data = snap.data()
@@ -242,5 +259,8 @@ export async function duplicateInvitation(uid: string, invitationId: string): Pr
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
+  if (lockSnap.exists()) {
+    await setDoc(doc(db, 'invitations', newRef.id, 'private', 'lock'), lockSnap.data())
+  }
   return newRef.id
 }
