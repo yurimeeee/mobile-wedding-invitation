@@ -4,7 +4,8 @@ import { adminDb } from '@/lib/firebase-admin'
 import { requireAdminRequest } from '@/lib/admin-api-auth'
 import {
   defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo,
-  defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout,
+  defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout, defaultStoryItems,
+  reconcileSections,
   type EditorState,
 } from '@/lib/types'
 
@@ -22,12 +23,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     weddingInfo: { ...defaultWeddingInfo, ...(data.weddingInfo ?? {}) },
     musicSettings: data.musicSettings ?? defaultMusicSettings,
     gallery: data.gallery ?? [],
+    storyItems: data.storyItems ?? defaultStoryItems,
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
     privacySettings: { ...defaultPrivacySettings, ...(data.privacySettings ?? {}) },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
-    customLayout: data.customLayout ?? defaultCustomLayout,
+    customLayout: data.customLayout
+      ? { ...data.customLayout, sections: reconcileSections(data.customLayout.sections) }
+      : defaultCustomLayout,
     introStyle: data.introStyle ?? 'fade',
   }
 

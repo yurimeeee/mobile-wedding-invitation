@@ -3,6 +3,7 @@ export interface EditorState {
   weddingInfo: WeddingInfo
   musicSettings: MusicSettings
   gallery: GalleryImage[]
+  storyItems: StoryItem[]
   calendarSettings: CalendarSettings
   shareSettings: ShareSettings
   privacySettings: PrivacySettings
@@ -28,7 +29,7 @@ export const introStyleLabels: Record<IntroStyle, { name: string; description: s
 }
 
 export type SectionKind =
-  | 'cover' | 'greeting' | 'calendar' | 'gallery'
+  | 'cover' | 'greeting' | 'story' | 'calendar' | 'gallery'
   | 'location' | 'account' | 'guestbook' | 'rsvp' | 'share'
 
 export interface SectionInstance {
@@ -113,6 +114,7 @@ export interface CustomLayout {
 export const sectionKindLabels: Record<SectionKind, string> = {
   cover: '메인 커버',
   greeting: '인사말',
+  story: '우리의 이야기',
   calendar: '일시/캘린더',
   gallery: '갤러리',
   location: '오시는 길',
@@ -138,7 +140,7 @@ export const MAX_CUSTOM_ELEMENT_DIMENSION = 2000 // px (width and height)
 
 export const defaultCustomLayout: CustomLayout = {
   sections: (
-    ['cover', 'greeting', 'calendar', 'gallery', 'location', 'account', 'rsvp', 'guestbook', 'share'] as SectionKind[]
+    ['cover', 'greeting', 'story', 'calendar', 'gallery', 'location', 'account', 'rsvp', 'guestbook', 'share'] as SectionKind[]
   ).map((kind, order) => ({
     id: `section-${kind}`,
     kind,
@@ -148,6 +150,18 @@ export const defaultCustomLayout: CustomLayout = {
   freeElements: [],
   // value: '' means "no override, use the selected template's background"
   background: { type: 'color', value: '' },
+}
+
+// 저장된 customLayout은 그때그때의 defaultCustomLayout을 스냅샷으로 갖고 있어서, 이후에
+// 새 SectionKind가 추가돼도(예: story) 기존에 저장된 청첩장에는 반영되지 않는다. 불러올
+// 때마다 빠진 섹션을 뒤에 이어 붙여 새 섹션이 항상 순서 목록에 나타나도록 보정한다.
+export function reconcileSections(sections: SectionInstance[]): SectionInstance[] {
+  const existingKinds = new Set(sections.map((s) => s.kind))
+  const maxOrder = sections.reduce((max, s) => Math.max(max, s.order), -1)
+  const missing = defaultCustomLayout.sections
+    .filter((s) => !existingKinds.has(s.kind))
+    .map((s, i) => ({ ...s, order: maxOrder + 1 + i }))
+  return missing.length > 0 ? [...sections, ...missing] : sections
 }
 
 export type TemplateType =
@@ -210,6 +224,18 @@ export interface GalleryImage {
   caption?: string
   order: number
 }
+
+// 신랑신부의 연애 이야기를 시간순으로 보여주는 타임라인 항목
+export interface StoryItem {
+  id: string
+  date: string
+  title: string
+  description: string
+  imageUrl?: string
+  order: number
+}
+
+export const defaultStoryItems: StoryItem[] = []
 
 export interface CalendarSettings {
   calendarDisplay: boolean

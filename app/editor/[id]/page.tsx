@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
+  BookHeart,
   Check,
   Copy,
   Eye,
@@ -43,6 +44,7 @@ import { MusicControls } from '@/components/editor/music-controls';
 import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
 import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
+import { StoryEditor } from '@/components/editor/story-editor';
 import { TemplateSelector } from '@/components/editor/template-selector';
 import { VersionHistoryDialog } from '@/components/editor/version-history-dialog';
 import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
@@ -117,6 +119,10 @@ export default function EditorPage() {
     addGalleryImage,
     removeGalleryImage,
     reorderGallery,
+    addStoryItem,
+    updateStoryItem,
+    removeStoryItem,
+    reorderStoryItems,
     updateCalendarSettings,
     updateShareSettings,
     updatePrivacySettings,
@@ -246,6 +252,7 @@ export default function EditorPage() {
     { id: 'order', label: '순서', icon: ListOrdered },
     { id: 'elements', label: '요소', icon: Sticker },
     { id: 'gallery', label: '갤러리', icon: Image },
+    { id: 'story', label: '스토리', icon: BookHeart },
     { id: 'music', label: '음악', icon: Music },
     { id: 'share', label: '공유', icon: Share2 },
     { id: 'privacy', label: '보안', icon: Lock },
@@ -357,6 +364,7 @@ export default function EditorPage() {
                 />
                 <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
                 <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
+                <StoryEditor items={state.storyItems} onAdd={addStoryItem} onUpdate={updateStoryItem} onRemove={removeStoryItem} onReorder={reorderStoryItems} />
                 <ShareSettingsForm
                   shareSettings={state.shareSettings}
                   calendarSettings={state.calendarSettings}
@@ -503,6 +511,9 @@ export default function EditorPage() {
                 </TabsContent>
                 <TabsContent value="gallery" className="mt-0">
                   <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
+                </TabsContent>
+                <TabsContent value="story" className="mt-0">
+                  <StoryEditor items={state.storyItems} onAdd={addStoryItem} onUpdate={updateStoryItem} onRemove={removeStoryItem} onReorder={reorderStoryItems} />
                 </TabsContent>
                 <TabsContent value="music" className="mt-0">
                   <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />

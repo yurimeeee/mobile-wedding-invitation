@@ -161,6 +161,14 @@ function formatWeddingDateLabel(weddingDate: string): string {
   return `${date.getFullYear()}. ${mm}. ${dd} ${dow}`;
 }
 
+function formatStoryDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (!dateStr || Number.isNaN(date.getTime())) return '';
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}. ${mm}. ${dd}`;
+}
+
 function HeroVintageForest({ info, mainImage }: { info: EditorState['weddingInfo']; mainImage: GalleryImage | null }) {
   const groomLabel = info.groomFirstName || `${info.groomLastNameKr}${info.groomFirstNameKr}`;
   const brideLabel = info.brideFirstName || `${info.brideLastNameKr}${info.brideFirstNameKr}`;
@@ -477,6 +485,50 @@ export function GreetingBlock({ state, style }: FullViewSectionProps) {
           <p className="font-serif whitespace-pre-line leading-loose" style={textStyle}>{info.mainPhrase}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+export function StoryBlock({ state, style }: FullViewSectionProps) {
+  const { textStyle, mutedStyle, dividerStyle } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
+  const items = [...state.storyItems].sort((a, b) => a.order - b.order);
+  if (items.length === 0) return null;
+
+  const dotColor = lovely ? '#C99BA0' : style.accent;
+  const lineColor = lovely ? '#F0E0E1' : style.divider;
+
+  return (
+    <div className="px-8">
+      <div className="h-px mb-10" style={dividerStyle} />
+      <div className="mb-10 space-y-8">
+        {items.map((item, i) => (
+          <div key={item.id} className="flex gap-4">
+            <div className="flex flex-col items-center shrink-0 pt-1.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+              {i < items.length - 1 && <span className="w-px flex-1 mt-1" style={{ background: lineColor }} />}
+            </div>
+            <div className="flex-1 min-w-0 pb-1">
+              {item.date && (
+                <p className="text-xs mb-1.5 tracking-wide" style={{ color: dotColor }}>{formatStoryDate(item.date)}</p>
+              )}
+              <div className="flex gap-3">
+                {item.imageUrl && (
+                  <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                    <Image src={item.imageUrl} alt="" fill sizes="64px" className="object-cover" />
+                  </div>
+                )}
+                <div className="min-w-0 pt-0.5">
+                  {item.title && <p className="font-medium text-sm mb-1" style={textStyle}>{item.title}</p>}
+                  {item.description && (
+                    <p className="text-xs whitespace-pre-line leading-relaxed" style={mutedStyle}>{item.description}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

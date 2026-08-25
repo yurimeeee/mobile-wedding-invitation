@@ -4,7 +4,7 @@ import { deleteInvitation, loadInvitation, loadUserInvitations, saveInvitation }
 import {
   AUTO_EXPIRE_DAYS,
   defaultCalendarSettings, defaultCustomLayout, defaultMusicSettings,
-  defaultPrivacySettings, defaultShareSettings, defaultWeddingInfo,
+  defaultPrivacySettings, defaultShareSettings, defaultWeddingInfo, defaultStoryItems,
   type EditorState,
 } from './types'
 
@@ -62,6 +62,7 @@ function makeState(overrides: { weddingDate?: string; autoExpireEnabled?: boolea
     weddingInfo: { ...defaultWeddingInfo, weddingDate: overrides.weddingDate ?? '' },
     musicSettings: defaultMusicSettings,
     gallery: [],
+    storyItems: defaultStoryItems,
     calendarSettings: defaultCalendarSettings,
     shareSettings: defaultShareSettings,
     privacySettings: { ...defaultPrivacySettings, autoExpireEnabled: overrides.autoExpireEnabled ?? false },

@@ -398,6 +398,56 @@ export function GreetingBlock({ state, style }: SectionBlockProps) {
   );
 }
 
+function formatStoryDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (!dateStr || Number.isNaN(date.getTime())) return '';
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}. ${mm}. ${dd}`;
+}
+
+export function StoryBlock({ state, style }: SectionBlockProps) {
+  const { textStyle, mutedStyle, dividerStyle } = getDerived(state, style);
+  const lovely = state.template === 'lovely-blush';
+  const items = [...state.storyItems].sort((a, b) => a.order - b.order);
+  if (items.length === 0) return null;
+
+  const dotColor = lovely ? '#C99BA0' : style.accent;
+  const lineColor = lovely ? '#F0E0E1' : style.divider;
+
+  return (
+    <>
+      <div className="h-px mx-8 mb-8" style={dividerStyle} />
+      <div className="mx-4 mb-8 space-y-6">
+        {items.map((item, i) => (
+          <div key={item.id} className="flex gap-3">
+            <div className="flex flex-col items-center shrink-0 pt-1">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dotColor }} />
+              {i < items.length - 1 && <span className="w-px flex-1 mt-1" style={{ background: lineColor }} />}
+            </div>
+            <div className="flex-1 min-w-0 pb-1">
+              {item.date && <p className="text-[11px] mb-1" style={{ color: dotColor }}>{formatStoryDate(item.date)}</p>}
+              <div className="flex gap-2.5">
+                {item.imageUrl && (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  {item.title && <p className="font-medium text-xs mb-0.5" style={textStyle}>{item.title}</p>}
+                  {item.description && (
+                    <p className="text-[11px] whitespace-pre-line leading-relaxed" style={mutedStyle}>{item.description}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function CalendarBlock({ state, style }: SectionBlockProps) {
   const { info, mutedStyle, dividerStyle, sectionStyle, groomParentsLine, brideParentsLine } = getDerived(state, style);
   const lovely = state.template === 'lovely-blush';

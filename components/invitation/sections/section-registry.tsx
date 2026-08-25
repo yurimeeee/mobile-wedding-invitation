@@ -4,6 +4,7 @@ import {
   type SectionBlockProps,
   CoverBlock,
   GreetingBlock,
+  StoryBlock,
   CalendarBlock,
   GalleryBlock,
   LocationBlock,
@@ -16,6 +17,7 @@ import {
 export const sectionRegistry: Record<SectionKind, ComponentType<SectionBlockProps>> = {
   cover: CoverBlock,
   greeting: GreetingBlock,
+  story: StoryBlock,
   calendar: CalendarBlock,
   gallery: GalleryBlock,
   location: LocationBlock,

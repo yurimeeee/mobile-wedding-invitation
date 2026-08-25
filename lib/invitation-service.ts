@@ -4,8 +4,8 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { auth, db, storage } from './firebase'
-import type { EditorState, GalleryImage, MusicSettings, ShareSettings } from './types'
-import { AUTO_EXPIRE_DAYS, defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout } from './types'
+import type { EditorState, GalleryImage, MusicSettings, ShareSettings, StoryItem } from './types'
+import { AUTO_EXPIRE_DAYS, defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout, defaultStoryItems, reconcileSections } from './types'
 import { saveVersionSnapshot } from './version-service'
 
 function computeExpiresAt(state: EditorState): Timestamp | null {
@@ -28,6 +28,22 @@ async function uploadNewImages(
       await uploadString(storageRef, img.url, 'data_url')
       const url = await getDownloadURL(storageRef)
       return { ...img, url }
+    })
+  )
+}
+
+async function uploadNewStoryImages(
+  uid: string,
+  invitationId: string,
+  storyItems: StoryItem[]
+): Promise<StoryItem[]> {
+  return Promise.all(
+    storyItems.map(async (item) => {
+      if (!item.imageUrl || !item.imageUrl.startsWith('data:')) return item
+      const storageRef = ref(storage, `invitations/${uid}/${invitationId}/story/${item.id}`)
+      await uploadString(storageRef, item.imageUrl, 'data_url')
+      const imageUrl = await getDownloadURL(storageRef)
+      return { ...item, imageUrl }
     })
   )
 }
@@ -66,6 +82,7 @@ async function uploadShareImages(
 
 export interface SaveInvitationResult {
   gallery: GalleryImage[]
+  storyItems: StoryItem[]
   musicSettings: MusicSettings
   shareSettings: ShareSettings
 }
@@ -76,8 +93,9 @@ export async function saveInvitation(
   state: EditorState,
   status: 'draft' | 'published'
 ): Promise<SaveInvitationResult> {
-  const [gallery, musicSettings, shareSettings] = await Promise.all([
+  const [gallery, storyItems, musicSettings, shareSettings] = await Promise.all([
     uploadNewImages(uid, invitationId, state.gallery),
+    uploadNewStoryImages(uid, invitationId, state.storyItems),
     uploadCustomMusic(uid, invitationId, state.musicSettings),
     uploadShareImages(uid, invitationId, state.shareSettings),
   ])
@@ -87,7 +105,7 @@ export async function saveInvitation(
 
   const docRef = doc(db, 'invitations', invitationId)
   const snap = await getDoc(docRef)
-  const savedState = { ...state, gallery, musicSettings, shareSettings }
+  const savedState = { ...state, gallery, storyItems, musicSettings, shareSettings }
 
   // 잠금 비밀번호는 invitations/{id} 문서에 두지 않는다 — 그 문서는 발행되면 누구나 읽을 수
   // 있어서(firestore.rules) 평문 비밀번호가 그대로 노출된다. 소유자만 읽고 쓸 수 있는
@@ -103,6 +121,7 @@ export async function saveInvitation(
       weddingInfo: state.weddingInfo,
       musicSettings,
       gallery,
+      storyItems,
       calendarSettings: state.calendarSettings,
       shareSettings,
       privacySettings: publicPrivacySettings,
@@ -122,7 +141,7 @@ export async function saveInvitation(
 
   await saveVersionSnapshot(invitationId, savedState, status).catch(() => {})
 
-  return { gallery, musicSettings, shareSettings }
+  return { gallery, storyItems, musicSettings, shareSettings }
 }
 
 export async function loadInvitation(invitationId: string): Promise<EditorState | null> {
@@ -137,6 +156,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     weddingInfo: { ...defaultWeddingInfo, ...(data.weddingInfo ?? {}) },
     musicSettings: data.musicSettings ?? defaultMusicSettings,
     gallery: data.gallery ?? [],
+    storyItems: data.storyItems ?? defaultStoryItems,
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
     privacySettings: {
@@ -146,7 +166,9 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
     },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
-    customLayout: data.customLayout ?? defaultCustomLayout,
+    customLayout: data.customLayout
+      ? { ...data.customLayout, sections: reconcileSections(data.customLayout.sections) }
+      : defaultCustomLayout,
     introStyle: data.introStyle ?? 'fade',
   }
 }

@@ -4,6 +4,7 @@ import {
   type FullViewSectionProps,
   CoverBlock,
   GreetingBlock,
+  StoryBlock,
   CalendarBlock,
   GalleryBlock,
   LocationBlock,
@@ -16,6 +17,7 @@ import {
 export const fullViewSectionRegistry: Record<SectionKind, ComponentType<FullViewSectionProps>> = {
   cover: CoverBlock,
   greeting: GreetingBlock,
+  story: StoryBlock,
   calendar: CalendarBlock,
   gallery: GalleryBlock,
   location: LocationBlock,

@@ -10,6 +10,7 @@ import {
   type WeddingInfo,
   type MusicSettings,
   type GalleryImage,
+  type StoryItem,
   type CalendarSettings,
   type ShareSettings,
   type PrivacySettings,
@@ -24,6 +25,7 @@ import {
   defaultShareSettings,
   defaultPrivacySettings,
   defaultCustomLayout,
+  defaultStoryItems,
   templates,
 } from '@/lib/types'
 
@@ -40,6 +42,7 @@ const initialState: EditorState = {
   weddingInfo: defaultWeddingInfo,
   musicSettings: defaultMusicSettings,
   gallery: [],
+  storyItems: defaultStoryItems,
   calendarSettings: defaultCalendarSettings,
   shareSettings: defaultShareSettings,
   privacySettings: defaultPrivacySettings,
@@ -161,6 +164,25 @@ export function useEditorState(invitationId: string) {
     setState((prev) => ({ ...prev, gallery: images }))
   }
 
+  const addStoryItem = (item: StoryItem) => {
+    setState((prev) => ({ ...prev, storyItems: [...prev.storyItems, item] }))
+  }
+
+  const updateStoryItem = (id: string, updates: Partial<StoryItem>) => {
+    setState((prev) => ({
+      ...prev,
+      storyItems: prev.storyItems.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    }))
+  }
+
+  const removeStoryItem = (id: string) => {
+    setState((prev) => ({ ...prev, storyItems: prev.storyItems.filter((item) => item.id !== id) }))
+  }
+
+  const reorderStoryItems = (items: StoryItem[]) => {
+    setState((prev) => ({ ...prev, storyItems: items }))
+  }
+
   const updateCalendarSettings = (updates: Partial<CalendarSettings>) => {
     setState((prev) => ({ ...prev, calendarSettings: { ...prev.calendarSettings, ...updates } }))
   }
@@ -250,8 +272,8 @@ export function useEditorState(invitationId: string) {
     if (!user || !invitationId) return
     setIsActionLoading(true)
     try {
-      const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
-      setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
+      const { gallery, storyItems, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'draft')
+      setState((prev) => ({ ...prev, gallery, storyItems, musicSettings, shareSettings }))
       setLastSaved(new Date())
       toast.success('임시저장되었습니다')
     } catch {
@@ -266,8 +288,8 @@ export function useEditorState(invitationId: string) {
     if (!user || !invitationId) return null
     setIsActionLoading(true)
     try {
-      const { gallery, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')
-      setState((prev) => ({ ...prev, gallery, musicSettings, shareSettings }))
+      const { gallery, storyItems, musicSettings, shareSettings } = await saveInvitation(user.uid, invitationId, stateRef.current, 'published')
+      setState((prev) => ({ ...prev, gallery, storyItems, musicSettings, shareSettings }))
       setLastSaved(new Date())
       return invitationId
     } catch {
@@ -292,6 +314,10 @@ export function useEditorState(invitationId: string) {
     addGalleryImage,
     removeGalleryImage,
     reorderGallery,
+    addStoryItem,
+    updateStoryItem,
+    removeStoryItem,
+    reorderStoryItems,
     updateCalendarSettings,
     updateShareSettings,
     updatePrivacySettings,
