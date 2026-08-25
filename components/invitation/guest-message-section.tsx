@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MessageCircle, Trash2 } from 'lucide-react'
+import { Lock, MessageCircle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -27,7 +28,7 @@ const STICKY_ROTATIONS = [-1.5, 1.2, -0.8]
 export function GuestMessageSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor, lovely }: GuestMessageSectionProps) {
   const [messages, setMessages] = useState<GuestMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [form, setForm] = useState({ name: '', password: '', contents: '' })
+  const [form, setForm] = useState({ name: '', password: '', contents: '', secret: false })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deletePassword, setDeletePassword] = useState('')
@@ -46,10 +47,10 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
 
     setIsSubmitting(true)
     try {
-      const newMessage = await addGuestMessage(invitationId, form.name.trim(), form.password.trim(), form.contents.trim())
+      const newMessage = await addGuestMessage(invitationId, form.name.trim(), form.password.trim(), form.contents.trim(), form.secret)
       setMessages((prev) => [newMessage, ...prev])
       toast.success('메시지가 등록되었습니다')
-      setForm({ name: '', password: '', contents: '' })
+      setForm({ name: '', password: '', contents: '', secret: false })
     } catch (e) {
       console.error('[guest-message] submit error:', e)
       toast.error('메시지 등록에 실패했습니다')
@@ -109,6 +110,10 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
           rows={3}
           className={cn(lovely && 'rounded-2xl border-0 bg-[#F5E9EA]')}
         />
+        <label className="flex items-center gap-1.5 text-xs cursor-pointer w-fit" style={lovely ? { color: '#6B5A5E' } : mutedStyle}>
+          <Checkbox checked={form.secret} onCheckedChange={(v) => setForm((f) => ({ ...f, secret: v === true }))} />
+          비밀글로 남기기 (신랑신부만 볼 수 있어요)
+        </label>
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
@@ -140,7 +145,14 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-sm font-medium" style={lovely ? { color: '#4A3F3F' } : textStyle}>{msg.name}</p>
-                <p className="text-sm mt-1 whitespace-pre-line break-words" style={lovely ? { color: '#6B5A5E' } : mutedStyle}>{msg.contents}</p>
+                {msg.secret ? (
+                  <p className="text-sm mt-1 flex items-center gap-1.5 italic" style={lovely ? { color: '#8A7B7B' } : mutedStyle}>
+                    <Lock className="h-3 w-3 shrink-0" />
+                    신랑신부만 볼 수 있는 비밀글이에요
+                  </p>
+                ) : (
+                  <p className="text-sm mt-1 whitespace-pre-line break-words" style={lovely ? { color: '#6B5A5E' } : mutedStyle}>{msg.contents}</p>
+                )}
               </div>
               <button
                 onClick={() => setDeletingId(deletingId === msg.id ? null : msg.id)}

@@ -67,5 +67,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   await messageRef.delete()
+  // 부모 문서를 지워도 서브컬렉션은 남으므로, 비밀글이었다면 private/content도 같이 지운다.
+  await messageRef.collection('private').doc('content').delete()
   return NextResponse.json({ ok: true })
 }
