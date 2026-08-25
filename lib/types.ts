@@ -191,6 +191,8 @@ export interface WeddingInfo {
   latitude: number
   longitude: number
   transportGuide: string
+  parkingInfo: string
+  shuttleInfo: string
   groomContact: string
   brideContact: string
   groomFatherName: string
@@ -308,6 +310,8 @@ export const defaultWeddingInfo: WeddingInfo = {
   venue: '',
   address: '',
   transportGuide: '',
+  parkingInfo: '',
+  shuttleInfo: '',
   groomContact: '',
   brideContact: '',
   groomFatherName: '',

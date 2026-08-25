@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { ChevronDown, Heart, MapPin, Phone } from 'lucide-react';
+import { Bus, Car, ChevronDown, Heart, MapPin, Navigation, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
@@ -541,6 +541,28 @@ export function LocationBlock({ state, style }: SectionBlockProps) {
         venueName={info.ceremonyHall}
         isDark={style.isDark}
       />
+      {(info.transportGuide || info.parkingInfo || info.shuttleInfo) && (
+        <div className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${style.divider}` }}>
+          {info.transportGuide && (
+            <div className="flex items-start gap-1.5">
+              <Navigation className="h-3 w-3 mt-0.5 shrink-0" style={{ color: style.accent }} />
+              <p className="text-[11px] whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.transportGuide}</p>
+            </div>
+          )}
+          {info.parkingInfo && (
+            <div className="flex items-start gap-1.5">
+              <Car className="h-3 w-3 mt-0.5 shrink-0" style={{ color: style.accent }} />
+              <p className="text-[11px] whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.parkingInfo}</p>
+            </div>
+          )}
+          {info.shuttleInfo && (
+            <div className="flex items-start gap-1.5">
+              <Bus className="h-3 w-3 mt-0.5 shrink-0" style={{ color: style.accent }} />
+              <p className="text-[11px] whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.shuttleInfo}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

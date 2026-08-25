@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { User, Calendar, MapPin, Phone, CreditCard, Users, Flower } from 'lucide-react';
+import { User, Calendar, MapPin, Phone, CreditCard, Users, Flower, Bus, Car } from 'lucide-react';
 import { AddressSearch } from '@/components/editor/kakao-map';
 import { DatePicker, TimePicker } from '@/components/editor/date-time-picker';
 
@@ -163,6 +163,24 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
                 value={info.transportGuide}
                 onChange={(e) => onChange({ transportGuide: e.target.value })}
                 placeholder="지하철 3호선 동대입구역 5번 출구에서 도보 5분"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Car className="h-3.5 w-3.5" />주차 안내</Label>
+              <Textarea
+                value={info.parkingInfo}
+                onChange={(e) => onChange({ parkingInfo: e.target.value })}
+                placeholder="예식장 지하주차장 2시간 무료, 발렛 가능"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Bus className="h-3.5 w-3.5" />셔틀버스 안내</Label>
+              <Textarea
+                value={info.shuttleInfo}
+                onChange={(e) => onChange({ shuttleInfo: e.target.value })}
+                placeholder="강남역 3번 출구 앞, 12:00 / 12:30 / 13:00 운행"
                 rows={2}
               />
             </div>

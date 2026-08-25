@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { CalendarPlus, ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
+import { Bus, CalendarPlus, Car, ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { type EditorState, type GalleryImage } from '@/lib/types';
@@ -673,9 +673,6 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
             <p className="text-sm mt-0.5" style={mutedStyle}>{info.address}</p>
           </div>
         </div>
-        {info.transportGuide && (
-          <p className="text-xs mb-3" style={mutedStyle}>{info.transportGuide}</p>
-        )}
         <KakaoMapDisplay
           address={info.address}
           latitude={info.latitude}
@@ -697,6 +694,28 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
             >
               <Navigation className="h-3 w-3 mr-1" />티맵
             </Button>
+          </div>
+        )}
+        {(info.transportGuide || info.parkingInfo || info.shuttleInfo) && (
+          <div className="mt-4 pt-4 space-y-3" style={{ borderTop: `1px solid ${style.divider}` }}>
+            {info.transportGuide && (
+              <div className="flex items-start gap-2">
+                <Navigation className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: style.accent }} />
+                <p className="text-xs whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.transportGuide}</p>
+              </div>
+            )}
+            {info.parkingInfo && (
+              <div className="flex items-start gap-2">
+                <Car className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: style.accent }} />
+                <p className="text-xs whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.parkingInfo}</p>
+              </div>
+            )}
+            {info.shuttleInfo && (
+              <div className="flex items-start gap-2">
+                <Bus className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: style.accent }} />
+                <p className="text-xs whitespace-pre-line leading-relaxed" style={mutedStyle}>{info.shuttleInfo}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
