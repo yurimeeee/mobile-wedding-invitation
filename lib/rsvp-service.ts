@@ -1,6 +1,6 @@
 import {
-  collection, deleteDoc, doc, getDocs,
-  orderBy, query, Timestamp,
+  collection, deleteDoc, doc, getDocs, increment,
+  orderBy, query, Timestamp, updateDoc,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -66,6 +66,14 @@ export async function loadRSVPs(invitationId: string): Promise<RSVPResponse[]> {
   })
 }
 
-export async function deleteRSVP(invitationId: string, rsvpId: string): Promise<void> {
-  await deleteDoc(doc(db, 'invitations', invitationId, 'rsvps', rsvpId))
+// /api/rsvp에서 참석 응답을 더할 때 대시보드용 집계(rsvpAttendingCount/rsvpGuestTotal)를
+// 초대장 문서에 같이 늘려두므로, 삭제할 때도 같은 응답의 참석 여부·인원만큼 되돌려준다.
+export async function deleteRSVP(invitationId: string, rsvp: RSVPResponse): Promise<void> {
+  await deleteDoc(doc(db, 'invitations', invitationId, 'rsvps', rsvp.id))
+  if (rsvp.attending) {
+    await updateDoc(doc(db, 'invitations', invitationId), {
+      rsvpAttendingCount: increment(-1),
+      rsvpGuestTotal: increment(-rsvp.guestCount),
+    })
+  }
 }

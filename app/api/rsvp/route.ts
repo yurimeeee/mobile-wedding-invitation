@@ -79,5 +79,11 @@ export async function POST(request: NextRequest) {
   }
 
   await docRef.collection('rsvps').add({ ...payload, createdAt: FieldValue.serverTimestamp() })
+  if (payload.attending) {
+    await docRef.update({
+      rsvpAttendingCount: FieldValue.increment(1),
+      rsvpGuestTotal: FieldValue.increment(payload.guestCount),
+    })
+  }
   return NextResponse.json({ ok: true })
 }

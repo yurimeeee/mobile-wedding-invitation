@@ -25,6 +25,8 @@ vi.mock('firebase/firestore', () => ({
   deleteDoc: vi.fn(async (ref: { id: string }) => {
     store.delete(ref.id)
   }),
+  increment: vi.fn((n: number) => n),
+  updateDoc: vi.fn(async () => {}),
 }))
 
 beforeEach(() => {
@@ -91,7 +93,10 @@ describe('loadRSVPs', () => {
 describe('deleteRSVP', () => {
   it('removes the given rsvp', async () => {
     store.set('r1', { name: '홍길동' })
-    await deleteRSVP('inv-1', 'r1')
+    await deleteRSVP('inv-1', {
+      id: 'r1', name: '홍길동', side: 'groom', attending: false, guestCount: 1,
+      mealAttending: false, companions: '', phone: '', createdAt: new Date(),
+    })
     expect(store.has('r1')).toBe(false)
   })
 })

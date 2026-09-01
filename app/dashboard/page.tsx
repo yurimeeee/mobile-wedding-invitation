@@ -369,6 +369,16 @@ export default function DashboardPage() {
                                 {invitation.viewCount}
                               </span>
                             )}
+                            {invitation.rsvpAttendingCount > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setRsvpInvitation(invitation)}
+                                className="flex items-center gap-0.5 shrink-0 hover:text-foreground transition-colors"
+                              >
+                                <ClipboardCheck className="h-3 w-3" />
+                                {invitation.rsvpGuestTotal}명
+                              </button>
+                            )}
                           </div>
                         </div>
                         <DropdownMenu>

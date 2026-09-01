@@ -58,10 +58,10 @@ export function RSVPModal({ open, onOpenChange, invitationId, title }: RSVPModal
   const groom = useMemo(() => sideSummary(responses, 'groom'), [responses])
   const bride = useMemo(() => sideSummary(responses, 'bride'), [responses])
 
-  const handleDelete = async (rsvpId: string) => {
-    setResponses((prev) => prev.filter((r) => r.id !== rsvpId))
+  const handleDelete = async (rsvp: RSVPResponse) => {
+    setResponses((prev) => prev.filter((r) => r.id !== rsvp.id))
     try {
-      await deleteRSVP(invitationId, rsvpId)
+      await deleteRSVP(invitationId, rsvp)
       toast.success('삭제되었습니다')
     } catch {
       toast.error('삭제에 실패했습니다')
@@ -154,7 +154,7 @@ export function RSVPModal({ open, onOpenChange, invitationId, title }: RSVPModal
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 shrink-0 text-destructive"
-                  onClick={() => handleDelete(r.id)}
+                  onClick={() => handleDelete(r)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

@@ -204,6 +204,8 @@ export interface DashboardInvitation {
   slug: string
   thumbnail: string
   viewCount: number
+  rsvpAttendingCount: number
+  rsvpGuestTotal: number
   expiresAt: Date | null
 }
 
@@ -233,6 +235,8 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
         slug: d.slug ?? '',
         thumbnail: d.gallery?.[0]?.url ?? '',
         viewCount: d.viewCount ?? 0,
+        rsvpAttendingCount: d.rsvpAttendingCount ?? 0,
+        rsvpGuestTotal: d.rsvpGuestTotal ?? 0,
         expiresAt: d.expiresAt instanceof Timestamp ? d.expiresAt.toDate() : null,
       }
     })
@@ -276,6 +280,8 @@ export async function duplicateInvitation(uid: string, invitationId: string): Pr
     title: `${data.title || '청첩장'} (복사본)`,
     status: 'draft',
     viewCount: 0,
+    rsvpAttendingCount: 0,
+    rsvpGuestTotal: 0,
     // 슬러그는 문서마다 고유해야 하므로 복제본은 비워서 자동 생성 ID로 접근하게 합니다.
     slug: '',
     createdAt: serverTimestamp(),
