@@ -37,6 +37,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
+import Image from 'next/image';
 import { QrCodeModal } from '@/components/dashboard/qr-code-modal';
 import { GuestMessagesModal } from '@/components/dashboard/guest-messages-modal';
 import { RSVPModal } from '@/components/dashboard/rsvp-modal';
@@ -322,7 +323,7 @@ export default function DashboardPage() {
                     <Link href={`/editor/${invitation.id}`}>
                       <div className={`aspect-[3/4] bg-gradient-to-br ${templateColors[invitation.template] || 'from-gray-50 to-gray-100'} relative overflow-hidden`}>
                         {invitation.thumbnail ? (
-                          <img src={invitation.thumbnail} alt={invitation.title || '청첩장 미리보기'} className="absolute inset-0 w-full h-full object-cover" />
+                          <Image src={invitation.thumbnail} alt={invitation.title || '청첩장 미리보기'} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
                         ) : (
                           /* Mini preview */
                           <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 ${invitation.template === 'dark-luxury' ? 'text-white' : ''}`}>

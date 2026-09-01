@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { Bus, Car, ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
+import { Bus, CalendarPlus, Car, ChevronDown, Copy, Heart, MapPin, Navigation, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { type EditorState, type GalleryImage } from '@/lib/types';
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { ParentsNames } from '@/components/invitation/parent-name';
 import { cn } from '@/lib/utils';
 import { copyText } from '@/lib/clipboard';
+import { downloadWeddingIcs } from '@/lib/calendar-export';
+import { openNaverMapDirections, openTmapDirections } from '@/lib/navigation-links';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
@@ -21,6 +23,21 @@ export interface SectionBlockProps {
   state: EditorState;
   style: PreviewStyleConfig;
   invitationId: string;
+}
+
+// 저장 전 편집 중인 이미지는 data: URL(base64)이라 next/image 최적화 API가 처리할 수
+// 없다 — 이 경우엔 unoptimized로 그대로 렌더링하고, 저장된 Firebase Storage URL만 최적화한다.
+function PreviewImage({ src, alt, sizes, className }: { src: string; alt: string; sizes: string; className?: string }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      unoptimized={src.startsWith('data:')}
+      className={className}
+    />
+  );
 }
 
 function getDerived(state: EditorState, style: PreviewStyleConfig) {
@@ -51,9 +68,9 @@ function HeroClassicElegant({ info, mainImage, textStyle }: { info: EditorState[
       <Image src="/assets/templates/type_1/save_the_date.svg" alt="save the date" width={106} height={40} className="mb-4" />
       <Image src="/assets/templates/type_1/wedding_day.svg" alt="wedding day" width={200} height={40} className="mb-8" />
 
-      <div className="w-[200px] h-[288px] rounded-full overflow-hidden mb-8" style={{ background: 'rgba(0,0,0,0.08)' }}>
+      <div className="relative w-[200px] h-[288px] rounded-full overflow-hidden mb-8" style={{ background: 'rgba(0,0,0,0.08)' }}>
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <PreviewImage src={mainImage.url} alt="메인" sizes="200px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-10 h-10 opacity-10" /></div>
         }
       </div>
@@ -68,9 +85,9 @@ function HeroModernMinimal({ info, mainImage, textStyle }: { info: EditorState['
     <div className="flex flex-col items-center">
       <div className="relative w-full">
         <Image src="/assets/templates/type_2/wedding_day.svg" alt="wedding day" width={200} height={40} className="absolute top-4 left-1/2 -translate-x-1/2 z-10" />
-        <div className="w-full aspect-[3/4] overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+        <div className="relative w-full aspect-[3/4] overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
           {mainImage
-            ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+            ? <PreviewImage src={mainImage.url} alt="메인" sizes="400px" className="object-cover" />
             : <div className="w-full h-full flex items-center justify-center"><Heart className="w-10 h-10 opacity-10" /></div>
           }
         </div>
@@ -105,7 +122,7 @@ function HeroKoreanTraditional({ info, mainImage, textStyle }: { info: EditorSta
         }}
       >
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <PreviewImage src={mainImage.url} alt="메인" sizes="260px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-10 h-10 opacity-10" /></div>
         }
         {dateOverlay && (
@@ -135,7 +152,7 @@ function HeroFloralRomantic({ info, mainImage, textStyle }: { info: EditorState[
           className="absolute -left-6 bottom-8 pointer-events-none select-none" style={{ zIndex: 1 }} />
 
         <div
-          className="relative overflow-hidden"
+          className="relative overflow-hidden aspect-[3/4]"
           style={{
             width: 180,
             boxShadow: '0 6px 6px rgba(88,88,88,0.08), 0 10px 10px rgba(99,99,99,0)',
@@ -144,8 +161,8 @@ function HeroFloralRomantic({ info, mainImage, textStyle }: { info: EditorState[
           }}
         >
           {mainImage
-            ? <img src={mainImage.url} alt="메인" className="w-full h-auto" />
-            : <div className="w-full aspect-[3/4] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            ? <PreviewImage src={mainImage.url} alt="메인" sizes="180px" className="object-cover" />
+            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.06)' }}>
                 <Heart className="w-8 h-8 opacity-10" />
               </div>
           }
@@ -164,11 +181,11 @@ function HeroDarkLuxury({ info, mainImage, textStyle }: { info: EditorState['wed
       <div className="w-10 h-px mb-6" style={{ background: '#d4af37' }} />
 
       <div
-        className="w-[200px] h-[280px] overflow-hidden mb-8"
+        className="relative w-[200px] h-[280px] overflow-hidden mb-8"
         style={{ border: '1px solid #d4af37', background: 'rgba(255,255,255,0.04)' }}
       >
         {mainImage
-          ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+          ? <PreviewImage src={mainImage.url} alt="메인" sizes="200px" className="object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Heart className="w-10 h-10" style={{ color: '#d4af37', opacity: 0.3 }} /></div>
         }
       </div>
@@ -197,7 +214,7 @@ function HeroVintageForest({ info, mainImage }: { info: EditorState['weddingInfo
   return (
     <div className="relative w-full h-[380px] overflow-hidden">
       {mainImage
-        ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+        ? <PreviewImage src={mainImage.url} alt="메인" sizes="100vw" className="object-cover" />
         : <div className="w-full h-full flex items-center justify-center" style={{ background: '#3D3830' }}><Heart className="w-10 h-10 text-white/20" /></div>
       }
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.15) 55%, transparent)' }} />
@@ -243,7 +260,7 @@ function HeroLovely({ info, mainImage }: { info: EditorState['weddingInfo']; mai
         </svg>
         <div className="relative w-[200px] h-[268px] rounded-[24px] overflow-hidden" style={{ border: '5px solid #FFFFFF', boxShadow: '0 12px 24px rgba(140,81,88,0.18)' }}>
           {mainImage
-            ? <img src={mainImage.url} alt="메인" className="w-full h-full object-cover" />
+            ? <PreviewImage src={mainImage.url} alt="메인" sizes="200px" className="object-cover" />
             : <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(201,112,127,0.08)' }}><Heart className="w-9 h-9" style={{ color: '#B98088', opacity: 0.25 }} /></div>}
         </div>
       </div>
@@ -433,8 +450,8 @@ export function StoryBlock({ state, style }: SectionBlockProps) {
               {item.date && <p className="text-[11px] mb-1" style={{ color: dotColor }}>{formatStoryDate(item.date)}</p>}
               <div className="flex gap-2.5">
                 {item.imageUrl && (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                    <PreviewImage src={item.imageUrl} alt="" sizes="48px" className="object-cover" />
                   </div>
                 )}
                 <div className="min-w-0">
@@ -455,6 +472,19 @@ export function StoryBlock({ state, style }: SectionBlockProps) {
 export function CalendarBlock({ state, style }: SectionBlockProps) {
   const { info, mutedStyle, dividerStyle, sectionStyle, groomParentsLine, brideParentsLine } = getDerived(state, style);
   const lovely = state.template === 'lovely-blush';
+
+  const handleAddToCalendar = () => {
+    const groomName = `${info.groomLastNameKr}${info.groomFirstNameKr}`;
+    const brideName = `${info.brideLastNameKr}${info.brideFirstNameKr}`;
+    const names = info.brideFirst ? `${brideName} · ${groomName}` : `${groomName} · ${brideName}`;
+    downloadWeddingIcs({
+      title: `${names} 결혼식`,
+      date: info.weddingDate,
+      time: info.weddingTime,
+      location: [info.ceremonyHall, info.venue, info.address].filter(Boolean).join(' '),
+    });
+  };
+
   return (
     <>
       <div className="h-px mx-8 mb-8" style={dividerStyle} />
@@ -469,6 +499,18 @@ export function CalendarBlock({ state, style }: SectionBlockProps) {
           isDark={style.isDark}
           lovely={lovely}
         />
+        {info.weddingDate && (
+          <Button
+            variant="outline" size="sm" className="w-full mt-4"
+            style={
+              lovely ? { borderColor: '#C99BA0', color: '#8C5158', borderRadius: 999 }
+              : style.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: style.text } : {}
+            }
+            onClick={handleAddToCalendar}
+          >
+            <CalendarPlus className="h-3.5 w-3.5 mr-1.5" />캘린더에 저장
+          </Button>
+        )}
       </div>
       <div className="text-center px-6 mb-8 space-y-1.5">
         {(info.brideFirst ? [brideParentsLine, groomParentsLine] : [groomParentsLine, brideParentsLine]).map((line, i) => (
@@ -497,8 +539,8 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
                 className="bg-white rounded-lg p-1.5 pb-3 shadow-[0_8px_16px_rgba(74,63,63,0.14)]"
                 style={{ transform: `rotate(${SCRAPBOOK_ROTATIONS[i % SCRAPBOOK_ROTATIONS.length]}deg)` }}
               >
-                <div className="aspect-square rounded overflow-hidden">
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                <div className="relative aspect-square rounded overflow-hidden">
+                  <PreviewImage src={img.url} alt="" sizes="160px" className="object-cover" />
                 </div>
               </div>
             ))}
@@ -515,8 +557,8 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
         <div className="mx-4 mb-8">
           <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
             {state.gallery.slice(0, 4).map((img) => (
-              <div key={img.id} className="aspect-square overflow-hidden">
-                <img src={img.url} alt="" className="w-full h-full object-cover" />
+              <div key={img.id} className="relative aspect-square overflow-hidden">
+                <PreviewImage src={img.url} alt="" sizes="200px" className="object-cover" />
               </div>
             ))}
           </div>
@@ -528,6 +570,9 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
 
 export function LocationBlock({ state, style }: SectionBlockProps) {
   const { info, textStyle, mutedStyle, sectionStyle } = getDerived(state, style);
+  const hasCoords = !!(info.latitude && info.longitude);
+  const destinationName = info.ceremonyHall || info.venue || info.address;
+  const navButtonStyle = style.isDark ? { borderColor: 'rgba(255,255,255,0.2)', color: style.text } : {};
   return (
     <div className="mx-4 mb-6 px-4 py-4 rounded-lg" style={sectionStyle}>
       <div className="flex items-start gap-2 mb-3">
@@ -545,6 +590,22 @@ export function LocationBlock({ state, style }: SectionBlockProps) {
         venueName={info.ceremonyHall}
         isDark={style.isDark}
       />
+      {hasCoords && (
+        <div className="flex gap-2 mt-2">
+          <Button
+            variant="outline" size="sm" className="flex-1 text-xs" style={navButtonStyle}
+            onClick={() => openNaverMapDirections(destinationName, info.latitude, info.longitude)}
+          >
+            <Navigation className="h-3 w-3 mr-1" />네이버지도
+          </Button>
+          <Button
+            variant="outline" size="sm" className="flex-1 text-xs" style={navButtonStyle}
+            onClick={() => openTmapDirections(destinationName, info.latitude, info.longitude)}
+          >
+            <Navigation className="h-3 w-3 mr-1" />티맵
+          </Button>
+        </div>
+      )}
       {(info.transportGuide || info.parkingInfo || info.shuttleInfo) && (
         <div className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${style.divider}` }}>
           {info.transportGuide && (
