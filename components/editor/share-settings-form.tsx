@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import { ImagePlus, MessageCircle, Link } from 'lucide-react'
 import { type ShareSettings, type CalendarSettings } from '@/lib/types'
 import { Input } from '@/components/ui/input'
@@ -47,11 +48,18 @@ function ImageUploadBox({
   return (
     <div
       onClick={() => inputRef.current?.click()}
-      className="w-full aspect-square max-w-[200px] mx-auto rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted cursor-pointer flex items-center justify-center overflow-hidden transition-colors"
+      className="relative w-full aspect-square max-w-[200px] mx-auto rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted cursor-pointer flex items-center justify-center overflow-hidden transition-colors"
     >
       <input ref={inputRef} type="file" accept="image/jpeg,image/jpg,image/png" hidden onChange={handleFile} />
       {imageUrl ? (
-        <img src={imageUrl} alt="share thumbnail" className="w-full h-full object-cover" />
+        <Image
+          src={imageUrl}
+          alt="share thumbnail"
+          fill
+          sizes="200px"
+          unoptimized={imageUrl.startsWith('data:')}
+          className="object-cover"
+        />
       ) : (
         <div className="flex flex-col items-center gap-2 text-muted-foreground">
           <ImagePlus className="h-8 w-8" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import Image from 'next/image'
 import { GripVertical, ImagePlus, Plus, Trash2, X } from 'lucide-react'
 import { type StoryItem } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -135,7 +136,14 @@ export function StoryEditor({ items, onAdd, onUpdate, onRemove, onReorder }: Sto
                 />
                 {item.imageUrl ? (
                   <>
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                    <Image
+                      src={item.imageUrl}
+                      alt=""
+                      fill
+                      sizes="64px"
+                      unoptimized={item.imageUrl.startsWith('data:')}
+                      className="object-cover"
+                    />
                     <button
                       type="button"
                       onClick={(e) => { e.preventDefault(); onUpdate(item.id, { imageUrl: undefined }) }}
