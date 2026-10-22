@@ -98,27 +98,27 @@ export function useEditorState(invitationId: string) {
   }
 
   const undo = () => {
-    const hasPending = pendingSnapshotRef.current !== null
+    const pending = pendingSnapshotRef.current
+    const hasPending = pending !== null
     if (!hasPending && history.past.length === 0) return
+
+    // 보류 중인 스냅샷이 있으면 flush로 past에 들어갈 값이 바로 그 값이므로,
+    // setHistory 업데이터 안에서 다시 꺼내 볼 필요 없이 미리 알 수 있다.
+    const prevLayout = hasPending ? pending : history.past[history.past.length - 1]
+    const currentLayout = stateRef.current.customLayout ?? defaultCustomLayout
+
     flushPendingHistory()
-    setHistory((h) => {
-      if (h.past.length === 0) return h
-      const prevLayout = h.past[h.past.length - 1]
-      const currentLayout = stateRef.current.customLayout ?? defaultCustomLayout
-      setState((s) => ({ ...s, customLayout: prevLayout }))
-      return { past: h.past.slice(0, -1), future: [currentLayout, ...h.future] }
-    })
+    setHistory((h) => ({ past: h.past.slice(0, -1), future: [currentLayout, ...h.future] }))
+    setState((s) => ({ ...s, customLayout: prevLayout }))
   }
 
   const redo = () => {
     if (history.future.length === 0) return
-    setHistory((h) => {
-      if (h.future.length === 0) return h
-      const nextLayout = h.future[0]
-      const currentLayout = stateRef.current.customLayout ?? defaultCustomLayout
-      setState((s) => ({ ...s, customLayout: nextLayout }))
-      return { past: [...h.past, currentLayout], future: h.future.slice(1) }
-    })
+    const nextLayout = history.future[0]
+    const currentLayout = stateRef.current.customLayout ?? defaultCustomLayout
+
+    setHistory((h) => ({ past: [...h.past, currentLayout], future: h.future.slice(1) }))
+    setState((s) => ({ ...s, customLayout: nextLayout }))
   }
 
   // Load existing invitation from Firestore
