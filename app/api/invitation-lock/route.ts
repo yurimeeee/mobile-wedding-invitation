@@ -1,11 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createHash } from 'crypto'
+import { createHash, timingSafeEqual } from 'crypto'
 import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase-admin'
 import { isExpired } from '@/lib/invitation-server'
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const RATE_LIMIT_MAX = 10
+
+// 길이가 다른 비밀번호를 그대로 timingSafeEqual에 넘기면 길이가 다르다는 이유로 예외가
+// 나므로, 고정 길이 해시로 먼저 맞춘 뒤 비교한다 — 문자열 길이 자체도 타이밍으로 새지 않는다.
+function timingSafeEqualStrings(a: string, b: string): boolean {
+  const hashA = createHash('sha256').update(a).digest()
+  const hashB = createHash('sha256').update(b).digest()
+  return timingSafeEqual(hashA, hashB)
+}
 
 // 청첩장 잠금 비밀번호는 invitations/{id}/private/lock 서브문서에만 있고 그 문서는
 // 소유자만 읽을 수 있다(firestore.rules). 하객의 잠금 해제 확인은 여기서 Admin SDK로
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   const lockSnap = await docRef.collection('private').doc('lock').get()
   const correctPassword = lockSnap.data()?.password ?? ''
-  const ok = correctPassword.length > 0 && password === correctPassword
+  const ok = correctPassword.length > 0 && timingSafeEqualStrings(password, correctPassword)
 
   return NextResponse.json({ ok })
 }
