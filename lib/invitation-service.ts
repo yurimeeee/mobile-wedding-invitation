@@ -1,5 +1,5 @@
 import {
-  doc, setDoc, getDoc, getDocs, deleteDoc,
+  doc, setDoc, getDoc, getDocs,
   collection, query, where, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
@@ -243,8 +243,20 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 }
 
+// messages/rsvps/versions/private(잠금 비밀번호)/*RateLimits 같은 서브컬렉션은 클라이언트
+// SDK로 재귀 삭제할 수 없고(rateLimit류는 규칙상 Admin SDK만 접근 가능, 그 외는 부모 문서가
+// 없으면 isOwner() 판정 자체가 불가능해짐) /api/invitation-delete 라우트가 Admin SDK의
+// recursiveDelete로 문서와 모든 하위 컬렉션을 함께 지운다.
 export async function deleteInvitation(invitationId: string): Promise<void> {
-  await deleteDoc(doc(db, 'invitations', invitationId))
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('로그인이 필요합니다')
+
+  const res = await fetch('/api/invitation-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id: invitationId }),
+  })
+  if (!res.ok) throw new Error('삭제에 실패했습니다')
 }
 
 export async function recordInvitationView(invitationId: string): Promise<void> {

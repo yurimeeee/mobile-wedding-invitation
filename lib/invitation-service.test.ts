@@ -8,7 +8,11 @@ import {
   type EditorState,
 } from './types'
 
-vi.mock('@/lib/firebase', () => ({ db: {}, auth: {}, storage: {} }))
+vi.mock('@/lib/firebase', () => ({
+  db: {},
+  auth: { currentUser: { getIdToken: vi.fn(async () => 'fake-token') } },
+  storage: {},
+}))
 vi.mock('firebase/storage', () => ({
   ref: vi.fn(),
   uploadString: vi.fn(),
@@ -148,9 +152,24 @@ describe('saveInvitation', () => {
 })
 
 describe('deleteInvitation', () => {
-  it('removes the invitation document', async () => {
-    store.set('inv-1', { uid: 'u1' })
+  it('calls the delete API with an auth token', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('fetch', fetchMock)
+
     await deleteInvitation('inv-1')
-    expect(store.has('inv-1')).toBe(false)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/invitation-delete',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer fake-token' }),
+        body: JSON.stringify({ id: 'inv-1' }),
+      })
+    )
+  })
+
+  it('throws when the API call fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
+    await expect(deleteInvitation('inv-1')).rejects.toThrow('삭제에 실패했습니다')
   })
 })
