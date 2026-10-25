@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createHash } from 'crypto'
-import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase-admin'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/request-ip'
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const RATE_LIMIT_MAX = 10
@@ -32,24 +33,10 @@ export async function DELETE(request: NextRequest) {
   const invitationRef = adminDb.collection('invitations').doc(invitationId)
   const messageRef = invitationRef.collection('messages').doc(messageId)
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const ip = getClientIp(request)
   const ipHash = createHash('sha256').update(ip).digest('hex')
   const rateLimitRef = invitationRef.collection('messageDeleteAttempts').doc(ipHash)
-
-  const allowed = await adminDb.runTransaction(async (tx) => {
-    const rlSnap = await tx.get(rateLimitRef)
-    const rl = rlSnap.data()
-    const windowStart = rl?.windowStart instanceof Timestamp ? rl.windowStart.toMillis() : 0
-    const withinWindow = Date.now() - windowStart < RATE_LIMIT_WINDOW_MS
-
-    if (withinWindow) {
-      if ((rl?.count ?? 0) >= RATE_LIMIT_MAX) return false
-      tx.update(rateLimitRef, { count: FieldValue.increment(1) })
-    } else {
-      tx.set(rateLimitRef, { windowStart: FieldValue.serverTimestamp(), count: 1 })
-    }
-    return true
-  })
+  const allowed = await checkRateLimit(rateLimitRef, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
 
   if (!allowed) {
     return NextResponse.json({ error: '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.' }, { status: 429 })

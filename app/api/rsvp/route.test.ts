@@ -101,4 +101,23 @@ describe('POST /api/rsvp', () => {
     expect(res.status).toBe(429)
     expect(rsvps).toHaveLength(5)
   })
+
+  it('uses a sliding window, not a fixed one, so the limit cannot be doubled at the window boundary', async () => {
+    vi.useFakeTimers()
+    try {
+      for (let i = 0; i < 5; i++) {
+        expect((await postRequest({ invitationId: 'inv-1', ...validPayload })).status).toBe(200)
+      }
+      // 고정 윈도우였다면 "다음 윈도우"로 넘어가 다시 5건을 허용했을 시점 — 슬라이딩
+      // 윈도우에서는 첫 5건이 아직 30분 이내라 여전히 막혀야 한다.
+      vi.setSystemTime(Date.now() + 29 * 60 * 1000)
+      expect((await postRequest({ invitationId: 'inv-1', ...validPayload })).status).toBe(429)
+
+      // 첫 5건으로부터 30분이 다 지나면 다시 허용된다.
+      vi.setSystemTime(Date.now() + 2 * 60 * 1000)
+      expect((await postRequest({ invitationId: 'inv-1', ...validPayload })).status).toBe(200)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
