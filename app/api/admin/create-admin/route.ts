@@ -1,26 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { requireAdminRequest } from '@/lib/admin-api-auth'
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  const idToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
-  if (!idToken) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  }
-
-  let callerUid: string
-  try {
-    const decoded = await adminAuth.verifyIdToken(idToken)
-    callerUid = decoded.uid
-  } catch {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  }
-
-  const callerAdminDoc = await adminDb.collection('adminUsers').doc(callerUid).get()
-  if (!callerAdminDoc.exists) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  }
+  const admin = await requireAdminRequest(request)
+  if (!admin) return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 401 })
 
   const body = await request.json().catch(() => null)
   const name = typeof body?.name === 'string' ? body.name.trim() : ''
@@ -38,7 +23,7 @@ export async function POST(request: NextRequest) {
       name,
       role: 'admin',
       createdAt: FieldValue.serverTimestamp(),
-      createdBy: callerUid,
+      createdBy: admin.uid,
     })
     return NextResponse.json({ uid: newUser.uid })
   } catch (err: unknown) {
