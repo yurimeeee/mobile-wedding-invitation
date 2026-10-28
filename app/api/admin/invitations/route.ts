@@ -40,19 +40,24 @@ export async function GET(request: NextRequest) {
 
   const uniqueUids = Array.from(new Set(docs.map((d) => d.uid).filter((uid): uid is string => typeof uid === 'string')))
 
+  // 사용자 수만큼 adminAuth.getUser를 개별 호출하면 요청마다 Auth API 호출이 선형으로
+  // 늘어난다. getUsers는 한 번에 최대 100개까지 조회할 수 있어 묶어서 호출한다.
+  const GET_USERS_BATCH_SIZE = 100
   const creatorByUid = new Map<string, { email: string; name: string }>()
-  if (uniqueUids.length > 0) {
-    const results = await Promise.all(
-      uniqueUids.map(async (uid) => {
-        try {
-          const user = await adminAuth.getUser(uid)
-          return [uid, { email: user.email ?? '', name: user.displayName ?? user.email ?? '알 수 없음' }] as const
-        } catch {
-          return [uid, { email: '', name: '탈퇴한 사용자' }] as const
-        }
-      })
-    )
-    for (const [uid, info] of results) creatorByUid.set(uid, info)
+  const batches: string[][] = []
+  for (let i = 0; i < uniqueUids.length; i += GET_USERS_BATCH_SIZE) {
+    batches.push(uniqueUids.slice(i, i + GET_USERS_BATCH_SIZE))
+  }
+  const batchResults = await Promise.all(
+    batches.map((batch) => adminAuth.getUsers(batch.map((uid) => ({ uid }))))
+  )
+  for (const { users } of batchResults) {
+    for (const user of users) {
+      creatorByUid.set(user.uid, { email: user.email ?? '', name: user.displayName ?? user.email ?? '알 수 없음' })
+    }
+  }
+  for (const uid of uniqueUids) {
+    if (!creatorByUid.has(uid)) creatorByUid.set(uid, { email: '', name: '탈퇴한 사용자' })
   }
 
   const invitations = docs.map((d) => {
@@ -89,8 +94,14 @@ export async function DELETE(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 401 })
 
   const body = await request.json().catch(() => null) as { ids?: string[] } | null
-  if (!Array.isArray(body?.ids) || body.ids.length === 0 || !body.ids.every((id) => typeof id === 'string')) {
-    return NextResponse.json({ error: 'ids(string[]) 값이 필요합니다.' }, { status: 400 })
+  const MAX_BULK_DELETE = 50
+  if (
+    !Array.isArray(body?.ids) ||
+    body.ids.length === 0 ||
+    body.ids.length > MAX_BULK_DELETE ||
+    !body.ids.every((id) => typeof id === 'string')
+  ) {
+    return NextResponse.json({ error: `ids(string[], 최대 ${MAX_BULK_DELETE}개) 값이 필요합니다.` }, { status: 400 })
   }
 
   await Promise.all(body.ids.map((id) => adminDb.recursiveDelete(adminDb.collection('invitations').doc(id))))
