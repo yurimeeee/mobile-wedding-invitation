@@ -47,6 +47,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // 특정 청첩장에 속하지 않는 공개 라우트(/api/slug-availability, /api/auth/kakao)가
+    // IP별 요청 빈도를 세는 용도 — Admin SDK로만 접근.
+    match /rateLimits/{key} {
+      allow read, write: if false;
+    }
+
     // 부트스트랩 완료 여부 플래그 (단일 문서)
     match /adminMeta/bootstrap {
       allow read: if request.auth != null;

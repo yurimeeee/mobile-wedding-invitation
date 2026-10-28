@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { adminAuth } from '@/lib/firebase-admin'
+import { createHash } from 'crypto'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/request-ip'
+
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
+const RATE_LIMIT_MAX = 10
 
 interface KakaoUser {
   id: number
@@ -14,6 +20,12 @@ export async function POST(request: NextRequest) {
   const { accessToken } = await request.json().catch(() => ({}))
   if (!accessToken || typeof accessToken !== 'string') {
     return NextResponse.json({ error: 'accessToken이 필요합니다.' }, { status: 400 })
+  }
+
+  const ipHash = createHash('sha256').update(getClientIp(request)).digest('hex')
+  const allowed = await checkRateLimit(adminDb.collection('rateLimits').doc(`kakao:${ipHash}`), RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX)
+  if (!allowed) {
+    return NextResponse.json({ error: '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.' }, { status: 429 })
   }
 
   const kakaoRes = await fetch('https://kapi.kakao.com/v2/user/me', {

@@ -3,18 +3,10 @@ import { createHash } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/request-ip'
+import { hashPassword, hashPasswordLegacy } from '@/lib/password-hash'
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const RATE_LIMIT_MAX = 10
-
-function hashPassword(password: string, salt: string): string {
-  return createHash('sha256').update(`${salt}:${password}`).digest('hex')
-}
-
-// salt 도입 이전에 저장된 문서는 salt 없이 SHA256(password)로만 해시되어 있었다
-function hashPasswordLegacy(password: string): string {
-  return createHash('sha256').update(password).digest('hex')
-}
 
 // 방명록 삭제는 비밀번호 대조가 필요한데, Firestore 규칙은 저장된 passwordHash와 클라이언트가
 // 보낸 비밀번호를 직접 비교할 수 없다(해시 함수가 없음). 그래서 공개 delete는 막아두고
@@ -48,7 +40,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   const data = snap.data()!
-  const computedHash = data.salt ? hashPassword(password, data.salt) : hashPasswordLegacy(password)
+  const computedHash = data.salt ? await hashPassword(password, data.salt) : await hashPasswordLegacy(password)
   if (data.passwordHash !== computedHash) {
     return NextResponse.json({ ok: false })
   }
