@@ -25,14 +25,21 @@ function sideSummary(responses: RSVPResponse[], side: 'groom' | 'bride') {
   }
 }
 
+function mealOptionLabel(option: RSVPResponse['mealOption']): string {
+  if (option === 'korean') return '한식'
+  if (option === 'western') return '양식'
+  return '-'
+}
+
 function toCsv(responses: RSVPResponse[]): string {
-  const header = ['성함', '구분', '참석여부', '참석인원', '식사여부', '동반인', '연락처', '응답일']
+  const header = ['성함', '구분', '참석여부', '참석인원', '식사여부', '식사메뉴', '동반인', '연락처', '응답일']
   const rows = responses.map((r) => [
     r.name,
     r.side === 'groom' ? '신랑측' : '신부측',
     r.attending ? '참석' : '불참',
     r.attending ? String(r.guestCount) : '0',
     r.attending ? (r.mealAttending ? '식사 참석' : '식사 안함') : '-',
+    r.attending && r.mealAttending ? mealOptionLabel(r.mealOption) : '-',
     r.companions,
     r.phone,
     r.createdAt.toLocaleDateString('ko-KR'),
@@ -142,7 +149,7 @@ export function RSVPModal({ open, onOpenChange, invitationId, title }: RSVPModal
                     )}
                     {r.attending && (
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                        {r.mealAttending ? '식사 참석' : '식사 안함'}
+                        {r.mealAttending ? `식사 참석${r.mealOption ? ` · ${mealOptionLabel(r.mealOption)}` : ''}` : '식사 안함'}
                       </Badge>
                     )}
                   </div>

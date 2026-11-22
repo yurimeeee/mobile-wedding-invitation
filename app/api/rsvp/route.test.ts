@@ -19,7 +19,14 @@ vi.mock('@/lib/firebase-admin', () => ({
           update: vi.fn(),
           collection: (sub: string) => {
             if (sub === 'rsvpRateLimits') return { doc: (ipHash: string) => ({ __key: `${id}/${ipHash}` }) }
-            if (sub === 'rsvps') return { add: async (data: Record<string, unknown>) => { rsvps.push(data) } }
+            if (sub === 'rsvps') {
+              return {
+                add: async (data: Record<string, unknown>) => {
+                  rsvps.push(data)
+                  return { id: `rsvp-${rsvps.length}` }
+                },
+              }
+            }
             throw new Error(`unexpected subcollection: ${sub}`)
           },
         }),
@@ -43,7 +50,7 @@ vi.mock('@/lib/firebase-admin', () => ({
 
 const validPayload = {
   name: '홍길동', side: 'groom' as const, attending: true, guestCount: 2,
-  mealAttending: true, companions: '김영희', phone: '010-1234-5678',
+  mealAttending: true, mealOption: 'korean' as const, companions: '김영희', phone: '010-1234-5678',
 }
 
 function postRequest(body: unknown) {
@@ -85,11 +92,63 @@ describe('POST /api/rsvp', () => {
     expect(res.status).toBe(404)
   })
 
-  it('stores a valid RSVP', async () => {
+  it('rejects when RSVP collection has been disabled by the owner', async () => {
+    invitations.set('inv-1', { status: 'published', rsvpSettings: { enabled: false } })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload })
+    expect(res.status).toBe(403)
+    expect(rsvps).toHaveLength(0)
+  })
+
+  it('rejects submissions after the deadline has passed', async () => {
+    invitations.set('inv-1', { status: 'published', rsvpSettings: { enabled: true, deadline: '2020-01-01' } })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload })
+    expect(res.status).toBe(403)
+    expect(rsvps).toHaveLength(0)
+  })
+
+  it('still accepts submissions when there is no rsvpSettings field (pre-existing invitations)', async () => {
+    invitations.set('inv-1', { status: 'published' })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload })
+    expect(res.status).toBe(200)
+  })
+
+  it('rejects an attending submission that would exceed maxGuests', async () => {
+    invitations.set('inv-1', { status: 'published', rsvpSettings: { enabled: true, maxGuests: 3 }, rsvpGuestTotal: 2 })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload, guestCount: 2 })
+    expect(res.status).toBe(409)
+    expect(rsvps).toHaveLength(0)
+  })
+
+  it('accepts an attending submission that exactly fills the remaining capacity', async () => {
+    invitations.set('inv-1', { status: 'published', rsvpSettings: { enabled: true, maxGuests: 3 }, rsvpGuestTotal: 2 })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload, guestCount: 1 })
+    expect(res.status).toBe(200)
+  })
+
+  it('does not apply maxGuests to a non-attending submission', async () => {
+    invitations.set('inv-1', { status: 'published', rsvpSettings: { enabled: true, maxGuests: 3 }, rsvpGuestTotal: 2 })
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload, attending: false, guestCount: 0 })
+    expect(res.status).toBe(200)
+  })
+
+  it('stores a valid RSVP and issues an edit token', async () => {
     const res = await postRequest({ invitationId: 'inv-1', ...validPayload })
     expect(res.status).toBe(200)
     expect(rsvps).toHaveLength(1)
     expect(rsvps[0]).toMatchObject({ name: '홍길동', side: 'groom', guestCount: 2 })
+    expect(rsvps[0].editToken).toBeTypeOf('string')
+    expect((rsvps[0].editToken as string).length).toBeGreaterThan(0)
+
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    expect(body.rsvpId).toBe('rsvp-1')
+    expect(body.editToken).toBe(rsvps[0].editToken)
+  })
+
+  it('normalizes an invalid or missing mealOption to null instead of rejecting the request', async () => {
+    const res = await postRequest({ invitationId: 'inv-1', ...validPayload, mealOption: 'not-a-real-option' })
+    expect(res.status).toBe(200)
+    expect(rsvps[0].mealOption).toBeNull()
   })
 
   it('rate limits after too many submissions within the window', async () => {
