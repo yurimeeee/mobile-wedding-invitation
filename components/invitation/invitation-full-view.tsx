@@ -80,14 +80,24 @@ function GalleryLightbox({ images, initialIndex, onClose }: {
         className="relative flex-1 flex items-center justify-center px-4 min-h-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <Image
-          src={images[current].url}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-contain select-none"
-          draggable={false}
-        />
+        {images[current].type === 'video' ? (
+          <video
+            key={images[current].id}
+            src={images[current].url}
+            controls
+            playsInline
+            className="max-w-full max-h-full"
+          />
+        ) : (
+          <Image
+            src={images[current].url}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-contain select-none"
+            draggable={false}
+          />
+        )}
       </div>
 
       {/* Nav arrows */}

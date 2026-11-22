@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, Navigation, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -97,14 +97,12 @@ function loadDaumPostcode(): Promise<void> {
 
 // ─── 지도 표시 (미리보기 / 결과물) ──────────────────────────────────────────
 interface KakaoMapDisplayProps {
-  address: string;
   latitude?: number;
   longitude?: number;
-  venueName?: string;
   isDark?: boolean;
 }
 
-export function KakaoMapDisplay({ address, latitude = 37.5665, longitude = 126.978, venueName, isDark = false }: KakaoMapDisplayProps) {
+export function KakaoMapDisplay({ latitude = 37.5665, longitude = 126.978, isDark = false }: KakaoMapDisplayProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<KakaoMapInstance | null>(null);
   const markerRef = useRef<KakaoMarker | null>(null);
@@ -135,40 +133,18 @@ export function KakaoMapDisplay({ address, latitude = 37.5665, longitude = 126.9
     markerRef.current.setPosition(coords);
   }, [latitude, longitude]);
 
-  const openKakaoMap = () => {
-    const name = encodeURIComponent(venueName || address);
-    window.open(`https://map.kakao.com/link/map/${name},${latitude},${longitude}`, '_blank');
-  };
-  const openNavigation = () => {
-    const name = encodeURIComponent(venueName || address);
-    window.open(`https://map.kakao.com/link/to/${name},${latitude},${longitude}`, '_blank');
-  };
-
   return (
-    <div className="space-y-2">
-      <div ref={mapRef} className={`w-full h-[160px] rounded-lg overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-muted'}`}>
-        {loadError && (
-          <div className="w-full h-full flex items-center justify-center">
-            <p className="text-xs text-destructive">지도 로드 실패</p>
-          </div>
-        )}
-        {!isLoaded && !loadError && (
-          <div className="w-full h-full flex items-center justify-center">
-            <MapPin className="h-6 w-6 text-muted-foreground animate-pulse" />
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" className={`flex-1 ${isDark ? 'border-white/20 text-white hover:bg-white/10' : ''}`} onClick={openKakaoMap}>
-          <MapPin className="h-3 w-3 mr-1" />
-          카카오맵
-        </Button>
-        <Button variant="outline" size="sm" className={`flex-1 ${isDark ? 'border-white/20 text-white hover:bg-white/10' : ''}`} onClick={openNavigation}>
-          <Navigation className="h-3 w-3 mr-1" />
-          길찾기
-        </Button>
-      </div>
+    <div ref={mapRef} className={`w-full h-[160px] rounded-lg overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-muted'}`}>
+      {loadError && (
+        <div className="w-full h-full flex items-center justify-center">
+          <p className="text-xs text-destructive">지도 로드 실패</p>
+        </div>
+      )}
+      {!isLoaded && !loadError && (
+        <div className="w-full h-full flex items-center justify-center">
+          <MapPin className="h-6 w-6 text-muted-foreground animate-pulse" />
+        </div>
+      )}
     </div>
   );
 }
@@ -178,12 +154,11 @@ interface AddressSearchProps {
   address: string;
   latitude?: number;
   longitude?: number;
-  venueName?: string;
   onAddressChange: (address: string) => void;
   onLocationChange: (lat: number, lng: number) => void;
 }
 
-export function AddressSearch({ address, latitude, longitude, venueName, onAddressChange, onLocationChange }: AddressSearchProps) {
+export function AddressSearch({ address, latitude, longitude, onAddressChange, onLocationChange }: AddressSearchProps) {
   const [postcodeReady, setPostcodeReady] = useState(false);
   const [kakaoReady, setKakaoReady] = useState(false);
 
@@ -227,7 +202,7 @@ export function AddressSearch({ address, latitude, longitude, venueName, onAddre
       </div>
 
       {/* 선택된 주소의 지도 미리보기 */}
-      {address && <KakaoMapDisplay address={address} latitude={latitude} longitude={longitude} venueName={venueName} />}
+      {address && <KakaoMapDisplay latitude={latitude} longitude={longitude} />}
     </div>
   );
 }

@@ -153,7 +153,6 @@ export function WeddingInfoForm({ info, onChange, calendarSettings, onCalendarCh
               address={info.address}
               latitude={info.latitude}
               longitude={info.longitude}
-              venueName={info.ceremonyHall}
               onAddressChange={(addr) => onChange({ address: addr })}
               onLocationChange={(lat, lng) => onChange({ latitude: lat, longitude: lng })}
             />

@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Bus, CalendarPlus, Car, Heart, MapPin, Navigation, Phone } from 'lucide-react';
+import { Bus, CalendarPlus, Car, Heart, MapPin, Navigation, Phone, Play } from 'lucide-react';
 import Image from 'next/image';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ParentsNames } from '@/components/invitation/parent-name';
 import { cn } from '@/lib/utils';
 import { downloadWeddingIcs } from '@/lib/calendar-export';
-import { openNaverMapDirections, openTmapDirections } from '@/lib/navigation-links';
+import { openNaverMapDirections, openTmapDirections, openKakaoMapDirections } from '@/lib/navigation-links';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
@@ -32,7 +32,7 @@ export interface FullViewSectionProps {
 
 function getDerived(state: EditorState, style: PreviewStyleConfig) {
   const info = state.weddingInfo;
-  const mainImage = state.gallery.length > 0 ? state.gallery[0] : null;
+  const mainImage = state.gallery.find((img) => img.type !== 'video') ?? null;
   const textStyle: CSSProperties = { color: style.text };
   const mutedStyle: CSSProperties = { color: style.text, opacity: 0.55 };
   const dividerStyle: CSSProperties = { background: style.divider };
@@ -307,7 +307,7 @@ function CoupleNames({ info, color, accentColor }: { info: EditorState['weddingI
 
 export function CoverBlock({ state, style }: FullViewSectionProps) {
   const info = state.weddingInfo;
-  const mainImage = state.gallery.length > 0 ? state.gallery[0] : null;
+  const mainImage = state.gallery.find((img) => img.type !== 'video') ?? null;
   const { template } = state;
   return (
     <div className="relative overflow-hidden">
@@ -483,6 +483,24 @@ export function CalendarBlock({ state, style }: FullViewSectionProps) {
 // 홀수번째 사진은 반시계, 짝수번째는 시계 방향으로 살짝 기울여 스크랩북/폴라로이드 느낌을 낸다.
 const SCRAPBOOK_ROTATIONS = [-1.5, 1.5, -2, 1, -1, 2];
 
+// 갤러리 그리드 썸네일 전용 — 영상 항목은 next/image로 표시할 수 없어 <video> + 재생 배지로 대신한다.
+// 실제 재생은 라이트박스에서 이루어지므로 여기서는 소리 없이 첫 프레임만 보여주면 된다.
+function GalleryThumb({ img, sizes, imgClassName }: { img: GalleryImage; sizes: string; imgClassName?: string }) {
+  if (img.type === 'video') {
+    return (
+      <>
+        <video src={img.url} muted playsInline preload="metadata" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="flex items-center justify-center w-9 h-9 rounded-full bg-black/50">
+            <Play className="h-3.5 w-3.5 text-white fill-white" />
+          </span>
+        </div>
+      </>
+    );
+  }
+  return <Image src={img.url} alt="" fill sizes={sizes} className={imgClassName ?? 'object-cover'} />;
+}
+
 export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionProps) {
   const { dividerStyle } = getDerived(state, style);
   const zoomPrevention = state.privacySettings.zoomPrevention;
@@ -504,7 +522,7 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
                   className={cn('relative aspect-square rounded-lg overflow-hidden', !zoomPrevention && 'cursor-pointer')}
                   onClick={() => !zoomPrevention && onOpenLightbox(i)}
                 >
-                  <Image src={img.url} alt="" fill sizes="160px" className="object-cover" />
+                  <GalleryThumb img={img} sizes="160px" />
                 </div>
                 {img.caption && (
                   <p className="text-center text-[10px] mt-2" style={{ color: '#8A7B7B' }}>{img.caption}</p>
@@ -529,12 +547,10 @@ export function GalleryBlock({ state, style, onOpenLightbox }: FullViewSectionPr
                 className={cn('relative aspect-square overflow-hidden', !zoomPrevention && 'cursor-pointer')}
                 onClick={() => !zoomPrevention && onOpenLightbox(i)}
               >
-                <Image
-                  src={img.url}
-                  alt=""
-                  fill
+                <GalleryThumb
+                  img={img}
                   sizes="131px"
-                  className={cn('object-cover transition-transform duration-300', !zoomPrevention && 'hover:scale-105')}
+                  imgClassName={cn('object-cover transition-transform duration-300', !zoomPrevention && 'hover:scale-105')}
                 />
               </div>
             ))}
@@ -567,10 +583,8 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
           </div>
         </div>
         <KakaoMapDisplay
-          address={info.address}
           latitude={info.latitude}
           longitude={info.longitude}
-          venueName={info.ceremonyHall}
           isDark={style.isDark}
         />
         {hasCoords && (
@@ -586,6 +600,12 @@ export function LocationBlock({ state, style }: FullViewSectionProps) {
               onClick={() => openTmapDirections(destinationName, info.latitude, info.longitude)}
             >
               <Navigation className="h-3 w-3 mr-1" />티맵
+            </Button>
+            <Button
+              variant="outline" size="sm" className="flex-1" style={navButtonStyle}
+              onClick={() => openKakaoMapDirections(destinationName, info.latitude, info.longitude)}
+            >
+              <Navigation className="h-3 w-3 mr-1" />카카오맵
             </Button>
           </div>
         )}

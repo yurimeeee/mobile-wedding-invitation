@@ -39,3 +39,14 @@ export function openTmapDirections(name: string, lat: number, lng: number) {
     : 'https://play.google.com/store/apps/details?id=com.skt.tmap.ku'
   openWithFallback(scheme, fallback)
 }
+
+export function openKakaoMapDirections(name: string, lat: number, lng: number) {
+  const encodedName = encodeURIComponent(name)
+  const scheme = `kakaomap://route?ep=${lat},${lng}&by=PUBLICTRANSIT`
+  const fallback = isIOS()
+    ? 'https://apps.apple.com/kr/app/id304608425'
+    : isAndroid()
+      ? 'https://play.google.com/store/apps/details?id=net.daum.android.map'
+      : `https://map.kakao.com/link/to/${encodedName},${lat},${lng}`
+  openWithFallback(scheme, fallback)
+}

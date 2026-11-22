@@ -1,13 +1,24 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { Upload, X, GripVertical } from 'lucide-react'
+import { Upload, X, GripVertical, Play } from 'lucide-react'
+import { toast } from 'sonner'
 import { type GalleryImage } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { resizeImageToDataUrl } from '@/lib/image-resize'
 
 const GALLERY_IMAGE_MAX_DIMENSION = 1600
+const GALLERY_VIDEO_MAX_BYTES = 25 * 1024 * 1024
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 
 interface GalleryUploaderProps {
   images: GalleryImage[]
@@ -17,19 +28,34 @@ interface GalleryUploaderProps {
 }
 
 export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryUploaderProps) {
+  // 영상은 대표 이미지로 쓰일 수 없으므로, 0번이 영상이어도 "대표" 배지는 실제로
+  // 대표 이미지로 쓰이는(처음 나오는 사진) 항목에 붙인다.
+  const coverIndex = images.findIndex((img) => img.type !== 'video')
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [isFileDragOver, setIsFileDragOver] = useState(false)
 
   const addFiles = useCallback((files: File[]) => {
     files.forEach((file, i) => {
+      const id = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      const order = images.length + i
+
+      if (file.type.startsWith('video/')) {
+        if (file.size > GALLERY_VIDEO_MAX_BYTES) {
+          toast.error('영상은 25MB 이하만 업로드할 수 있어요')
+          return
+        }
+        // 영상은 createImageBitmap으로 디코드할 수 없어 리사이즈 파이프라인을 타지 않고
+        // 원본 그대로 data URL로 읽어 업로드한다.
+        readFileAsDataUrl(file).then((url) => {
+          onAdd({ id, url, order, type: 'video' })
+        })
+        return
+      }
+
       if (!file.type.startsWith('image/')) return
       resizeImageToDataUrl(file, GALLERY_IMAGE_MAX_DIMENSION).then((url) => {
-        onAdd({
-          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          url,
-          order: images.length + i,
-        })
+        onAdd({ id, url, order, type: 'image' })
       })
     })
   }, [images.length, onAdd])
@@ -78,7 +104,7 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
   const fileInput = (
     <input
       type="file"
-      accept="image/*"
+      accept="image/*,video/*"
       multiple
       onChange={handleFileSelect}
       className="hidden"
@@ -104,7 +130,7 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
       <div>
         <h3 className="text-base font-semibold mb-1">포토 갤러리</h3>
         <p className="text-xs text-muted-foreground">
-          {images.length > 0 ? '첫 번째 사진이 대표 이미지로 사용돼요. 드래그해서 순서를 바꿀 수 있어요.' : '소중한 순간이 담긴 사진을 채워보세요.'}
+          {images.length > 0 ? '첫 번째 사진이 대표 이미지로 사용돼요. 드래그해서 순서를 바꿀 수 있어요.' : '소중한 순간이 담긴 사진이나 영상을 채워보세요.'}
         </p>
       </div>
 
@@ -121,7 +147,7 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
               <Upload className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium">이미지를 여기에 드롭하세요</p>
+              <p className="font-medium">사진/영상을 여기에 드롭하세요</p>
               <p className="text-sm text-muted-foreground">또는 클릭하여 찾아보기</p>
             </div>
             {fileInput}
@@ -159,12 +185,29 @@ export function GalleryUploader({ images, onAdd, onRemove, onReorder }: GalleryU
                 dragOverIndex === index && draggedIndex !== index && "ring-2 ring-accent ring-offset-2"
               )}
             >
-              <img
-                src={image.url}
-                alt=""
-                className="w-full h-full object-cover pointer-events-none"
-              />
-              {index === 0 && (
+              {image.type === 'video' ? (
+                <video
+                  src={image.url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover pointer-events-none"
+                />
+              ) : (
+                <img
+                  src={image.url}
+                  alt=""
+                  className="w-full h-full object-cover pointer-events-none"
+                />
+              )}
+              {image.type === 'video' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-black/50">
+                    <Play className="h-3.5 w-3.5 text-white fill-white" />
+                  </span>
+                </div>
+              )}
+              {index === coverIndex && (
                 <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-medium leading-none">
                   대표
                 </span>

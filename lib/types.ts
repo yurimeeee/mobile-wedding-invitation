@@ -226,6 +226,8 @@ export interface GalleryImage {
   url: string
   caption?: string
   order: number
+  // 과거 저장된 문서에는 이 필드가 없다 — 값이 없으면 사진으로 간주한다.
+  type?: 'image' | 'video'
 }
 
 // 신랑신부의 연애 이야기를 시간순으로 보여주는 타임라인 항목

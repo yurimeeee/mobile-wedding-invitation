@@ -235,7 +235,7 @@ export async function loadUserInvitations(uid: string): Promise<DashboardInvitat
           : '',
         weddingDate: d.weddingInfo?.weddingDate ?? '',
         slug: d.slug ?? '',
-        thumbnail: d.gallery?.[0]?.url ?? '',
+        thumbnail: (d.gallery ?? []).find((img: GalleryImage) => img.type !== 'video')?.url ?? '',
         viewCount: d.viewCount ?? 0,
         rsvpAttendingCount: d.rsvpAttendingCount ?? 0,
         rsvpGuestTotal: d.rsvpGuestTotal ?? 0,

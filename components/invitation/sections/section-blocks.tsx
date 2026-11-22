@@ -1,14 +1,14 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Bus, CalendarPlus, Car, Heart, MapPin, Navigation, Phone } from 'lucide-react';
+import { Bus, CalendarPlus, Car, Heart, MapPin, Navigation, Phone, Play } from 'lucide-react';
 import Image from 'next/image';
 import { type EditorState, type GalleryImage } from '@/lib/types';
 import type { PreviewStyleConfig } from '@/lib/preview-style';
 import { Button } from '@/components/ui/button';
 import { ParentsNames } from '@/components/invitation/parent-name';
 import { downloadWeddingIcs } from '@/lib/calendar-export';
-import { openNaverMapDirections, openTmapDirections } from '@/lib/navigation-links';
+import { openNaverMapDirections, openTmapDirections, openKakaoMapDirections } from '@/lib/navigation-links';
 import { KakaoMapDisplay } from '@/components/editor/kakao-map';
 import { WeddingCalendar } from '@/components/editor/wedding-calendar';
 import { ShareSection } from '@/components/editor/share-section';
@@ -38,9 +38,26 @@ function PreviewImage({ src, alt, sizes, className }: { src: string; alt: string
   );
 }
 
+// 갤러리 썸네일 전용 — 영상 항목은 next/image로 표시할 수 없어 <video> + 재생 배지로 대신한다.
+function GalleryThumb({ img, sizes }: { img: GalleryImage; sizes: string }) {
+  if (img.type === 'video') {
+    return (
+      <>
+        <video src={img.url} muted playsInline preload="metadata" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-black/50">
+            <Play className="h-3 w-3 text-white fill-white" />
+          </span>
+        </div>
+      </>
+    );
+  }
+  return <PreviewImage src={img.url} alt="" sizes={sizes} className="object-cover" />;
+}
+
 function getDerived(state: EditorState, style: PreviewStyleConfig) {
   const info = state.weddingInfo;
-  const mainImage = state.gallery.length > 0 ? state.gallery[0] : null;
+  const mainImage = state.gallery.find((img) => img.type !== 'video') ?? null;
   const textStyle: CSSProperties = { color: style.text };
   const mutedStyle: CSSProperties = { color: style.text, opacity: 0.55 };
   const dividerStyle: CSSProperties = { background: style.divider };
@@ -521,7 +538,7 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
                 style={{ transform: `rotate(${SCRAPBOOK_ROTATIONS[i % SCRAPBOOK_ROTATIONS.length]}deg)` }}
               >
                 <div className="relative aspect-square rounded overflow-hidden">
-                  <PreviewImage src={img.url} alt="" sizes="160px" className="object-cover" />
+                  <GalleryThumb img={img} sizes="160px" />
                 </div>
               </div>
             ))}
@@ -539,7 +556,7 @@ export function GalleryBlock({ state, style }: SectionBlockProps) {
           <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
             {state.gallery.slice(0, 4).map((img) => (
               <div key={img.id} className="relative aspect-square overflow-hidden">
-                <PreviewImage src={img.url} alt="" sizes="200px" className="object-cover" />
+                <GalleryThumb img={img} sizes="200px" />
               </div>
             ))}
           </div>
@@ -565,10 +582,8 @@ export function LocationBlock({ state, style }: SectionBlockProps) {
         </div>
       </div>
       <KakaoMapDisplay
-        address={info.address}
         latitude={info.latitude}
         longitude={info.longitude}
-        venueName={info.ceremonyHall}
         isDark={style.isDark}
       />
       {hasCoords && (
@@ -584,6 +599,12 @@ export function LocationBlock({ state, style }: SectionBlockProps) {
             onClick={() => openTmapDirections(destinationName, info.latitude, info.longitude)}
           >
             <Navigation className="h-3 w-3 mr-1" />티맵
+          </Button>
+          <Button
+            variant="outline" size="sm" className="flex-1 text-xs" style={navButtonStyle}
+            onClick={() => openKakaoMapDirections(destinationName, info.latitude, info.longitude)}
+          >
+            <Navigation className="h-3 w-3 mr-1" />카카오맵
           </Button>
         </div>
       )}
