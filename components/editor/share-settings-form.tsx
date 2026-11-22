@@ -2,8 +2,8 @@
 
 import { useRef } from 'react'
 import Image from 'next/image'
-import { ImagePlus, MessageCircle, Link } from 'lucide-react'
-import { type ShareSettings, type CalendarSettings } from '@/lib/types'
+import { ImagePlus, MessageCircle, Link, MessageSquareText } from 'lucide-react'
+import { type ShareSettings, type CalendarSettings, type WeddingInfo } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/accordion'
 import { SlugInput } from '@/components/editor/slug-input'
 import { resizeImageToDataUrl } from '@/lib/image-resize'
+import { InviteMessageComposer } from '@/components/editor/invite-message-composer'
 
 // 카카오/OG 공유 카드 권장 크기(1200×630 근방)를 넉넉히 커버하는 정사각형 상한.
 const SHARE_IMAGE_MAX_DIMENSION = 1200
@@ -22,6 +23,7 @@ const SHARE_IMAGE_MAX_DIMENSION = 1200
 interface ShareSettingsFormProps {
   shareSettings: ShareSettings
   calendarSettings: CalendarSettings
+  weddingInfo: WeddingInfo
   onShareChange: (updates: Partial<ShareSettings>) => void
   onCalendarChange: (updates: Partial<CalendarSettings>) => void
   slug: string
@@ -73,6 +75,7 @@ function ImageUploadBox({
 export function ShareSettingsForm({
   shareSettings,
   calendarSettings,
+  weddingInfo,
   onShareChange,
   onCalendarChange,
   slug,
@@ -92,6 +95,19 @@ export function ShareSettingsForm({
       </div>
 
       <Accordion type="multiple" defaultValue={['calendar', 'kakao', 'link']} className="space-y-2">
+        {/* 초대 문구 */}
+        <AccordionItem value="invite-message" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2">
+              <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+              <span>초대 문구</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <InviteMessageComposer weddingInfo={weddingInfo} slug={slug} invitationId={invitationId} />
+          </AccordionContent>
+        </AccordionItem>
+
         {/* 캘린더 설정 */}
         <AccordionItem value="calendar" className="border rounded-lg px-4">
           <AccordionTrigger className="hover:no-underline">

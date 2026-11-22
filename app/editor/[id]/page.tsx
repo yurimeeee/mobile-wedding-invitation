@@ -373,6 +373,7 @@ export default function EditorPage() {
                 <ShareSettingsForm
                   shareSettings={state.shareSettings}
                   calendarSettings={state.calendarSettings}
+                  weddingInfo={state.weddingInfo}
                   onShareChange={updateShareSettings}
                   onCalendarChange={updateCalendarSettings}
                   slug={state.slug}
@@ -530,6 +531,7 @@ export default function EditorPage() {
                   <ShareSettingsForm
                     shareSettings={state.shareSettings}
                     calendarSettings={state.calendarSettings}
+                    weddingInfo={state.weddingInfo}
                     onShareChange={updateShareSettings}
                     onCalendarChange={updateCalendarSettings}
                     slug={state.slug}
