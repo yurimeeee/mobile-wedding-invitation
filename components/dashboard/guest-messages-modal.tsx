@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Loader2, Lock, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { deleteGuestMessage, loadGuestMessages, type GuestMessage } from '@/lib/message-service'
+import { deleteGuestMessage, loadGuestMessages, type GuestMessage, type GuestMessageCursor } from '@/lib/message-service'
 
 interface GuestMessagesModalProps {
   open: boolean
@@ -17,15 +17,36 @@ interface GuestMessagesModalProps {
 export function GuestMessagesModal({ open, onOpenChange, invitationId, title }: GuestMessagesModalProps) {
   const [messages, setMessages] = useState<GuestMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [cursor, setCursor] = useState<GuestMessageCursor | null>(null)
+  const [hasMore, setHasMore] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setIsLoading(true)
-    loadGuestMessages(invitationId, true)
-      .then(setMessages)
+    loadGuestMessages(invitationId, { includeSecretContents: true })
+      .then((page) => {
+        setMessages(page.messages)
+        setCursor(page.cursor)
+        setHasMore(page.hasMore)
+      })
       .catch(() => toast.error('메시지를 불러오지 못했습니다'))
       .finally(() => setIsLoading(false))
   }, [open, invitationId])
+
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true)
+    try {
+      const page = await loadGuestMessages(invitationId, { includeSecretContents: true, cursor })
+      setMessages((prev) => [...prev, ...page.messages])
+      setCursor(page.cursor)
+      setHasMore(page.hasMore)
+    } catch {
+      toast.error('메시지를 더 불러오지 못했습니다')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const handleDelete = async (messageId: string) => {
     setMessages((prev) => prev.filter((m) => m.id !== messageId))
@@ -34,7 +55,9 @@ export function GuestMessagesModal({ open, onOpenChange, invitationId, title }: 
       toast.success('메시지가 삭제되었습니다')
     } catch {
       toast.error('삭제에 실패했습니다')
-      loadGuestMessages(invitationId, true).then(setMessages).catch(() => {})
+      loadGuestMessages(invitationId, { includeSecretContents: true })
+        .then((page) => { setMessages(page.messages); setCursor(page.cursor); setHasMore(page.hasMore) })
+        .catch(() => {})
     }
   }
 
@@ -82,6 +105,11 @@ export function GuestMessagesModal({ open, onOpenChange, invitationId, title }: 
                 </Button>
               </div>
             ))}
+            {hasMore && (
+              <Button variant="outline" size="sm" className="w-full" onClick={handleLoadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? '불러오는 중...' : '더 보기'}
+              </Button>
+            )}
           </div>
         )}
       </DialogContent>

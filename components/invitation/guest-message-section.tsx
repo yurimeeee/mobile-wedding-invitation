@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import {
-  addGuestMessage, deleteGuestMessageWithPassword, loadGuestMessages, type GuestMessage,
+  addGuestMessage, deleteGuestMessageWithPassword, loadGuestMessages,
+  type GuestMessage, type GuestMessageCursor,
 } from '@/lib/message-service'
 
 interface GuestMessageSectionProps {
@@ -28,6 +29,9 @@ const STICKY_ROTATIONS = [-1.5, 1.2, -0.8]
 export function GuestMessageSection({ invitationId, textStyle, mutedStyle, sectionBg, accentColor, lovely }: GuestMessageSectionProps) {
   const [messages, setMessages] = useState<GuestMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [cursor, setCursor] = useState<GuestMessageCursor | null>(null)
+  const [hasMore, setHasMore] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [form, setForm] = useState({ name: '', password: '', contents: '', secret: false })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -35,10 +39,28 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
 
   useEffect(() => {
     loadGuestMessages(invitationId)
-      .then(setMessages)
+      .then((page) => {
+        setMessages(page.messages)
+        setCursor(page.cursor)
+        setHasMore(page.hasMore)
+      })
       .catch(() => toast.error('메시지를 불러오지 못했습니다'))
       .finally(() => setIsLoading(false))
   }, [invitationId])
+
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true)
+    try {
+      const page = await loadGuestMessages(invitationId, { cursor })
+      setMessages((prev) => [...prev, ...page.messages])
+      setCursor(page.cursor)
+      setHasMore(page.hasMore)
+    } catch {
+      toast.error('메시지를 더 불러오지 못했습니다')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!form.name.trim()) return toast('성함을 입력해주세요')
@@ -176,6 +198,17 @@ export function GuestMessageSection({ invitationId, textStyle, mutedStyle, secti
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <Button
+          variant="outline"
+          onClick={handleLoadMore}
+          disabled={isLoadingMore}
+          className={cn('w-full mt-3', lovely && 'rounded-full')}
+        >
+          {isLoadingMore ? '불러오는 중...' : '메시지 더 보기'}
+        </Button>
+      )}
     </div>
   )
 }
