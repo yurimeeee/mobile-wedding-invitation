@@ -4,7 +4,7 @@ import { deleteInvitation, loadInvitation, loadUserInvitations, saveInvitation }
 import {
   AUTO_EXPIRE_DAYS,
   defaultCalendarSettings, defaultCustomLayout, defaultMusicSettings,
-  defaultPrivacySettings, defaultShareSettings, defaultWeddingInfo, defaultStoryItems,
+  defaultPrivacySettings, defaultRSVPSettings, defaultShareSettings, defaultWeddingInfo, defaultStoryItems,
   type EditorState,
 } from './types'
 
@@ -70,6 +70,7 @@ function makeState(overrides: { weddingDate?: string; autoExpireEnabled?: boolea
     calendarSettings: defaultCalendarSettings,
     shareSettings: defaultShareSettings,
     privacySettings: { ...defaultPrivacySettings, autoExpireEnabled: overrides.autoExpireEnabled ?? false },
+    rsvpSettings: defaultRSVPSettings,
     slug: '',
     mode: 'template',
     customLayout: defaultCustomLayout,
@@ -92,6 +93,7 @@ describe('loadInvitation', () => {
     expect(state?.gallery).toEqual([])
     expect(state?.slug).toBe('')
     expect(state?.introStyle).toBe('fade')
+    expect(state?.rsvpSettings).toEqual(defaultRSVPSettings)
   })
 })
 

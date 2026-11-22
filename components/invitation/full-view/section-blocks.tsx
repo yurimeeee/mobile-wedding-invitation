@@ -652,6 +652,7 @@ export function RsvpBlock({ state, style, invitationId }: FullViewSectionProps) 
         sectionBg={style.sectionBg}
         accentColor={style.accent}
         lovely={state.template === 'lovely-blush'}
+        rsvpSettings={state.rsvpSettings}
       />
     </div>
   );

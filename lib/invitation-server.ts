@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from './firebase-admin'
 import {
   defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo,
-  defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout, defaultStoryItems,
+  defaultMusicSettings, defaultPrivacySettings, defaultRSVPSettings, defaultCustomLayout, defaultStoryItems,
   reconcileSections,
   type EditorState,
 } from './types'
@@ -24,6 +24,7 @@ function toEditorState(data: FirebaseFirestore.DocumentData): EditorState {
     calendarSettings: data.calendarSettings ?? defaultCalendarSettings,
     shareSettings: data.shareSettings ?? defaultShareSettings,
     privacySettings: { ...defaultPrivacySettings, ...(data.privacySettings ?? {}) },
+    rsvpSettings: { ...defaultRSVPSettings, ...(data.rsvpSettings ?? {}) },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout

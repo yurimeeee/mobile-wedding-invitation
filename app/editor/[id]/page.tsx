@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BookHeart,
   Check,
+  ClipboardCheck,
   Copy,
   Eye,
   FileText,
@@ -42,6 +43,7 @@ import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { MusicControls } from '@/components/editor/music-controls';
 import { PrivacySettingsForm } from '@/components/editor/privacy-settings-form';
+import { RSVPSettingsForm } from '@/components/editor/rsvp-settings-form';
 import { SectionReorderList } from '@/components/editor/custom/section-reorder-list';
 import { ShareSettingsForm } from '@/components/editor/share-settings-form';
 import { StoryEditor } from '@/components/editor/story-editor';
@@ -126,6 +128,7 @@ export default function EditorPage() {
     updateCalendarSettings,
     updateShareSettings,
     updatePrivacySettings,
+    updateRSVPSettings,
     updateSlug,
     reorderSections,
     toggleSectionVisibility,
@@ -254,6 +257,7 @@ export default function EditorPage() {
     { id: 'gallery', label: '갤러리', icon: Image },
     { id: 'story', label: '스토리', icon: BookHeart },
     { id: 'music', label: '음악', icon: Music },
+    { id: 'rsvp', label: '참석여부', icon: ClipboardCheck },
     { id: 'share', label: '공유', icon: Share2 },
     { id: 'privacy', label: '보안', icon: Lock },
   ];
@@ -365,6 +369,7 @@ export default function EditorPage() {
                 <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
                 <GalleryUploader images={state.gallery} onAdd={addGalleryImage} onRemove={removeGalleryImage} onReorder={reorderGallery} />
                 <StoryEditor items={state.storyItems} onAdd={addStoryItem} onUpdate={updateStoryItem} onRemove={removeStoryItem} onReorder={reorderStoryItems} />
+                <RSVPSettingsForm rsvpSettings={state.rsvpSettings} onChange={updateRSVPSettings} />
                 <ShareSettingsForm
                   shareSettings={state.shareSettings}
                   calendarSettings={state.calendarSettings}
@@ -517,6 +522,9 @@ export default function EditorPage() {
                 </TabsContent>
                 <TabsContent value="music" className="mt-0">
                   <MusicControls settings={state.musicSettings} onChange={setMusicSettings} />
+                </TabsContent>
+                <TabsContent value="rsvp" className="mt-0">
+                  <RSVPSettingsForm rsvpSettings={state.rsvpSettings} onChange={updateRSVPSettings} />
                 </TabsContent>
                 <TabsContent value="share" className="mt-0">
                   <ShareSettingsForm

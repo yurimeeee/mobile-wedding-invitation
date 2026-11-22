@@ -5,7 +5,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { auth, db, storage } from './firebase'
 import type { EditorState, GalleryImage, MusicSettings, ShareSettings, StoryItem } from './types'
-import { AUTO_EXPIRE_DAYS, defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultCustomLayout, defaultStoryItems, reconcileSections } from './types'
+import { AUTO_EXPIRE_DAYS, defaultCalendarSettings, defaultShareSettings, defaultWeddingInfo, defaultMusicSettings, defaultPrivacySettings, defaultRSVPSettings, defaultCustomLayout, defaultStoryItems, reconcileSections } from './types'
 import { saveVersionSnapshot } from './version-service'
 
 function computeExpiresAt(state: EditorState): Timestamp | null {
@@ -125,6 +125,7 @@ export async function saveInvitation(
       calendarSettings: state.calendarSettings,
       shareSettings,
       privacySettings: publicPrivacySettings,
+      rsvpSettings: state.rsvpSettings,
       slug: state.slug || '',
       mode: state.mode ?? 'template',
       introStyle: state.introStyle ?? 'fade',
@@ -164,6 +165,7 @@ export async function loadInvitation(invitationId: string): Promise<EditorState 
       ...(data.privacySettings ?? {}),
       lockPassword: lockSnap.data()?.password ?? '',
     },
+    rsvpSettings: { ...defaultRSVPSettings, ...(data.rsvpSettings ?? {}) },
     slug: data.slug ?? '',
     mode: data.mode ?? 'template',
     customLayout: data.customLayout

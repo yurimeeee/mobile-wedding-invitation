@@ -654,6 +654,7 @@ export function RsvpBlock({ state, style, invitationId }: SectionBlockProps) {
         sectionBg={style.sectionBg}
         accentColor={style.accent}
         lovely={state.template === 'lovely-blush'}
+        rsvpSettings={state.rsvpSettings}
       />
     </div>
   );

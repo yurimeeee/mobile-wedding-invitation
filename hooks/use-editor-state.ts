@@ -14,6 +14,7 @@ import {
   type CalendarSettings,
   type ShareSettings,
   type PrivacySettings,
+  type RSVPSettings,
   type SectionInstance,
   type FreeElement,
   type CanvasBackground,
@@ -24,6 +25,7 @@ import {
   defaultCalendarSettings,
   defaultShareSettings,
   defaultPrivacySettings,
+  defaultRSVPSettings,
   defaultCustomLayout,
   defaultStoryItems,
   templates,
@@ -46,6 +48,7 @@ const initialState: EditorState = {
   calendarSettings: defaultCalendarSettings,
   shareSettings: defaultShareSettings,
   privacySettings: defaultPrivacySettings,
+  rsvpSettings: defaultRSVPSettings,
   slug: '',
   mode: 'template',
   customLayout: defaultCustomLayout,
@@ -195,6 +198,10 @@ export function useEditorState(invitationId: string) {
     setState((prev) => ({ ...prev, privacySettings: { ...prev.privacySettings, ...updates } }))
   }
 
+  const updateRSVPSettings = (updates: Partial<RSVPSettings>) => {
+    setState((prev) => ({ ...prev, rsvpSettings: { ...prev.rsvpSettings, ...updates } }))
+  }
+
   const updateSlug = (slug: string) => {
     setState((prev) => ({ ...prev, slug }))
   }
@@ -321,6 +328,7 @@ export function useEditorState(invitationId: string) {
     updateCalendarSettings,
     updateShareSettings,
     updatePrivacySettings,
+    updateRSVPSettings,
     updateSlug,
     reorderSections,
     toggleSectionVisibility,

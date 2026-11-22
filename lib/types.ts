@@ -7,6 +7,7 @@ export interface EditorState {
   calendarSettings: CalendarSettings
   shareSettings: ShareSettings
   privacySettings: PrivacySettings
+  rsvpSettings: RSVPSettings
   slug: string
   mode: EditorMode
   customLayout?: CustomLayout
