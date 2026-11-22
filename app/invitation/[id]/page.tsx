@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: InvitationPageProps): Promise
   const brideName = `${state.weddingInfo.brideLastNameKr}${state.weddingInfo.brideFirstNameKr}`
   const title = state.shareSettings.linkTitle || `${groomName} ♥ ${brideName} 결혼식에 초대합니다`
   const description = state.shareSettings.linkDesc || state.weddingInfo.mainPhrase || '모바일 청첩장'
-  const image = state.shareSettings.linkImg || state.gallery[0]?.url
+  // 공유 이미지를 직접 업로드하지 않았으면 신랑신부 이름/예식일이 들어간 카드를 자동 생성해 보여준다.
+  const image = state.shareSettings.linkImg || `${getSiteUrl()}/api/og/${state.slug || result.id}`
   const url = `${getSiteUrl()}/invitation/${state.slug || result.id}`
 
   return {
@@ -32,13 +33,13 @@ export async function generateMetadata({ params }: InvitationPageProps): Promise
       description,
       url,
       type: 'website',
-      images: image ? [{ url: image }] : undefined,
+      images: [{ url: image, width: 1200, height: 630 }],
     },
     twitter: {
-      card: image ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      images: image ? [image] : undefined,
+      images: [image],
     },
   }
 }
