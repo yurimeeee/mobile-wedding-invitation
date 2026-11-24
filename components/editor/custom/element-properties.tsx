@@ -21,7 +21,7 @@ import {
   Unlock,
   type LucideIcon,
 } from 'lucide-react';
-import type { FreeElement, TextAlign, TextFontFamily } from '@/lib/types';
+import { textFontFamilyLabels, type FreeElement, type TextAlign, type TextFontFamily } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -243,8 +243,9 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sans">고딕</SelectItem>
-                <SelectItem value="serif">명조</SelectItem>
+                {(Object.keys(textFontFamilyLabels) as TextFontFamily[]).map((key) => (
+                  <SelectItem key={key} value={key}>{textFontFamilyLabels[key]}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -260,6 +261,34 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
               max={15}
               step={0.5}
               onValueChange={([fontSize]) => onChange({ fontSize })}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">자간</Label>
+              <span className="text-xs text-muted-foreground">{Math.round((element.letterSpacing ?? 0) * 10) / 10}</span>
+            </div>
+            <Slider
+              value={[element.letterSpacing ?? 0]}
+              min={-0.5}
+              max={2}
+              step={0.1}
+              onValueChange={([letterSpacing]) => onChange({ letterSpacing })}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">행간</Label>
+              <span className="text-xs text-muted-foreground">{Math.round((element.lineHeight ?? 1) * 10) / 10}</span>
+            </div>
+            <Slider
+              value={[element.lineHeight ?? 1]}
+              min={0.8}
+              max={2.5}
+              step={0.1}
+              onValueChange={([lineHeight]) => onChange({ lineHeight })}
             />
           </div>
 
@@ -393,7 +422,9 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
         {!(element.type === 'shape' && element.shapeKind === 'line') && (
           <>
             <div className="flex items-center justify-between">
-              <Label className="text-sm">테두리</Label>
+              {/* 도형/스티커엔 테두리 사각 박스지만, 텍스트는 Konva가 글자 자체를 strokeText로
+                  그려서 같은 필드가 실제로는 글자 외곽선 효과가 된다 — 라벨만 맥락에 맞게 바꾼다. */}
+              <Label className="text-sm">{element.type === 'text' ? '글자 외곽선' : '테두리'}</Label>
               <Switch checked={!!element.borderEnabled} onCheckedChange={(borderEnabled) => onChange({ borderEnabled })} />
             </div>
 

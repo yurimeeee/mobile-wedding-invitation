@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Noto_Serif_KR, Dancing_Script } from 'next/font/google'
+import { Geist, Geist_Mono, Noto_Serif_KR, Dancing_Script, Gowun_Batang, Jua } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/components/auth-provider'
@@ -29,6 +29,20 @@ const dancingScript = Dancing_Script({
   variable: '--font-dancing-script'
 })
 
+// 자유 요소 캔버스의 텍스트 폰트 선택지 확장용 — 둘 다 한글을 지원하면서도
+// Noto Serif KR과는 분위기가 다른(차분한 손글씨풍 / 둥글고 발랄한) 선택지로 골랐다.
+const gowunBatang = Gowun_Batang({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: '--font-gowun-batang'
+})
+
+const jua = Jua({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: '--font-jua'
+})
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: 'WedInvite - 아름다운 모바일 청첩장',
@@ -42,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className={`${geist.variable} ${geistMono.variable} ${notoSerifKR.variable} ${dancingScript.variable} bg-background`}>
+    <html lang="ko" className={`${geist.variable} ${geistMono.variable} ${notoSerifKR.variable} ${dancingScript.variable} ${gowunBatang.variable} ${jua.variable} bg-background`}>
       <body className="font-sans antialiased min-h-screen">
         <AuthProvider>
           {children}

@@ -8,10 +8,11 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type D
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { type CustomElementAsset, type FreeElement, type ShapeKind, shapeKindLabels, MAX_CUSTOM_ELEMENT_FILE_SIZE, MAX_CUSTOM_ELEMENT_DIMENSION } from '@/lib/types';
+import { type CustomElementAsset, type FreeElement, type ShapeKind, shapeKindLabels, nextZIndex, MAX_CUSTOM_ELEMENT_FILE_SIZE, MAX_CUSTOM_ELEMENT_DIMENSION } from '@/lib/types';
 import { uploadCustomElement, loadCustomElements, deleteCustomElement, CustomElementValidationError } from '@/lib/custom-element-service';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ElementProperties } from '@/components/editor/custom/element-properties';
 
 const stickerLibrary: { id: string; label: string; src: string }[] = [
@@ -29,10 +30,6 @@ const shapeLibrary: { kind: ShapeKind; icon: typeof Minus; defaults: { x: number
 
 const maxSizeLabel = `${MAX_CUSTOM_ELEMENT_FILE_SIZE / (1024 * 1024)}MB`;
 const maxDimensionLabel = `${MAX_CUSTOM_ELEMENT_DIMENSION}×${MAX_CUSTOM_ELEMENT_DIMENSION}px`;
-
-function nextZIndex(elements: FreeElement[]) {
-  return elements.reduce((max, el) => Math.max(max, el.zIndex), 0) + 1;
-}
 
 function elementLabel(el: FreeElement): string {
   if (el.type === 'text') return el.text || '텍스트';
@@ -429,20 +426,7 @@ export function ElementPanel({ uid, elements, selectedIds, onSelect, onAdd, onUp
               <p className="text-xs text-muted-foreground">스티커와 텍스트로 자유롭게 꾸며보세요.</p>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {stickerLibrary.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => addSticker(s.src)}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-border p-2 hover:border-primary transition-colors"
-                >
-                  <div className="relative w-10 h-10">
-                    <Image src={s.src} alt={s.label} fill className="object-contain" />
-                  </div>
-                  <span className="text-[11px] text-muted-foreground">{s.label}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-5 gap-2">
               <button
                 type="button"
                 onClick={addText}
@@ -466,47 +450,74 @@ export function ElementPanel({ uid, elements, selectedIds, onSelect, onAdd, onUp
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-medium">내 요소</p>
-              <label className="inline-flex">
-                <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleUpload} className="hidden" disabled={uploading} />
-                <span className={cn('inline-flex items-center gap-1 text-xs text-accent hover:underline cursor-pointer', uploading && 'opacity-50 pointer-events-none')}>
-                  {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                  업로드
-                </span>
-              </label>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              PNG · JPG · WebP · SVG, {maxSizeLabel} 이하, {maxDimensionLabel} 이하 권장. 업로드한 요소는 나에게만 보여요.
-            </p>
-
-            {myElements.length > 0 ? (
-              <div className="grid grid-cols-4 gap-2">
-                {myElements.map((asset) => (
-                  <div key={asset.id} className="relative group">
+            <p className="text-sm font-medium mb-2">스티커</p>
+            {/* "기본"은 지금 제공되는 그림 몇 개뿐이라, 더 다양한 스티커가 필요하면
+                "내 요소" 탭에서 직접 업로드해 쓰는 쪽으로 열어둔다. */}
+            <Tabs defaultValue="basic">
+              <TabsList>
+                <TabsTrigger value="basic">기본</TabsTrigger>
+                <TabsTrigger value="mine">내 요소</TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic">
+                <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                  {stickerLibrary.map((s) => (
                     <button
+                      key={s.id}
                       type="button"
-                      onClick={() => addSticker(asset.url)}
-                      className="w-full flex flex-col items-center gap-1 rounded-lg border border-border p-2 hover:border-primary transition-colors"
+                      onClick={() => addSticker(s.src)}
+                      className="flex flex-col items-center gap-1 rounded-lg border border-border p-2 hover:border-primary transition-colors"
                     >
                       <div className="relative w-10 h-10">
-                        <Image src={asset.url} alt={asset.name} fill className="object-contain" unoptimized />
+                        <Image src={s.src} alt={s.label} fill className="object-contain" />
                       </div>
-                      <span className="text-[11px] text-muted-foreground truncate w-full text-center">{asset.name}</span>
+                      <span className="text-[11px] text-muted-foreground">{s.label}</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteMyElement(asset.id)}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-background border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                  ))}
+                </div>
+              </TabsContent>
+              <TabsContent value="mine" className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    PNG · JPG · WebP · SVG, {maxSizeLabel} 이하, {maxDimensionLabel} 이하 권장. 업로드한 요소는 나에게만 보여요.
+                  </p>
+                  <label className="inline-flex shrink-0 ml-2">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleUpload} className="hidden" disabled={uploading} />
+                    <span className={cn('inline-flex items-center gap-1 text-xs text-accent hover:underline cursor-pointer', uploading && 'opacity-50 pointer-events-none')}>
+                      {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                      업로드
+                    </span>
+                  </label>
+                </div>
+
+                {myElements.length > 0 ? (
+                  <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                    {myElements.map((asset) => (
+                      <div key={asset.id} className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => addSticker(asset.url)}
+                          className="w-full flex flex-col items-center gap-1 rounded-lg border border-border p-2 hover:border-primary transition-colors"
+                        >
+                          <div className="relative w-10 h-10">
+                            <Image src={asset.url} alt={asset.name} fill className="object-contain" unoptimized />
+                          </div>
+                          <span className="text-[11px] text-muted-foreground truncate w-full text-center">{asset.name}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMyElement(asset.id)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-background border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground/70">아직 업로드한 요소가 없어요.</p>
-            )}
+                ) : (
+                  <p className="text-xs text-muted-foreground/70">아직 업로드한 요소가 없어요.</p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </>
       )}
