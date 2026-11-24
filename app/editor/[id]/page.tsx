@@ -53,7 +53,7 @@ import { WeddingInfoForm } from '@/components/editor/wedding-info-form';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { createNewInvitation } from '@/lib/invitation-service';
-import { defaultCustomLayout } from '@/lib/types';
+import { defaultCustomLayout, nextZIndex } from '@/lib/types';
 import { templateConfig } from '@/lib/preview-style';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -248,6 +248,57 @@ export default function EditorPage() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [selectedElementIds, freeElements]);
+
+  // Delete/Backspace removes every selected element — same typing guard as the
+  // shortcuts above, and the panel's trash button already allows this regardless
+  // of lock, so the keyboard path matches that rather than skipping locked ones.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      if (selectedElementIds.length === 0) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+      selectedElementIds.forEach((id) => removeFreeElement(id));
+      setSelectedElementIds([]);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedElementIds, removeFreeElement]);
+
+  // Cmd/Ctrl+D duplicates every selected element — same offset/z-index rule as
+  // the panel's duplicate button — and selects the new copies so they can be
+  // dragged right away, overriding the browser's own "bookmark page" shortcut.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'd') return;
+      if (selectedElementIds.length === 0) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+
+      const newIds: string[] = [];
+      let zIndex = nextZIndex(freeElements);
+      selectedElementIds.forEach((id) => {
+        const el = freeElements.find((e2) => e2.id === id);
+        if (!el) return;
+        const newId = crypto.randomUUID();
+        addFreeElement({
+          ...el,
+          id: newId,
+          x: Math.min(el.x + 4, 100 - el.width),
+          y: el.y + 4,
+          zIndex: zIndex++,
+        });
+        newIds.push(newId);
+      });
+      setSelectedElementIds(newIds);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedElementIds, freeElements, addFreeElement]);
 
   const sections = [
     { id: 'template', label: '템플릿', icon: Palette },

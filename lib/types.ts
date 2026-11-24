@@ -42,13 +42,24 @@ export interface SectionInstance {
 
 export type FreeElementType = 'sticker' | 'image' | 'text' | 'shape'
 
-export type TextFontFamily = 'sans' | 'serif'
+export type TextFontFamily = 'sans' | 'serif' | 'script' | 'elegant' | 'rounded'
 export type TextAlign = 'left' | 'center' | 'right'
 export type ShapeKind = 'line' | 'rect' | 'circle' | 'heart'
 
 export const textFontFamilyMap: Record<TextFontFamily, string> = {
   sans: 'Geist, system-ui, sans-serif',
   serif: "'Noto Serif KR', 'Times New Roman', serif",
+  script: "'Dancing Script', cursive",
+  elegant: "'Gowun Batang', serif",
+  rounded: "'Jua', sans-serif",
+}
+
+export const textFontFamilyLabels: Record<TextFontFamily, string> = {
+  sans: '고딕',
+  serif: '명조',
+  script: '손글씨(영문)',
+  elegant: '고운 바탕',
+  rounded: '둥근 느낌',
 }
 
 export const shapeKindLabels: Record<ShapeKind, string> = {
@@ -89,6 +100,8 @@ export interface FreeElement {
   bold?: boolean
   italic?: boolean
   align?: TextAlign
+  letterSpacing?: number // % of canvas width, same unit convention as fontSize; 0/undefined = none
+  lineHeight?: number // unitless multiplier of fontSize, same convention as CSS line-height; undefined = Konva's own default (1)
   // shape-only — which primitive to draw; fill color reuses `color` above
   shapeKind?: ShapeKind
   // drop shadow — on/off only, uses one fixed preset rather than exposing
@@ -96,9 +109,18 @@ export interface FreeElement {
   shadow?: boolean
   // border/stroke — not offered for shapeKind 'line', since a line already
   // uses its own `color` as its stroke and a second stroke would conflict.
+  // For text elements specifically, Konva strokes the glyphs themselves
+  // (canvas strokeText), so this doubles as a text-outline effect rather than
+  // a bounding-box border — the properties panel labels it accordingly.
   borderEnabled?: boolean
   borderColor?: string
   borderWidth?: number // % of canvas width, same unit convention as fontSize
+}
+
+// Shared by every place that adds/duplicates a free element (sidebar panel,
+// keyboard duplicate shortcut) so new elements always land on top.
+export function nextZIndex(elements: FreeElement[]): number {
+  return elements.reduce((max, el) => Math.max(max, el.zIndex), 0) + 1
 }
 
 export interface CanvasBackground {
