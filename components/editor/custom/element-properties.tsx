@@ -154,7 +154,7 @@ function AlignIconButton({ icon: Icon, onClick, disabled, label }: {
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="flex h-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
     >
       <Icon className="h-3.5 w-3.5" />
     </button>
@@ -340,10 +340,11 @@ export function ElementProperties({ element, elements, onChange, onRemove, onDup
 
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">정렬</Label>
-          <div className="grid grid-cols-6 gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <AlignIconButton icon={AlignHorizontalJustifyStart} onClick={alignLeft} disabled={element.locked} label="왼쪽 정렬" />
             <AlignIconButton icon={AlignHorizontalJustifyCenter} onClick={centerHorizontal} disabled={element.locked} label="가로 중앙 정렬" />
             <AlignIconButton icon={AlignHorizontalJustifyEnd} onClick={alignRight} disabled={element.locked} label="오른쪽 정렬" />
+            <div className="mx-0.5 h-5 w-px bg-border" />
             <AlignIconButton icon={AlignVerticalJustifyStart} onClick={alignTop} disabled={element.locked} label="위쪽 정렬" />
             <AlignIconButton
               icon={AlignVerticalJustifyCenter}
